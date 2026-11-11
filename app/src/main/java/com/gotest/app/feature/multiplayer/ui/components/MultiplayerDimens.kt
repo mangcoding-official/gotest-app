@@ -52,6 +52,10 @@ internal object MultiplayerDimens {
     val radioSelectedStroke = 6.dp
     val radioStroke = 1.5.dp
 
+    /** Label column and player avatar of "Detail Permainan". */
+    val detailLabelWidth = 120.dp
+    val detailAvatar = 36.dp
+
     /** Cells per row of "Benar atau salah per soal" and of the question navigator. */
     const val OUTCOME_GRID_COLUMNS = 6
     const val NAVIGATOR_GRID_COLUMNS = 5

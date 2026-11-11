@@ -6,6 +6,17 @@
     <string name="upgrade_product_yearly_detail">Langganan Tahunan • 12 Bulan</string>
     <string name="upgrade_value_unavailable">-</string>
 
+    <!-- Beranda / Promo Semangat Merdeka (frame 22863) -->
+    <string name="upgrade_promo_title">Promo</string>
+    <string name="upgrade_promo_discount">-%1$d%%</string>
+    <string name="upgrade_promo_cd_original_price">Harga normal %1$s</string>
+    <string name="upgrade_promo_benefits_title">Yang kamu dapat</string>
+    <string name="upgrade_promo_terms_title">Syarat &amp; Ketentuan</string>
+    <string name="upgrade_promo_term_bullet">• %1$s</string>
+    <string name="upgrade_promo_claim">Ambil Promo</string>
+    <string name="upgrade_promo_empty_title">Promo tidak tersedia</string>
+    <string name="upgrade_promo_empty_message">Promo ini sudah berakhir atau tidak ditemukan.</string>
+
     <!-- Upgrade / Pilih Paket (frame 11349) -->
     <string name="upgrade_plan_title">Upgrade Akun</string>
     <string name="upgrade_plan_close">Tutup</string>
@@ -42,6 +53,19 @@
     <string name="upgrade_checkout_terms">Dengan melanjutkan kamu menyetujui syarat dan ketentuan pembayaran GoTest.</string>
     <string name="upgrade_checkout_error">Pesanan belum bisa dibuat. Coba lagi.</string>
 
+    <!-- Upgrade / Checkout – Pilih E-Wallet (Sheet) (frame 23508) -->
+    <string name="upgrade_wallet_sheet_title">Pilih E-Wallet</string>
+    <string name="upgrade_wallet_sheet_message">Kamu akan diarahkan ke aplikasi e-wallet untuk menyelesaikan pembayaran.</string>
+    <string name="upgrade_wallet_pay">Bayar dengan %1$s</string>
+    <string name="upgrade_wallet_gopay">GoPay</string>
+    <string name="upgrade_wallet_gopay_description">Saldo GoPay atau GoPay Later</string>
+    <string name="upgrade_wallet_ovo">OVO</string>
+    <string name="upgrade_wallet_ovo_description">Notifikasi dikirim ke aplikasi OVO</string>
+    <string name="upgrade_wallet_dana">DANA</string>
+    <string name="upgrade_wallet_dana_description">Bayar lewat aplikasi DANA</string>
+    <string name="upgrade_wallet_shopeepay">ShopeePay</string>
+    <string name="upgrade_wallet_shopeepay_description">Bayar lewat aplikasi Shopee</string>
+
     <!-- Upgrade / Menunggu Pembayaran (frame 11636) -->
     <string name="upgrade_payment_title">Pembayaran</string>
     <string name="upgrade_payment_waiting">Menunggu Pembayaran</string>
@@ -68,6 +92,35 @@
     <string name="upgrade_payment_confirm">Saya Sudah Membayar</string>
     <string name="upgrade_payment_status_note">Status pembayaran diperbarui otomatis setelah konfirmasi dari bank.</string>
     <string name="upgrade_payment_confirm_error">Pembayaran belum terkonfirmasi. Coba lagi.</string>
+    <string name="upgrade_payment_pay_within">Bayar dalam %1$s</string>
+    <string name="upgrade_payment_time_up">Waktu pembayaran habis</string>
+
+    <!-- Upgrade / Bayar QRIS (frame 23375) -->
+    <string name="upgrade_qris_badge">QRIS</string>
+    <string name="upgrade_qris_cd_code">Kode QR QRIS untuk membayar %1$s</string>
+    <string name="upgrade_qris_merchant_info">NMID: %1$s • Berlaku 15 menit</string>
+    <string name="upgrade_qris_save">Simpan QR</string>
+    <string name="upgrade_qris_share">Bagikan</string>
+    <string name="upgrade_qris_step_1">Buka aplikasi bank atau e-wallet yang mendukung QRIS.</string>
+    <string name="upgrade_qris_step_2">Pindai kode QR di atas, atau unggah dari galeri setelah disimpan.</string>
+    <string name="upgrade_qris_step_3">Pastikan nominal %1$s, lalu konfirmasi pembayaran.</string>
+    <string name="upgrade_qris_status_note">Status diperbarui otomatis setelah pembayaran berhasil.</string>
+    <string name="upgrade_qris_saved">Kode QR disimpan.</string>
+    <string name="upgrade_qris_save_error">Kode QR belum bisa disimpan. Coba lagi.</string>
+    <string name="upgrade_qris_share_error">Kode QR belum bisa dibagikan. Coba lagi.</string>
+    <string name="upgrade_qris_share_chooser">Bagikan kode QR</string>
+
+    <!-- Upgrade / Menunggu Pembayaran E-Wallet (frame 23705) -->
+    <string name="upgrade_wallet_continue_title">Lanjutkan di aplikasi %1$s</string>
+    <string name="upgrade_wallet_continue_message">Kami sudah membuka aplikasi %1$s. Selesaikan pembayaran di sana, lalu kembali ke GoTest.</string>
+    <string name="upgrade_wallet_open_again">Buka %1$s Lagi</string>
+    <string name="upgrade_wallet_help_title">Tidak terbuka otomatis?</string>
+    <string name="upgrade_wallet_help_step_1">Pastikan aplikasi %1$s sudah terpasang dan kamu sudah masuk.</string>
+    <string name="upgrade_wallet_help_step_2">Ketuk Buka %1$s Lagi, lalu cek menu Pesanan di %1$s.</string>
+    <string name="upgrade_wallet_help_step_3">Atau ganti metode pembayaran ke Virtual Account atau QRIS.</string>
+    <string name="upgrade_wallet_check_status">Cek Status Pembayaran</string>
+    <string name="upgrade_wallet_change_method">Ganti metode pembayaran</string>
+    <string name="upgrade_wallet_open_error">Aplikasi %1$s tidak bisa dibuka.</string>
 
     <!-- Upgrade / Pembayaran Berhasil (frame 11753) -->
     <string name="upgrade_success_title">Pembayaran Berhasil!</string>

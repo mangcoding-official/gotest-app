@@ -8,13 +8,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -23,7 +23,6 @@ import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestBackButton
 import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestErrorView
-import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTopAppBar
 import com.gotest.app.core.designsystem.icon.GotestIcons
@@ -31,29 +30,35 @@ import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.StudyPackageDetail
 import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.studypackage.ui.components.BookmarkButton
 import com.gotest.app.feature.studypackage.ui.components.DetailBottomBar
 import com.gotest.app.feature.studypackage.ui.components.InfoTileData
 import com.gotest.app.feature.studypackage.ui.components.NumberedItem
 import com.gotest.app.feature.studypackage.ui.components.NumberedListCard
 import com.gotest.app.feature.studypackage.ui.components.PackageHeroCard
+import com.gotest.app.feature.studypackage.ui.components.PackageSnackbarHost
 import com.gotest.app.feature.studypackage.ui.components.RulesCard
 import com.gotest.app.feature.studypackage.ui.components.StudyPackagePreviewData
+import com.gotest.app.feature.studypackage.ui.components.showBookmarkResult
 import kotlinx.coroutines.launch
 
 @Composable
 fun TryoutDetailRoute(
     onBack: () -> Unit,
     onStartExam: (packageId: String) -> Unit,
+    onOpenSavedPackages: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TryoutDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
+    val resources = LocalResources.current
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            TryoutDetailEffect.ShowComingSoon -> scope.launch { snackbarHostState.showSnackbar(comingSoon) }
+            is TryoutDetailEffect.BookmarkChanged -> {
+                scope.launch { snackbarHostState.showBookmarkResult(effect.saved, resources, onOpenSavedPackages) }
+            }
         }
     }
     TryoutDetailScreen(
@@ -66,7 +71,10 @@ fun TryoutDetailRoute(
     )
 }
 
-/** "Detail Tryout" (frame 7674). */
+/**
+ * "Detail Tryout" (frame 7699; saved: 22530). The bookmark appears once the package has loaded;
+ * its messages float above the bottom button.
+ */
 @Composable
 fun TryoutDetailScreen(
     uiState: TryoutDetailUiState,
@@ -83,11 +91,12 @@ fun TryoutDetailScreen(
                 title = stringResource(R.string.studypackage_tryout_detail_title),
                 navigationIcon = { GotestBackButton(onClick = onBack) },
                 actions = {
-                    GotestIconButton(
-                        icon = GotestIcons.Linear.ArchiveAdd,
-                        contentDescription = stringResource(R.string.studypackage_cd_bookmark),
-                        onClick = { onEvent(TryoutDetailUiEvent.BookmarkClicked) },
-                    )
+                    if (uiState is TryoutDetailUiState.Success) {
+                        BookmarkButton(
+                            isSaved = uiState.isSaved,
+                            onClick = { onEvent(TryoutDetailUiEvent.BookmarkClicked) },
+                        )
+                    }
                 },
             )
         },
@@ -96,10 +105,10 @@ fun TryoutDetailScreen(
                 DetailBottomBar(
                     buttonText = stringResource(R.string.studypackage_tryout_start),
                     onClick = { onStartExam(uiState.detail.summary.id) },
+                    snackbarHost = { PackageSnackbarHost(snackbarHostState) },
                 )
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = GotestTheme.colors.bgSubtle,
     ) { padding ->
         when (uiState) {
@@ -215,7 +224,13 @@ private fun TryoutDetailPreview(uiState: TryoutDetailUiState) {
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun TryoutDetailSuccessPreview() {
-    TryoutDetailPreview(TryoutDetailUiState.Success(StudyPackagePreviewData.tryoutDetail))
+    TryoutDetailPreview(TryoutDetailUiState.Success(StudyPackagePreviewData.tryoutDetail, isSaved = false))
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun TryoutDetailSavedPreview() {
+    TryoutDetailPreview(TryoutDetailUiState.Success(StudyPackagePreviewData.tryoutDetail, isSaved = true))
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)

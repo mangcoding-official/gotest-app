@@ -2,9 +2,11 @@ package com.gotest.app.core.domain.repository
 
 import com.gotest.app.core.model.AttemptResult
 import com.gotest.app.core.model.AttemptSummary
+import com.gotest.app.core.model.EWallet
 import com.gotest.app.core.model.ExamSession
 import com.gotest.app.core.model.GlobalLeaderboard
 import com.gotest.app.core.model.Order
+import com.gotest.app.core.model.OrderPromo
 import com.gotest.app.core.model.PackageLeaderboard
 import com.gotest.app.core.model.PackageRanking
 import com.gotest.app.core.model.PackageType
@@ -138,9 +140,12 @@ interface SubscriptionRepository {
 
     fun observePaymentHistory(): Flow<List<PaymentRecord>>
 
+    /** [eWallet] is required for [PaymentMethodType.EWallet]; [promo] replaces the plan price. */
     suspend fun createOrder(
         planId: String,
         method: PaymentMethodType,
+        eWallet: EWallet? = null,
+        promo: OrderPromo? = null,
     ): Order
 
     fun observeOrder(orderId: String): Flow<Order>

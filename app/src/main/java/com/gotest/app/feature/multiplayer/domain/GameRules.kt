@@ -41,6 +41,17 @@ object GameRules {
         questionCount: Int,
     ): Boolean = durationMinutes * SECONDS_PER_MINUTE > questionCount * MIN_SECONDS_PER_QUESTION
 
+    /** Creating needs Premium and no other running game; null when the form may open. */
+    fun createBlock(
+        isPremium: Boolean,
+        activeGame: Game?,
+    ): CreateBlock? =
+        when {
+            !isPremium -> CreateBlock.PremiumRequired
+            activeGame != null -> CreateBlock.InAnotherGame(activeGame)
+            else -> null
+        }
+
     /** Most correct answers first; a tie goes to the faster total time. */
     fun rank(standings: List<PlayerStanding>): List<PlayerStanding> =
         standings

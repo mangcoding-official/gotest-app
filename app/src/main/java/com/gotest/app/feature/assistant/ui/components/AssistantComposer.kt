@@ -44,23 +44,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
+import com.gotest.app.feature.assistant.domain.AssistantAttachment
+import com.gotest.app.feature.assistant.ui.assistant.AssistantPreviewData
 
 private const val INPUT_MAX_LINES = 4
 
 /**
- * Bottom "composer": optional prompt chips (conversation only) above the "Mobile/Chat Input"
- * pill. The round button sends when there is text and opens the voice overlay otherwise.
+ * Bottom "composer": optional prompt chips (conversation only) and pending attachments above
+ * the "Mobile/Chat Input" pill. The round button sends when there is text or an attachment and
+ * opens the voice overlay otherwise.
  */
 @Composable
 internal fun AssistantComposer(
     input: String,
     prompts: List<String>,
+    attachments: List<AssistantAttachment>,
     focusRequester: FocusRequester,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
     onPromptClick: (String) -> Unit,
     onMicClick: () -> Unit,
     onAttachClick: () -> Unit,
+    onRemoveAttachment: (AssistantAttachment) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -93,8 +98,19 @@ internal fun AssistantComposer(
                         }
                     }
                 }
+                if (attachments.isNotEmpty()) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                        items(attachments, key = { it.uri }) { attachment ->
+                            PendingAttachmentChip(
+                                attachment = attachment,
+                                onRemove = { onRemoveAttachment(attachment) },
+                            )
+                        }
+                    }
+                }
                 ChatInput(
                     input = input,
+                    canSend = input.isNotBlank() || attachments.isNotEmpty(),
                     focusRequester = focusRequester,
                     onInputChange = onInputChange,
                     onSend = onSend,
@@ -109,6 +125,7 @@ internal fun AssistantComposer(
 @Composable
 private fun ChatInput(
     input: String,
+    canSend: Boolean,
     focusRequester: FocusRequester,
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
@@ -119,7 +136,6 @@ private fun ChatInput(
     val colors = GotestTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
-    val canSend = input.isNotBlank()
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = GotestTheme.shapes.full,
@@ -203,22 +219,38 @@ private fun AssistantComposerPreview() {
             AssistantComposer(
                 input = "",
                 prompts = listOf("Latihan yang belum selesai", "Lihat peringkatku", "Tampilkan tryout"),
+                attachments = emptyList(),
                 focusRequester = remember { FocusRequester() },
                 onInputChange = {},
                 onSend = {},
                 onPromptClick = {},
                 onMicClick = {},
                 onAttachClick = {},
+                onRemoveAttachment = {},
             )
             AssistantComposer(
                 input = "Rekomendasi latihan aljabar",
                 prompts = emptyList(),
+                attachments = emptyList(),
                 focusRequester = remember { FocusRequester() },
                 onInputChange = {},
                 onSend = {},
                 onPromptClick = {},
                 onMicClick = {},
                 onAttachClick = {},
+                onRemoveAttachment = {},
+            )
+            AssistantComposer(
+                input = "",
+                prompts = emptyList(),
+                attachments = AssistantPreviewData.attachments,
+                focusRequester = remember { FocusRequester() },
+                onInputChange = {},
+                onSend = {},
+                onPromptClick = {},
+                onMicClick = {},
+                onAttachClick = {},
+                onRemoveAttachment = {},
             )
         }
     }

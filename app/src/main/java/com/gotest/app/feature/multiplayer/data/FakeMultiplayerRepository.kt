@@ -76,7 +76,7 @@ class FakeMultiplayerRepository
             return when {
                 game == null -> JoinLookup.NotFound
                 active != null && active.code != game.code -> JoinLookup.InAnotherGame(active)
-                game.currentUser != null && game.status != GameStatus.Finished -> JoinLookup.Found(game)
+                game.currentUser != null && game.isRunning -> JoinLookup.Found(game)
                 game.status == GameStatus.Started -> JoinLookup.AlreadyStarted
                 game.status != GameStatus.Waiting -> JoinLookup.Inactive
                 game.isFull -> JoinLookup.Full
@@ -270,6 +270,9 @@ class FakeMultiplayerRepository
 
         private fun now(): Long = System.currentTimeMillis()
     }
+
+/** The student's own lobby or game in progress, which they may reopen with its code. */
+private val Game.isRunning: Boolean get() = status == GameStatus.Waiting || status == GameStatus.Started
 
 private fun GameResult.historyOutcome(): HistoryOutcome =
     when (settings.type) {

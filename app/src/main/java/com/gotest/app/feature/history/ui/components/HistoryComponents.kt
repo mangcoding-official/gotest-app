@@ -99,20 +99,25 @@ fun HistoryStatTile(
     }
 }
 
-/** Month header ("Oktober 2026") above a white card of attempts. */
+/**
+ * Month header ("Oktober 2026") above a white card of attempts. A null [monthStart] shows the
+ * card alone, for orders that are not by date.
+ */
 @Composable
 fun HistoryMonthSection(
-    monthStart: LocalDate,
+    monthStart: LocalDate?,
     attempts: List<AttemptSummary>,
     onViewResult: (attemptId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
-        Text(
-            text = GotestFormat.monthYear(monthStart),
-            style = MaterialTheme.typography.bodyMedium,
-            color = GotestTheme.colors.textSecondary,
-        )
+        if (monthStart != null) {
+            Text(
+                text = GotestFormat.monthYear(monthStart),
+                style = MaterialTheme.typography.bodyMedium,
+                color = GotestTheme.colors.textSecondary,
+            )
+        }
         GotestCard(
             contentPadding = PaddingValues(GotestTheme.spacing.none),
             verticalSpacing = GotestTheme.spacing.none,

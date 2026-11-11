@@ -51,6 +51,7 @@ import com.gotest.app.feature.studypackage.ui.components.practiceAction
 fun PackageListRoute(
     onBack: () -> Unit,
     onSearch: () -> Unit,
+    onSavedPackages: () -> Unit,
     onTryoutClick: (packageId: String) -> Unit,
     onStartExam: (packageId: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -68,6 +69,7 @@ fun PackageListRoute(
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onSearch = onSearch,
+        onSavedPackages = onSavedPackages,
         modifier = modifier,
     )
 }
@@ -79,6 +81,7 @@ fun PackageListScreen(
     onEvent: (PackageListUiEvent) -> Unit,
     onBack: () -> Unit,
     onSearch: () -> Unit,
+    onSavedPackages: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -90,6 +93,11 @@ fun PackageListScreen(
             style = GotestTopAppBarStyle.Leading,
             navigationIcon = { GotestBackButton(onClick = onBack) },
             actions = {
+                GotestIconButton(
+                    icon = GotestIcons.Linear.ArchiveTick,
+                    contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
+                    onClick = onSavedPackages,
+                )
                 GotestIconButton(
                     icon = GotestIcons.Linear.SearchNormal,
                     contentDescription = stringResource(R.string.studypackage_cd_search),
@@ -260,7 +268,7 @@ private val previewLevels = listOf("UTBK-SNBT", "SMA", "CPNS", "SMP")
 @Composable
 private fun PackageListPreview(uiState: PackageListUiState) {
     GotestTheme {
-        PackageListScreen(uiState = uiState, onEvent = {}, onBack = {}, onSearch = {})
+        PackageListScreen(uiState = uiState, onEvent = {}, onBack = {}, onSearch = {}, onSavedPackages = {})
     }
 }
 

@@ -6,6 +6,7 @@ import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.UserProfile
+import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -76,6 +77,8 @@ class ProfileViewModel
             when (event) {
                 ProfileUiEvent.Retry -> retryKey.update { it + 1 }
                 ProfileUiEvent.AvatarClick -> photoEditor.open()
+                ProfileUiEvent.TakePhoto -> photoEditor.openCamera()
+                is ProfileUiEvent.PhotoCapture -> onCaptureEvent(event.event)
                 is ProfileUiEvent.PhotoPick -> photoEditor.select(event.photoUri)
                 ProfileUiEvent.SavePhoto -> savePhoto()
                 ProfileUiEvent.DismissPhotoSheet -> photoEditor.dismiss()
@@ -92,9 +95,19 @@ class ProfileViewModel
                     if (result.isSuccess) {
                         ProfileEffect.ShowMessage(R.string.account_notice_photo_saved)
                     } else {
-                        ProfileEffect.ShowMessage(R.string.account_error_save, inPhotoSheet = photoEditor.isOpen)
+                        ProfileEffect.ShowMessage(R.string.account_error_save, host = photoEditor.messageHost)
                     }
                 _effects.send(effect)
+            }
+        }
+
+        private fun onCaptureEvent(event: PhotoCaptureEvent) {
+            viewModelScope.launch {
+                photoEditor.onCaptureEvent(event)?.onFailure {
+                    _effects.send(
+                        ProfileEffect.ShowMessage(R.string.account_adjust_error, host = photoEditor.messageHost),
+                    )
+                }
             }
         }
 

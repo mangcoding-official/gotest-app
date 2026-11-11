@@ -1,6 +1,7 @@
 package com.gotest.app.feature.multiplayer.ui.hub
 
 import androidx.compose.runtime.Immutable
+import com.gotest.app.feature.multiplayer.domain.CreateBlock
 import com.gotest.app.feature.multiplayer.domain.Game
 import com.gotest.app.feature.multiplayer.domain.GameHistoryItem
 import com.gotest.app.feature.multiplayer.domain.GameRules
@@ -25,19 +26,9 @@ sealed interface MultiplayerUiState {
 /** Dialogs and the join sheet, kept apart from the page so they survive a reload. */
 @Immutable
 data class MultiplayerOverlayState(
-    val dialog: HubDialog? = null,
+    val dialog: CreateBlock? = null,
     val joinSheet: JoinSheetState? = null,
 )
-
-sealed interface HubDialog {
-    /** "Buat permainan khusus Premium". */
-    data object PremiumRequired : HubDialog
-
-    /** "Kamu sedang ikut permainan lain". */
-    data class InAnotherGame(
-        val game: Game,
-    ) : HubDialog
-}
 
 @Immutable
 data class JoinSheetState(

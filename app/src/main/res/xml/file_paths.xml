@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Files the app hands to other apps (camera capture, shared QR image) live in cache/shared/. -->
+<paths>
+    <cache-path
+        name="shared"
+        path="shared/" />
+</paths>

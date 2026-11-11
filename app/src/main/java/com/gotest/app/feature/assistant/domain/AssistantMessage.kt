@@ -25,6 +25,8 @@ data class AssistantMessage(
     val sentAtEpochMillis: Long,
     /** Length of the recording when the student spoke the message; null for typed messages. */
     val voiceDurationSeconds: Int? = null,
+    /** Photos and documents the student sent with the message. */
+    val attachments: List<AssistantAttachment> = emptyList(),
     /** Packages the assistant recommends below its answer. */
     val packages: List<StudyPackage> = emptyList(),
     /** Quick actions shown as chips below the answer. */

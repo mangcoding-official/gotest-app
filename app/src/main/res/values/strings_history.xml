@@ -27,6 +27,61 @@
     <string name="history_no_results_title">Paket tidak ditemukan</string>
     <string name="history_no_results_message">Coba kata kunci lain atau ganti filter riwayatmu.</string>
 
+    <!-- Riwayat / Urutkan (Sheet) -->
+    <string name="history_sort_title">Urutkan</string>
+    <string name="history_sort_subtitle">Atur urutan riwayat latihan dan tryout kamu.</string>
+    <string name="history_sort_newest">Terbaru</string>
+    <string name="history_sort_oldest">Terlama</string>
+    <string name="history_sort_accuracy_high">Akurasi tertinggi</string>
+    <string name="history_sort_accuracy_low">Akurasi terendah</string>
+    <string name="history_sort_name">Nama paket (A–Z)</string>
+    <string name="history_sort_reset">Reset</string>
+    <string name="history_sort_apply">Terapkan</string>
+
+    <!-- Riwayat / Ekspor (Sheet) -->
+    <string name="history_export_title">Ekspor Riwayat</string>
+    <string name="history_export_subtitle">Simpan rekap hasil latihan dan tryout ke perangkatmu.</string>
+    <string name="history_export_period">Periode</string>
+    <string name="history_export_period_7_days">7 hari</string>
+    <string name="history_export_period_30_days">30 hari</string>
+    <string name="history_export_period_3_months">3 bulan</string>
+    <string name="history_export_period_all">Semua</string>
+    <string name="history_export_format">Format file</string>
+    <string name="history_export_format_pdf">PDF</string>
+    <string name="history_export_format_pdf_description">Rapi untuk dibaca dan dicetak</string>
+    <string name="history_export_format_csv">CSV (Excel / Sheets)</string>
+    <string name="history_export_format_csv_description">Untuk diolah sendiri di spreadsheet</string>
+    <!-- "24 attempt • 1 Okt – 29 Okt 2026" -->
+    <string name="history_export_summary">%1$s attempt • %2$s</string>
+    <string name="history_export_summary_empty">Belum ada attempt di periode ini.</string>
+    <string name="history_export_date_range">%1$s – %2$s</string>
+    <string name="history_export_cancel">Batal</string>
+    <string name="history_export_download">Unduh File</string>
+    <string name="history_export_success">File riwayat berhasil disimpan.</string>
+    <string name="history_export_failure">File riwayat gagal disimpan. Coba lagi.</string>
+
+    <!-- Riwayat / Ekspor: isi file PDF dan CSV -->
+    <string name="history_export_document_title">Rekap Hasil Latihan &amp; Tryout</string>
+    <!-- "Periode: 30 hari terakhir (18 Okt 2026 – 21 Okt 2026)" -->
+    <string name="history_export_document_period_range">Periode: %1$s (%2$s – %3$s)</string>
+    <string name="history_export_document_period">Periode: %1$s</string>
+    <string name="history_export_document_period_7_days">7 hari terakhir</string>
+    <string name="history_export_document_period_30_days">30 hari terakhir</string>
+    <string name="history_export_document_period_3_months">3 bulan terakhir</string>
+    <string name="history_export_document_period_all">Semua riwayat</string>
+    <!-- "3 attempt • Diekspor 30 Okt 2026" -->
+    <string name="history_export_document_count">%1$s attempt • Diekspor %2$s</string>
+    <string name="history_export_document_page">Halaman %1$d dari %2$d</string>
+    <string name="history_export_column_date">Tanggal</string>
+    <string name="history_export_column_package">Paket</string>
+    <string name="history_export_column_type">Jenis</string>
+    <string name="history_export_column_score">Skor</string>
+    <string name="history_export_column_accuracy_percent" formatted="false">Akurasi (%)</string>
+    <string name="history_export_column_score_accuracy">Skor / Akurasi</string>
+    <string name="history_export_column_duration">Durasi</string>
+    <!-- "540 / 72%" -->
+    <string name="history_export_score_accuracy">%1$s / %2$s</string>
+
     <!-- Riwayat / Detail Hasil -->
     <string name="history_detail_title">Detail Hasil</string>
     <string name="history_detail_subtitle_tryout">Simulasi %1$s</string>

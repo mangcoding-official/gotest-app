@@ -2,6 +2,8 @@ package com.gotest.app.feature.account.ui.editprofile
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
+import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
+import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
 
 sealed interface EditProfileUiState {
@@ -37,6 +39,13 @@ sealed interface EditProfileUiEvent {
 
     data object ChangePhotoClick : EditProfileUiEvent
 
+    /** "Ambil Foto" with the camera permission granted. */
+    data object TakePhoto : EditProfileUiEvent
+
+    data class PhotoCapture(
+        val event: PhotoCaptureEvent,
+    ) : EditProfileUiEvent
+
     data class PhotoPick(
         val photoUri: String,
     ) : EditProfileUiEvent
@@ -51,6 +60,6 @@ sealed interface EditProfileEffect {
 
     data class ShowMessage(
         @param:StringRes val messageRes: Int,
-        val inPhotoSheet: Boolean = false,
+        val host: PhotoMessageHost = PhotoMessageHost.Screen,
     ) : EditProfileEffect
 }

@@ -33,12 +33,5 @@ sealed interface PackageLeaderboardUiState {
 }
 
 sealed interface PackageLeaderboardUiEvent {
-    /** Participant search has no design yet. */
-    data object SearchClick : PackageLeaderboardUiEvent
-
     data object Retry : PackageLeaderboardUiEvent
-}
-
-sealed interface PackageLeaderboardEffect {
-    data object ShowComingSoon : PackageLeaderboardEffect
 }

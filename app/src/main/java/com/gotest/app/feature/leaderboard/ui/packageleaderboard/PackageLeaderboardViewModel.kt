@@ -9,8 +9,6 @@ import com.gotest.app.core.model.PackageLeaderboard
 import com.gotest.app.navigation.PackageLeaderboardDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,10 +16,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val STOP_TIMEOUT_MS = 5_000L
@@ -37,9 +33,6 @@ class PackageLeaderboardViewModel
     ) : ViewModel() {
         private val packageId = savedStateHandle.toRoute<PackageLeaderboardDestination>().packageId
         private val refreshKey = MutableStateFlow(0)
-
-        private val _effects = Channel<PackageLeaderboardEffect>(Channel.BUFFERED)
-        val effects: Flow<PackageLeaderboardEffect> = _effects.receiveAsFlow()
 
         val uiState: StateFlow<PackageLeaderboardUiState> =
             refreshKey
@@ -57,13 +50,7 @@ class PackageLeaderboardViewModel
 
         fun onEvent(event: PackageLeaderboardUiEvent) {
             when (event) {
-                PackageLeaderboardUiEvent.SearchClick -> {
-                    viewModelScope.launch { _effects.send(PackageLeaderboardEffect.ShowComingSoon) }
-                }
-
-                PackageLeaderboardUiEvent.Retry -> {
-                    refreshKey.update { it + 1 }
-                }
+                PackageLeaderboardUiEvent.Retry -> refreshKey.update { it + 1 }
             }
         }
 

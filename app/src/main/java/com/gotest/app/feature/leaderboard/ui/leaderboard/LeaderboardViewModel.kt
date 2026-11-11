@@ -7,7 +7,6 @@ import com.gotest.app.core.model.GlobalLeaderboard
 import com.gotest.app.core.model.PackageRanking
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,10 +16,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -37,9 +34,7 @@ class LeaderboardViewModel
         private val selectedTab = MutableStateFlow(LeaderboardTab.Global)
         private val globalRefreshKey = MutableStateFlow(0)
         private val packagesRefreshKey = MutableStateFlow(0)
-
-        private val _effects = Channel<LeaderboardEffect>(Channel.BUFFERED)
-        val effects: Flow<LeaderboardEffect> = _effects.receiveAsFlow()
+        private val infoVisible = MutableStateFlow(false)
 
         private val globalState: Flow<GlobalLeaderboardUiState> =
             globalRefreshKey.flatMapLatest {
@@ -60,7 +55,7 @@ class LeaderboardViewModel
             }
 
         val uiState: StateFlow<LeaderboardUiState> =
-            combine(selectedTab, globalState, packagesState, ::LeaderboardUiState)
+            combine(selectedTab, globalState, packagesState, infoVisible, ::LeaderboardUiState)
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LeaderboardUiState())
 
         fun onEvent(event: LeaderboardUiEvent) {
@@ -70,11 +65,11 @@ class LeaderboardViewModel
                 }
 
                 LeaderboardUiEvent.InfoClick -> {
-                    viewModelScope.launch {
-                        _effects.send(
-                            LeaderboardEffect.ShowComingSoon,
-                        )
-                    }
+                    infoVisible.value = true
+                }
+
+                LeaderboardUiEvent.InfoDismiss -> {
+                    infoVisible.value = false
                 }
 
                 LeaderboardUiEvent.RetryGlobal -> {

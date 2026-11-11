@@ -106,14 +106,14 @@ class MultiplayerViewModel
             }
         }
 
-        /** Creating needs Premium and no other running game (frames 13961 and 14405). */
+        /** Creating needs Premium and no other running game (frames 13995 and 14439). */
         private fun onCreateGameClick() {
             val state = uiState.value as? MultiplayerUiState.Success ?: return
-            val activeGame = state.activeGame
-            when {
-                !state.isPremium -> _overlay.update { it.copy(dialog = HubDialog.PremiumRequired) }
-                activeGame != null -> _overlay.update { it.copy(dialog = HubDialog.InAnotherGame(activeGame)) }
-                else -> viewModelScope.launch { _effects.send(MultiplayerEffect.OpenCreateGame) }
+            val block = GameRules.createBlock(state.isPremium, state.activeGame)
+            if (block != null) {
+                _overlay.update { it.copy(dialog = block) }
+            } else {
+                viewModelScope.launch { _effects.send(MultiplayerEffect.OpenCreateGame) }
             }
         }
 

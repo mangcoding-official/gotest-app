@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.gotest.app.core.domain.repository.StudyPackageRepository
 import com.gotest.app.core.model.StudyPackageDetail
+import com.gotest.app.feature.studypackage.domain.SavedPackageRepository
 import com.gotest.app.navigation.PracticeDetailDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,8 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -33,6 +34,7 @@ class PracticeDetailViewModel
     constructor(
         savedStateHandle: SavedStateHandle,
         private val repository: StudyPackageRepository,
+        private val savedPackageRepository: SavedPackageRepository,
     ) : ViewModel() {
         private val packageId = savedStateHandle.toRoute<PracticeDetailDestination>().packageId
         private val refreshKey = MutableStateFlow(0)
@@ -43,9 +45,10 @@ class PracticeDetailViewModel
         val uiState: StateFlow<PracticeDetailUiState> =
             refreshKey
                 .flatMapLatest {
-                    repository
-                        .observePackageDetail(packageId)
-                        .map<StudyPackageDetail, PracticeDetailUiState> { PracticeDetailUiState.Success(it) }
+                    combine<StudyPackageDetail, Boolean, PracticeDetailUiState>(
+                        repository.observePackageDetail(packageId),
+                        savedPackageRepository.observeIsSaved(packageId),
+                    ) { detail, isSaved -> PracticeDetailUiState.Success(detail, isSaved) }
                         .onStart { emit(PracticeDetailUiState.Loading) }
                         .catch { emit(PracticeDetailUiState.Error) }
                 }.stateIn(
@@ -62,7 +65,8 @@ class PracticeDetailViewModel
 
                 PracticeDetailUiEvent.BookmarkClicked -> {
                     viewModelScope.launch {
-                        _effects.send(PracticeDetailEffect.ShowComingSoon)
+                        val saved = savedPackageRepository.toggle(packageId)
+                        _effects.send(PracticeDetailEffect.BookmarkChanged(saved))
                     }
                 }
             }

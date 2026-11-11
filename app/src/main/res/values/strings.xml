@@ -21,7 +21,6 @@
     <string name="state_error_retry">Coba Lagi</string>
 
     <!-- Undesigned destinations (Phase 1 decision 6) -->
-    <string name="coming_soon">Fitur ini segera hadir.</string>
 
     <!-- Shared number formats -->
     <string name="percent_value">%1$d%%</string>

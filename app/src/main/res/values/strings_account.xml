@@ -43,6 +43,8 @@
     <string name="account_notice_profile_saved">Informasi akun berhasil disimpan</string>
     <string name="account_notice_password_changed">Password berhasil diperbarui</string>
     <string name="account_notice_photo_saved">Foto profil berhasil diperbarui</string>
+    <string name="account_notice_main_level_saved">Jenjang utama berhasil diperbarui</string>
+    <string name="account_notice_data_copy_requested">Permintaan terkirim. Tautan unduhan akan dikirim ke email kamu.</string>
 
     <!-- Akun / Foto Profil (Sheet) (frame 10299) -->
     <string name="account_photo_title">Foto Profil</string>
@@ -53,6 +55,31 @@
     <string name="account_photo_close">Tutup</string>
     <string name="account_photo_save">Simpan</string>
     <string name="account_photo_preview_cd">Pratinjau foto profil</string>
+
+    <!-- Akun / Foto Profil – Kamera (frame 22963) -->
+    <string name="account_camera_title">Ambil Foto</string>
+    <string name="account_camera_hint">Posisikan wajah di dalam lingkaran</string>
+    <string name="account_camera_close_cd">Tutup kamera</string>
+    <string name="account_camera_flash_on_cd">Nyalakan flash</string>
+    <string name="account_camera_flash_off_cd">Matikan flash</string>
+    <string name="account_camera_shutter_cd">Ambil foto</string>
+    <string name="account_camera_gallery_cd">Pilih dari galeri</string>
+    <string name="account_camera_switch_cd">Ganti kamera depan atau belakang</string>
+    <!-- Camera states not in the design -->
+    <string name="account_camera_permission_denied">Izinkan akses kamera untuk mengambil foto.</string>
+    <string name="account_camera_permission_settings">Pengaturan</string>
+    <string name="account_camera_unavailable">Kamera tidak tersedia di perangkat ini.</string>
+    <string name="account_camera_error">Kamera tidak dapat dibuka. Coba lagi atau pilih dari galeri.</string>
+    <string name="account_camera_capture_error">Foto gagal diambil. Coba lagi.</string>
+
+    <!-- Akun / Foto Profil – Sesuaikan Foto (frame 22994) -->
+    <string name="account_adjust_title">Sesuaikan Foto</string>
+    <string name="account_adjust_hint">Geser dan cubit untuk mengatur posisi foto</string>
+    <string name="account_adjust_rotate_cd">Putar foto</string>
+    <string name="account_adjust_photo_cd">Foto yang diambil</string>
+    <string name="account_adjust_retake">Ambil Ulang</string>
+    <string name="account_adjust_use">Gunakan Foto</string>
+    <string name="account_adjust_error">Foto gagal diproses. Coba lagi.</string>
 
     <!-- Akun / Edit Informasi (frame 9994) -->
     <string name="account_edit_title">Edit Informasi Akun</string>
@@ -121,6 +148,65 @@
     <string name="account_settings_promo_subtitle">Info produk, tips belajar, dan promo</string>
     <string name="account_settings_download">Unduh Data Akun</string>
     <string name="account_settings_download_subtitle">Minta salinan data akunmu</string>
+
+    <!-- Akun / Pengaturan – Jenjang Utama (frame 23023) -->
+    <string name="account_main_level_title">Jenjang Utama</string>
+    <string name="account_main_level_heading">Kamu sedang bersiap untuk apa?</string>
+    <string name="account_main_level_description">Jenjang utama menentukan paket, tryout, dan rekomendasi yang muncul di Beranda.</string>
+    <string name="account_main_level_utbk">UTBK-SNBT</string>
+    <string name="account_main_level_utbk_subtitle">Masuk PTN jalur tes</string>
+    <string name="account_main_level_cpns">CPNS (SKD)</string>
+    <string name="account_main_level_cpns_subtitle">TWK, TIU, dan TKP</string>
+    <string name="account_main_level_kedinasan">Sekolah Kedinasan</string>
+    <string name="account_main_level_kedinasan_subtitle">STAN, IPDN, STIS, dan lainnya</string>
+    <string name="account_main_level_sma">SMA / SLTA</string>
+    <string name="account_main_level_sma_subtitle">Latihan per mata pelajaran</string>
+    <string name="account_main_level_smp">SMP</string>
+    <string name="account_main_level_smp_subtitle">Persiapan ujian sekolah dan masuk SMA</string>
+    <string name="account_main_level_info">Riwayat dan skor kamu tetap tersimpan saat jenjang diubah.</string>
+    <string name="account_main_level_save">Simpan</string>
+
+    <!-- Akun / Pengaturan – Data Pribadi (frame 23170) -->
+    <string name="account_personal_title">Data Pribadi</string>
+    <string name="account_personal_info">Informasi akun</string>
+    <string name="account_personal_info_subtitle">Data yang kamu isi di profil.</string>
+    <string name="account_personal_edit">Ubah</string>
+    <string name="account_personal_name">Nama lengkap</string>
+    <string name="account_personal_email">Email</string>
+    <string name="account_personal_phone">Nomor HP</string>
+    <string name="account_personal_birth_date">Tanggal lahir</string>
+    <string name="account_personal_school">Sekolah</string>
+    <string name="account_personal_city">Kota</string>
+    <string name="account_personal_stored">Data yang kami simpan</string>
+    <string name="account_personal_stored_subtitle">Dipakai untuk menjalankan fitur GoTest, tidak dijual ke pihak lain.</string>
+    <string name="account_personal_stored_results">Hasil latihan, tryout, dan Main Bareng</string>
+    <string name="account_personal_stored_chats">Riwayat percakapan dengan Asisten</string>
+    <string name="account_personal_stored_transactions">Riwayat transaksi dan langganan</string>
+    <string name="account_personal_stored_devices">Info perangkat untuk keamanan login</string>
+    <string name="account_personal_policy_prefix">Selengkapnya di</string>
+    <string name="account_personal_policy_link">Kebijakan Privasi</string>
+    <string name="account_personal_policy_url" translatable="false">https://gotest.id/kebijakan-privasi</string>
+    <string name="account_personal_no_browser">Tidak ada aplikasi untuk membuka tautan ini.</string>
+
+    <!-- Akun / Pengaturan – Unduh Data Akun (frame 23277) -->
+    <string name="account_download_title">Unduh Data Akun</string>
+    <string name="account_download_intro_title">Minta salinan datamu</string>
+    <string name="account_download_intro_message">Kami siapkan file ZIP berisi data yang kamu pilih, lalu kirim tautan unduhnya ke email kamu.</string>
+    <string name="account_download_select">Pilih data</string>
+    <string name="account_download_profile">Profil &amp; akun</string>
+    <string name="account_download_profile_subtitle">Nama, email, jenjang, pengaturan</string>
+    <string name="account_download_history">Riwayat latihan &amp; tryout</string>
+    <plurals name="account_download_history_subtitle">
+        <item quantity="one">%1$d attempt, jawaban, dan skor</item>
+        <item quantity="other">%1$d attempt, jawaban, dan skor</item>
+    </plurals>
+    <string name="account_download_chats">Percakapan Asisten</string>
+    <string name="account_download_chats_subtitle">Semua riwayat chat</string>
+    <string name="account_download_transactions">Transaksi &amp; langganan</string>
+    <string name="account_download_transactions_subtitle">Invoice dan status pembayaran</string>
+    <string name="account_download_note">Dikirim ke %1$s maksimal 1×24 jam. Tautan berlaku 7 hari.</string>
+    <string name="account_download_submit">Minta Salinan Data</string>
+    <string name="account_download_error">Permintaan belum terkirim. Coba lagi.</string>
 
     <!-- Akun / Langganan (frame 10943) -->
     <string name="account_subscription_title">Langganan</string>

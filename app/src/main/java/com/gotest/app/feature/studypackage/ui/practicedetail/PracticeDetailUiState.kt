@@ -12,6 +12,8 @@ sealed interface PracticeDetailUiState {
     @Immutable
     data class Success(
         val detail: StudyPackageDetail,
+        /** Filled bookmark ("Paket / Detail – Tersimpan"). */
+        val isSaved: Boolean,
     ) : PracticeDetailUiState
 }
 
@@ -22,6 +24,8 @@ sealed interface PracticeDetailUiEvent {
 }
 
 sealed interface PracticeDetailEffect {
-    /** Bookmarks are not designed yet. */
-    data object ShowComingSoon : PracticeDetailEffect
+    /** The bookmark was toggled; [saved] tells which message to show. */
+    data class BookmarkChanged(
+        val saved: Boolean,
+    ) : PracticeDetailEffect
 }

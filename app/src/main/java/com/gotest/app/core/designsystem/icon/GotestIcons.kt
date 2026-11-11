@@ -23,13 +23,21 @@ object GotestIcons {
 
         @DrawableRes val ArrowRight: Int = R.drawable.ic_linear_arrow_right
 
+        @DrawableRes val ArrowCircleUp: Int = R.drawable.ic_linear_arrow_circle_up
+
         @DrawableRes val ArrowUp: Int = R.drawable.ic_linear_arrow_up
 
         @DrawableRes val Award: Int = R.drawable.ic_linear_award
 
         @DrawableRes val Bank: Int = R.drawable.ic_linear_bank
 
+        @DrawableRes val Book: Int = R.drawable.ic_linear_book
+
         @DrawableRes val BookOpened: Int = R.drawable.ic_linear_book_opened
+
+        @DrawableRes val Building: Int = R.drawable.ic_linear_building
+
+        @DrawableRes val Buildings: Int = R.drawable.ic_linear_buildings
 
         @DrawableRes val Calendar: Int = R.drawable.ic_linear_calendar
 
@@ -45,9 +53,13 @@ object GotestIcons {
 
         @DrawableRes val DocumentCopy: Int = R.drawable.ic_linear_document_copy
 
+        @DrawableRes val DocumentText: Int = R.drawable.ic_linear_document_text
+
         @DrawableRes val Export: Int = R.drawable.ic_linear_export
 
         @DrawableRes val Eye: Int = R.drawable.ic_linear_eye
+
+        @DrawableRes val FolderCloud: Int = R.drawable.ic_linear_folder_cloud
 
         @DrawableRes val Gallery: Int = R.drawable.ic_linear_gallery
 
@@ -87,9 +99,14 @@ object GotestIcons {
 
         @DrawableRes val Square: Int = R.drawable.ic_linear_square
 
+        @DrawableRes val Star: Int = R.drawable.ic_linear_star
+
         @DrawableRes val TaskSquare: Int = R.drawable.ic_linear_task_square
 
         @DrawableRes val TickCircle: Int = R.drawable.ic_linear_tick_circle
+
+        /** Lucide "trash-2" in the design, not a Vuesax icon. */
+        @DrawableRes val Trash: Int = R.drawable.ic_linear_trash
 
         @DrawableRes val User: Int = R.drawable.ic_linear_user
 

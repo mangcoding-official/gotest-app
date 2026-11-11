@@ -41,6 +41,7 @@ import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.feature.assistant.domain.AssistantAction
 import com.gotest.app.feature.assistant.domain.AssistantMessage
 import com.gotest.app.feature.assistant.domain.AssistantSender
+import com.gotest.app.feature.assistant.ui.assistant.AssistantPreviewData
 import java.time.LocalDate
 
 private const val SECONDS_PER_MINUTE = 60
@@ -181,7 +182,10 @@ private fun AssistantBubble(
     }
 }
 
-/** Dark brand bubble ("Sender=User"), with the "Pesan suara" label for dictated messages. */
+/**
+ * Dark brand bubble ("Sender=User"), with the "Pesan suara" label for dictated messages and the
+ * attachments above it. A message of attachments only has no bubble.
+ */
 @Composable
 private fun UserMessage(
     message: AssistantMessage,
@@ -195,16 +199,25 @@ private fun UserMessage(
         horizontalAlignment = Alignment.End,
     ) {
         message.voiceDurationSeconds?.let { seconds -> VoiceMessageLabel(seconds = seconds) }
-        Text(
-            text = message.text,
-            modifier =
-                Modifier
-                    .padding(horizontal = AssistantDimens.userBubbleInset)
-                    .background(GotestTheme.colors.bgBrandDark, shape)
-                    .padding(horizontal = spacing.lg, vertical = spacing.md),
-            style = MaterialTheme.typography.bodyMedium,
-            color = GotestTheme.colors.textOnBrand,
-        )
+        if (message.attachments.isNotEmpty()) {
+            // Same insets as the bubble, so both share a right edge.
+            SentAttachments(
+                attachments = message.attachments,
+                modifier = Modifier.padding(horizontal = AssistantDimens.userBubbleInset),
+            )
+        }
+        if (message.text.isNotEmpty()) {
+            Text(
+                text = message.text,
+                modifier =
+                    Modifier
+                        .padding(horizontal = AssistantDimens.userBubbleInset)
+                        .background(GotestTheme.colors.bgBrandDark, shape)
+                        .padding(horizontal = spacing.lg, vertical = spacing.md),
+                style = MaterialTheme.typography.bodyMedium,
+                color = GotestTheme.colors.textOnBrand,
+            )
+        }
     }
 }
 
@@ -310,6 +323,18 @@ private fun AssistantChatItemsPreview() {
                         text = "Ada tryout UTBK minggu ini?",
                         sentAtEpochMillis = now,
                         voiceDurationSeconds = 4,
+                    ),
+                onPackageClick = {},
+                onActionClick = {},
+            )
+            AssistantMessageItem(
+                message =
+                    AssistantMessage(
+                        id = "3",
+                        sender = AssistantSender.User,
+                        text = "Tolong bahas soal nomor 4 ya",
+                        sentAtEpochMillis = now,
+                        attachments = AssistantPreviewData.attachments,
                     ),
                 onPackageClick = {},
                 onActionClick = {},

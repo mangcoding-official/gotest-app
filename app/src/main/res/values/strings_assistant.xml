@@ -34,6 +34,7 @@
     <string name="assistant_attach">Tambah lampiran</string>
     <string name="assistant_voice_start">Bicara dengan mikrofon</string>
     <string name="assistant_send">Kirim pesan</string>
+    <string name="assistant_attachment_remove">Hapus lampiran %1$s</string>
 
     <!-- AI Chat / Voice Mendengarkan (frame 12266) -->
     <string name="assistant_voice_close">Tutup mode suara</string>
@@ -44,4 +45,41 @@
     <string name="assistant_voice_type">Ketik</string>
     <string name="assistant_voice_done">Selesai</string>
     <string name="assistant_voice_cancel">Batal</string>
+
+    <!-- AI Chat / Menu Riwayat Percakapan (frame 21622) -->
+    <string name="assistant_history_title">Riwayat Percakapan</string>
+    <string name="assistant_history_close">Tutup riwayat percakapan</string>
+    <string name="assistant_history_new">Percakapan baru</string>
+    <string name="assistant_history_search_hint">Cari percakapan…</string>
+    <string name="assistant_history_search_clear">Hapus pencarian</string>
+    <string name="assistant_history_last_week">7 hari terakhir</string>
+    <string name="assistant_history_older">Lebih lama</string>
+    <string name="assistant_history_open">Sedang dibuka • %1$s</string>
+    <string name="assistant_history_clear">Hapus semua riwayat</string>
+    <string name="assistant_history_empty_title">Belum ada riwayat</string>
+    <string name="assistant_history_empty_message">Percakapanmu dengan Asisten Gotest akan muncul di sini.</string>
+    <string name="assistant_history_no_match_title">Percakapan tidak ditemukan</string>
+    <string name="assistant_history_no_match_message">Coba kata kunci lain.</string>
+    <string name="assistant_history_clear_title">Hapus semua riwayat?</string>
+    <string name="assistant_history_clear_message">Semua percakapan dengan Asisten Gotest akan dihapus dan tidak bisa dikembalikan.</string>
+    <string name="assistant_history_clear_confirm">Hapus</string>
+    <string name="assistant_history_clear_cancel">Batal</string>
+    <string name="assistant_history_cleared">Riwayat percakapan dihapus.</string>
+    <string name="assistant_history_clear_error">Riwayat belum terhapus. Coba lagi.</string>
+
+    <!-- AI Chat / Tambah Lampiran (Sheet) (frame 22009) -->
+    <string name="assistant_attachment_title">Tambah Lampiran</string>
+    <string name="assistant_attachment_subtitle">Kirim foto soal atau dokumen, asisten akan membantu membahasnya.</string>
+    <string name="assistant_attachment_camera">Kamera</string>
+    <string name="assistant_attachment_gallery">Galeri</string>
+    <string name="assistant_attachment_document">Dokumen</string>
+    <string name="assistant_attachment_hint">JPG, PNG, atau PDF • Maks. 10 MB per file • Maks. 3 file per pesan</string>
+    <string name="assistant_attachment_cancel">Batal</string>
+    <string name="assistant_attachment_unsupported">Format file tidak didukung. Pilih JPG, PNG, atau PDF.</string>
+    <string name="assistant_attachment_too_large">Ukuran file maksimal 10 MB.</string>
+    <string name="assistant_attachment_too_many">Maksimal 3 file per pesan.</string>
+    <string name="assistant_attachment_unreadable">Lampiran tidak bisa dibuka. Coba pilih file lain.</string>
+    <string name="assistant_attachment_camera_denied">Izinkan akses kamera untuk memotret soal.</string>
+    <string name="assistant_attachment_camera_unavailable">Kamera tidak tersedia di perangkat ini.</string>
+    <string name="assistant_attachment_document_unavailable">Tidak ada aplikasi untuk memilih dokumen.</string>
 </resources>

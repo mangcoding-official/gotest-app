@@ -72,6 +72,8 @@ data class Game(
     val autoCancelAtMillis: Long?,
     val startedAtMillis: Long?,
     val cancelReason: CancelReason?,
+    /** When a cancelled game was cancelled (by the host or automatically); null otherwise. */
+    val cancelledAtMillis: Long? = null,
 ) {
     val type: GameType get() = settings.type
     val host: GamePlayer? get() = players.firstOrNull { it.isHost }
@@ -86,6 +88,16 @@ data class Game(
 
     /** The other player of a duel, from the current user's point of view. */
     val opponent: GamePlayer? get() = if (type == GameType.Duel) players.firstOrNull { !it.isCurrentUser } else null
+}
+
+/** Why "Buat Permainan" cannot open the form right now (frames 13995 and 14439). */
+sealed interface CreateBlock {
+    data object PremiumRequired : CreateBlock
+
+    /** The student must finish or leave [game] first. */
+    data class InAnotherGame(
+        val game: Game,
+    ) : CreateBlock
 }
 
 /** Answer to "Gabung dengan kode". */

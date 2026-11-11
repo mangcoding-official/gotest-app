@@ -110,6 +110,12 @@ internal fun HomeTopBar(
     }
 }
 
+/**
+ * Promo behind the bundled banner artwork ("Beranda / Promo Semangat Merdeka"). Once banners come
+ * from the API, each one carries its own promo id.
+ */
+internal const val HOME_PROMO_ID = "promo_semangat_merdeka"
+
 /** "Beranda / Promo Event" banner; the artwork carries its own "Lihat Promo" label. */
 @Composable
 internal fun HomePromoBanner(

@@ -2,8 +2,9 @@ package com.gotest.app.feature.account.ui.profile
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import com.gotest.app.R
 import com.gotest.app.core.model.UserProfile
+import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
+import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
 
 sealed interface ProfileUiState {
@@ -28,6 +29,13 @@ sealed interface ProfileUiEvent {
 
     data object AvatarClick : ProfileUiEvent
 
+    /** "Ambil Foto" with the camera permission granted. */
+    data object TakePhoto : ProfileUiEvent
+
+    data class PhotoCapture(
+        val event: PhotoCaptureEvent,
+    ) : ProfileUiEvent
+
     data class PhotoPick(
         val photoUri: String,
     ) : ProfileUiEvent
@@ -46,17 +54,9 @@ sealed interface ProfileUiEvent {
 sealed interface ProfileEffect {
     data object SignedOut : ProfileEffect
 
-    /** [inPhotoSheet] routes the snackbar into the open sheet, where the screen's one would be hidden. */
+    /** [host] routes the snackbar into the open sheet or camera, where the screen's one would be hidden. */
     data class ShowMessage(
         @param:StringRes val messageRes: Int,
-        val inPhotoSheet: Boolean = false,
+        val host: PhotoMessageHost = PhotoMessageHost.Screen,
     ) : ProfileEffect
-}
-
-/** Results Edit Informasi Akun and Ganti Password hand back to Profil, shown as a snackbar. */
-enum class ProfileNotice(
-    @param:StringRes val messageRes: Int,
-) {
-    ProfileSaved(R.string.account_notice_profile_saved),
-    PasswordChanged(R.string.account_notice_password_changed),
 }

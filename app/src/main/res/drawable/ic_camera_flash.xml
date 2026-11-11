@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- lucide "zap", the "on" state of the design's lucide "zap-off" (ic_camera_flash_off), drawn on the same 20dp grid. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <group
+        android:scaleX="0.8333"
+        android:scaleY="0.8333">
+        <path
+            android:pathData="M4 14a1 1 0 0 1 -0.78 -1.63l9.9 -10.2a0.5 0.5 0 0 1 0.86 0.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 0.78 1.63l-9.9 10.2a0.5 0.5 0 0 1 -0.86 -0.46l1.92 -6.02A1 1 0 0 0 11 14z"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="2.4"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

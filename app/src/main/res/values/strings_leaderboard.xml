@@ -22,6 +22,19 @@
     <string name="leaderboard_global_empty_title">Leaderboard masih kosong</string>
     <string name="leaderboard_global_empty_message">Kerjakan latihan atau tryout untuk mulai mengumpulkan poin.</string>
 
+    <!-- Peringkat / Tentang Leaderboard (Sheet) -->
+    <string name="leaderboard_info_title">Tentang Leaderboard</string>
+    <string name="leaderboard_info_subtitle">Begini cara peringkatmu dihitung.</string>
+    <string name="leaderboard_info_points_title">Poin dari jawaban benar</string>
+    <string name="leaderboard_info_points_body">Setiap jawaban benar menambah poin sesuai bobot soal. Jawaban salah atau kosong tidak mengurangi poin.</string>
+    <string name="leaderboard_info_time_title">Waktu sebagai penentu</string>
+    <string name="leaderboard_info_time_body">Jika poin sama, peserta yang selesai lebih cepat berada di atas.</string>
+    <string name="leaderboard_info_scope_title">Global vs Per Paket</string>
+    <string name="leaderboard_info_scope_body">Global menjumlahkan poin semua tryout. Per Paket hanya membandingkan peserta di paket yang sama.</string>
+    <string name="leaderboard_info_schedule_title">Diperbarui berkala</string>
+    <string name="leaderboard_info_schedule_body">Peringkat dihitung ulang setiap hari pukul 15.30 WIB. Hanya attempt pertama tiap paket yang dihitung.</string>
+    <string name="leaderboard_info_confirm">Mengerti</string>
+
     <!-- Peringkat / Per Paket -->
     <string name="leaderboard_packages_title">Semua Paket Tryout</string>
     <string name="leaderboard_packages_subtitle">Leaderboard dari paket yang sudah kamu selesaikan • Diperbarui %1$s</string>
@@ -48,4 +61,13 @@
     <string name="leaderboard_finished_in">Selesai dalam %1$s</string>
     <string name="leaderboard_package_empty_title">Belum ada peserta</string>
     <string name="leaderboard_package_empty_message">Leaderboard paket ini muncul setelah ada peserta yang menyelesaikannya.</string>
+
+    <!-- Peringkat / Detail Paket – Cari Peserta -->
+    <string name="leaderboard_search_placeholder">Cari nama peserta…</string>
+    <string name="leaderboard_search_cd_clear">Hapus pencarian</string>
+    <!-- "3 peserta ditemukan di Tryout UTBK-SNBT 2026 (Sesi 1)" -->
+    <string name="leaderboard_search_count">%1$s peserta ditemukan di %2$s</string>
+    <string name="leaderboard_search_note">Cari berdasarkan nama peserta. Hasil hanya menampilkan peserta yang sudah menyelesaikan paket ini.</string>
+    <string name="leaderboard_search_idle_title">Cari peserta</string>
+    <string name="leaderboard_search_no_results_title">Peserta tidak ditemukan</string>
 </resources>

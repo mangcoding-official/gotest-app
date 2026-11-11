@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -22,7 +22,6 @@ import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestBackButton
 import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestErrorView
-import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTopAppBar
 import com.gotest.app.core.designsystem.icon.GotestIcons
@@ -30,30 +29,36 @@ import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.StudyPackageDetail
 import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.studypackage.ui.components.BookmarkButton
 import com.gotest.app.feature.studypackage.ui.components.DetailBottomBar
 import com.gotest.app.feature.studypackage.ui.components.InfoTileData
 import com.gotest.app.feature.studypackage.ui.components.NumberedItem
 import com.gotest.app.feature.studypackage.ui.components.NumberedListCard
 import com.gotest.app.feature.studypackage.ui.components.PackageHeroCard
+import com.gotest.app.feature.studypackage.ui.components.PackageSnackbarHost
 import com.gotest.app.feature.studypackage.ui.components.RulesCard
 import com.gotest.app.feature.studypackage.ui.components.StudyPackagePreviewData
 import com.gotest.app.feature.studypackage.ui.components.hasResumableProgress
+import com.gotest.app.feature.studypackage.ui.components.showBookmarkResult
 import kotlinx.coroutines.launch
 
 @Composable
 fun PracticeDetailRoute(
     onBack: () -> Unit,
     onStartExam: (packageId: String) -> Unit,
+    onOpenSavedPackages: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PracticeDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
+    val resources = LocalResources.current
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            PracticeDetailEffect.ShowComingSoon -> scope.launch { snackbarHostState.showSnackbar(comingSoon) }
+            is PracticeDetailEffect.BookmarkChanged -> {
+                scope.launch { snackbarHostState.showBookmarkResult(effect.saved, resources, onOpenSavedPackages) }
+            }
         }
     }
     PracticeDetailScreen(
@@ -66,7 +71,10 @@ fun PracticeDetailRoute(
     )
 }
 
-/** "Detail Paket" (frame 2152). */
+/**
+ * "Detail Paket" (frame 2158; saved: 22358). The bookmark appears once the package has loaded;
+ * its messages float above the bottom button.
+ */
 @Composable
 fun PracticeDetailScreen(
     uiState: PracticeDetailUiState,
@@ -83,20 +91,24 @@ fun PracticeDetailScreen(
                 title = stringResource(R.string.studypackage_detail_title),
                 navigationIcon = { GotestBackButton(onClick = onBack) },
                 actions = {
-                    GotestIconButton(
-                        icon = GotestIcons.Linear.ArchiveAdd,
-                        contentDescription = stringResource(R.string.studypackage_cd_bookmark),
-                        onClick = { onEvent(PracticeDetailUiEvent.BookmarkClicked) },
-                    )
+                    if (uiState is PracticeDetailUiState.Success) {
+                        BookmarkButton(
+                            isSaved = uiState.isSaved,
+                            onClick = { onEvent(PracticeDetailUiEvent.BookmarkClicked) },
+                        )
+                    }
                 },
             )
         },
         bottomBar = {
             if (uiState is PracticeDetailUiState.Success) {
-                PracticeBottomBar(detail = uiState.detail, onStartExam = onStartExam)
+                PracticeBottomBar(
+                    detail = uiState.detail,
+                    onStartExam = onStartExam,
+                    snackbarHost = { PackageSnackbarHost(snackbarHostState) },
+                )
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = GotestTheme.colors.bgSubtle,
     ) { padding ->
         when (uiState) {
@@ -189,6 +201,7 @@ private fun PracticeBottomBar(
     detail: StudyPackageDetail,
     onStartExam: (packageId: String) -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHost: @Composable () -> Unit = {},
 ) {
     val summary = detail.summary
     val progress = summary.progress?.takeIf { it.answered > 0 }
@@ -205,6 +218,7 @@ private fun PracticeBottomBar(
         modifier = modifier,
         progressText =
             progress?.let { stringResource(R.string.studypackage_last_progress_value, it.answered, it.total) },
+        snackbarHost = snackbarHost,
     )
 }
 
@@ -224,14 +238,22 @@ private fun PracticeDetailPreview(uiState: PracticeDetailUiState) {
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun PracticeDetailResumePreview() {
-    PracticeDetailPreview(PracticeDetailUiState.Success(StudyPackagePreviewData.practiceDetail))
+    PracticeDetailPreview(PracticeDetailUiState.Success(StudyPackagePreviewData.practiceDetail, isSaved = false))
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun PracticeDetailSavedPreview() {
+    PracticeDetailPreview(PracticeDetailUiState.Success(StudyPackagePreviewData.practiceDetail, isSaved = true))
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun PracticeDetailFreshPreview() {
     val detail = StudyPackagePreviewData.practiceDetail
-    PracticeDetailPreview(PracticeDetailUiState.Success(detail.copy(summary = detail.summary.copy(progress = null))))
+    PracticeDetailPreview(
+        PracticeDetailUiState.Success(detail.copy(summary = detail.summary.copy(progress = null)), isSaved = false),
+    )
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)

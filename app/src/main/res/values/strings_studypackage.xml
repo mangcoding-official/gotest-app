@@ -9,6 +9,7 @@
     <string name="studypackage_tab_tryout">Paket Tryout</string>
     <string name="studypackage_all_levels">Semua Jenjang</string>
     <string name="studypackage_cd_search">Cari paket</string>
+    <string name="studypackage_cd_saved_packages">Paket Tersimpan</string>
     <string name="studypackage_category_sub_count">%1$d Sub Kategori</string>
     <string name="studypackage_category_practice_count">%1$d Paket latihan</string>
     <string name="studypackage_category_tryout_count">%1$d Paket tryout</string>
@@ -81,6 +82,7 @@
     <!-- Detail Paket -->
     <string name="studypackage_detail_title">Detail Paket</string>
     <string name="studypackage_cd_bookmark">Simpan paket</string>
+    <string name="studypackage_cd_unbookmark">Hapus dari Paket Tersimpan</string>
     <string name="studypackage_chip_practice">Latihan</string>
     <string name="studypackage_chip_tryout">Tryout</string>
     <string name="studypackage_tile_questions">Soal</string>
@@ -104,4 +106,18 @@
     <string name="studypackage_section_meta">%1$d soal • %2$d mnt</string>
     <string name="studypackage_tryout_rules_title">Ketentuan Pengerjaan</string>
     <string name="studypackage_tryout_start">Mulai Tryout</string>
+
+    <!-- Detail Paket / Detail Tryout: bookmark -->
+    <string name="studypackage_saved_toast_title">Paket disimpan</string>
+    <string name="studypackage_saved_toast_message">Buka kapan saja dari Paket Tersimpan.</string>
+    <string name="studypackage_saved_toast_action">Lihat</string>
+    <string name="studypackage_unsaved_message">Paket dihapus dari Paket Tersimpan.</string>
+
+    <!-- Paket Tersimpan -->
+    <string name="studypackage_saved_title">Paket Tersimpan</string>
+    <string name="studypackage_saved_filter_all">Semua (%1$d)</string>
+    <string name="studypackage_saved_meta">%1$d soal • %2$s • Disimpan %3$s</string>
+    <string name="studypackage_saved_duration">%1$d menit</string>
+    <string name="studypackage_saved_empty_title">Belum ada paket tersimpan</string>
+    <string name="studypackage_saved_empty_message">Tekan ikon simpan di detail paket agar mudah membukanya lagi di sini.</string>
 </resources>

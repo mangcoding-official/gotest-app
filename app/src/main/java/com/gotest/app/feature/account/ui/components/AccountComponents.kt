@@ -2,7 +2,9 @@ package com.gotest.app.feature.account.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +24,11 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -56,6 +62,16 @@ internal object AccountDimens {
     val skeletonShort = 61.dp
     val skeletonThick = 12.dp
     val skeletonThin = 8.dp
+
+    /** Radio and checkbox of the Pengaturan sub-screens. */
+    val selectionControl = 20.dp
+    val selectionControlStroke = 2.dp
+    val radioDot = 10.dp
+    val checkboxRadius = 6.dp
+    val checkGlyph = 14.dp
+
+    /** Label column of the Data Pribadi rows. */
+    val personalDataLabelWidth = 120.dp
 }
 
 /** Box size, glyph size and corner radius of [AccountIconTile]. */
@@ -68,6 +84,9 @@ enum class AccountTileSize {
 
     /** 40dp box, 20dp glyph: help categories. */
     Medium,
+
+    /** 40dp box, 20dp glyph, 10dp corners: Jenjang Utama options and the Unduh Data Akun intro. */
+    Choice,
 
     /** 56dp box, 28dp glyph: the badge heading Ganti Password and Hapus Akun. */
     Large,
@@ -99,6 +118,10 @@ private fun tileMetrics(size: AccountTileSize): TileMetrics {
 
         AccountTileSize.Medium -> {
             TileMetrics(sizes.iconButton, sizes.iconMd, shapes.medium)
+        }
+
+        AccountTileSize.Choice -> {
+            TileMetrics(sizes.iconButton, sizes.iconMd, RoundedCornerShape(AccountDimens.compactTileRadius))
         }
 
         AccountTileSize.Large -> {
@@ -253,6 +276,115 @@ fun AccountNote(
     }
 }
 
+/** White bordered "hint" card: an 18dp glyph and a muted note (Jenjang Utama, Unduh Data Akun). */
+@Composable
+fun AccountHint(
+    text: String,
+    @DrawableRes icon: Int,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = GotestTheme.spacing
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = GotestTheme.colors.bgApp,
+        border = BorderStroke(GotestTheme.sizes.strokeThin, GotestTheme.colors.borderSubtle),
+    ) {
+        Row(
+            modifier = Modifier.padding(spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier.size(AccountDimens.iconSmall),
+                tint = GotestTheme.colors.iconDefault,
+            )
+            Text(
+                text = text,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelSmall,
+                color = GotestTheme.colors.textSecondary,
+            )
+        }
+    }
+}
+
+/** 20dp radio: a dark ring with a dot when [selected], a grey ring otherwise. Purely visual; the row is selectable. */
+@Composable
+fun AccountRadioIndicator(
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    val shape = GotestTheme.shapes.full
+    Box(
+        modifier =
+            modifier
+                .size(AccountDimens.selectionControl)
+                .border(
+                    width = AccountDimens.selectionControlStroke,
+                    color = if (selected) colors.borderBrandDark else colors.borderStrong,
+                    shape = shape,
+                ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (selected) {
+            Box(modifier = Modifier.size(AccountDimens.radioDot).background(colors.bgBrandDark, shape))
+        }
+    }
+}
+
+/** 20dp checkbox: dark fill with a white tick when [checked], a grey outline otherwise. Purely visual. */
+@Composable
+fun AccountCheckboxIndicator(
+    checked: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    val shape = RoundedCornerShape(AccountDimens.checkboxRadius)
+    val box = modifier.size(AccountDimens.selectionControl)
+    if (checked) {
+        Box(modifier = box.background(colors.bgBrandDark, shape), contentAlignment = Alignment.Center) {
+            CheckGlyph(color = colors.bgApp, modifier = Modifier.size(AccountDimens.checkGlyph))
+        }
+    } else {
+        Box(modifier = box.border(AccountDimens.selectionControlStroke, colors.borderStrong, shape))
+    }
+}
+
+/** The design's lucide "check" (24-unit grid: 20,6 → 9,17 → 4,12), stroked 2dp at 14dp. */
+@Composable
+private fun CheckGlyph(
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    val strokeWidth = AccountDimens.selectionControlStroke
+    Canvas(modifier = modifier) {
+        val unit = size.minDimension / CHECK_GRID
+        val path =
+            Path().apply {
+                moveTo(CHECK_END_X * unit, CHECK_END_Y * unit)
+                lineTo(CHECK_CORNER_X * unit, CHECK_CORNER_Y * unit)
+                lineTo(CHECK_START_X * unit, CHECK_START_Y * unit)
+            }
+        drawPath(
+            path = path,
+            color = color,
+            style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
+        )
+    }
+}
+
+private const val CHECK_GRID = 24f
+private const val CHECK_END_X = 20f
+private const val CHECK_END_Y = 6f
+private const val CHECK_CORNER_X = 9f
+private const val CHECK_CORNER_Y = 17f
+private const val CHECK_START_X = 4f
+private const val CHECK_START_Y = 12f
+
 /** Bordered white card with the radius/lg corners, used for single blocks like contact tiles. */
 @Composable
 fun AccountOutlinedSurface(
@@ -295,6 +427,28 @@ private fun AccountMenuRowPreview() {
                 containerColor = GotestTheme.colors.bgBlueSoft,
                 iconColor = GotestTheme.colors.bgBlue,
                 textColor = GotestTheme.colors.bgBlueDark,
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AccountSelectionControlsPreview() {
+    GotestTheme {
+        Column(
+            modifier = Modifier.padding(GotestTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
+                AccountRadioIndicator(selected = true)
+                AccountRadioIndicator(selected = false)
+                AccountCheckboxIndicator(checked = true)
+                AccountCheckboxIndicator(checked = false)
+            }
+            AccountHint(
+                text = "Riwayat dan skor kamu tetap tersimpan saat jenjang diubah.",
+                icon = GotestIcons.Linear.InfoCircle,
             )
         }
     }

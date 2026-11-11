@@ -29,6 +29,9 @@ internal object StudyPackageDimens {
 
     /** Dot between "12 Sub Kategori" and "12 Paket latihan". */
     val metaDot = 4.dp
+
+    /** "Paket disimpan" toast shadow (y 8, blur 24 in the design). */
+    val toastElevation = 8.dp
 }
 
 /** Colour of the small bar on category cards. */

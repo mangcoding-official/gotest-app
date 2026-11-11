@@ -12,6 +12,8 @@ sealed interface TryoutDetailUiState {
     @Immutable
     data class Success(
         val detail: StudyPackageDetail,
+        /** Filled bookmark ("Paket / Detail Tryout – Tersimpan"). */
+        val isSaved: Boolean,
     ) : TryoutDetailUiState
 }
 
@@ -22,6 +24,8 @@ sealed interface TryoutDetailUiEvent {
 }
 
 sealed interface TryoutDetailEffect {
-    /** Bookmarks are not designed yet. */
-    data object ShowComingSoon : TryoutDetailEffect
+    /** The bookmark was toggled; [saved] tells which message to show. */
+    data class BookmarkChanged(
+        val saved: Boolean,
+    ) : TryoutDetailEffect
 }

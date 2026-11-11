@@ -16,14 +16,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,17 +38,13 @@ import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.LeaderboardEntry
 import com.gotest.app.core.model.PackageRanking
 import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.leaderboard.ui.components.LeaderboardInfoSheet
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardList
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardMetric
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardPodium
 import com.gotest.app.feature.leaderboard.ui.components.MyRankCard
 import com.gotest.app.feature.leaderboard.ui.components.PackageRankingCard
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
-/** "15:30" in "Diperbarui 21 Okt 2026, 15:30"; 24-hour time is the same in every locale we ship. */
 
 @Composable
 fun LeaderboardRoute(
@@ -62,17 +53,8 @@ fun LeaderboardRoute(
     viewModel: LeaderboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
-    ObserveAsEvents(viewModel.effects) { effect ->
-        when (effect) {
-            LeaderboardEffect.ShowComingSoon -> scope.launch { snackbarHostState.showSnackbar(comingSoon) }
-        }
-    }
     LeaderboardScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         onEvent = viewModel::onEvent,
         onOpenPackage = onOpenPackage,
         modifier = modifier,
@@ -82,7 +64,6 @@ fun LeaderboardRoute(
 @Composable
 fun LeaderboardScreen(
     uiState: LeaderboardUiState,
-    snackbarHostState: SnackbarHostState,
     onEvent: (LeaderboardUiEvent) -> Unit,
     onOpenPackage: (packageId: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -143,13 +124,9 @@ fun LeaderboardScreen(
                 }
             }
         }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = bottomInset),
-        )
+        if (uiState.isInfoVisible) {
+            LeaderboardInfoSheet(onDismiss = { onEvent(LeaderboardUiEvent.InfoDismiss) })
+        }
     }
 }
 
@@ -365,7 +342,6 @@ private fun LeaderboardPreviewHost(uiState: LeaderboardUiState) {
     GotestTheme {
         LeaderboardScreen(
             uiState = uiState,
-            snackbarHostState = remember { SnackbarHostState() },
             onEvent = {},
             onOpenPackage = {},
         )

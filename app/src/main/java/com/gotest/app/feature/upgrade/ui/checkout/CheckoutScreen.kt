@@ -27,6 +27,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,10 +37,13 @@ import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestBackButton
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestCard
+import com.gotest.app.core.designsystem.component.GotestChip
+import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTopAppBar
 import com.gotest.app.core.designsystem.theme.GotestTheme
+import com.gotest.app.core.model.EWallet
 import com.gotest.app.core.model.PaymentMethodType
 import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.core.ui.ObserveAsEvents
@@ -86,7 +92,10 @@ fun CheckoutRoute(
     )
 }
 
-/** "Upgrade / Checkout" (frame 11497), step 1 of 2. */
+/**
+ * "Upgrade / Checkout" (frame 11497), step 1 of 2. E-Wallet opens "Pilih E-Wallet" (frame 23508);
+ * with a promo the summary strikes through the normal price and adds a "Promo" row with its chip.
+ */
 @Composable
 fun CheckoutScreen(
     uiState: CheckoutUiState,
@@ -131,6 +140,15 @@ fun CheckoutScreen(
                     onEditProfile = onEditProfile,
                     modifier = contentModifier,
                 )
+                if (uiState.isWalletSheetVisible) {
+                    EWalletSheet(
+                        selected = uiState.selectedWallet,
+                        isSubmitting = uiState.isSubmitting,
+                        onSelect = { onEvent(CheckoutUiEvent.SelectWallet(it)) },
+                        onPay = { onEvent(CheckoutUiEvent.PayWithWallet) },
+                        onDismiss = { onEvent(CheckoutUiEvent.DismissWalletSheet) },
+                    )
+                }
             }
         }
     }
@@ -239,12 +257,65 @@ private fun OrderSummarySection(
                     label = stringResource(R.string.upgrade_checkout_fee),
                     value = GotestFormat.rupiah(state.feeRupiah),
                 )
-                UpgradeInfoRow(
-                    label = stringResource(R.string.upgrade_checkout_price),
-                    value = GotestFormat.rupiah(state.plan.priceRupiah),
-                )
+                val promo = state.promo
+                if (promo == null) {
+                    UpgradeInfoRow(
+                        label = stringResource(R.string.upgrade_checkout_price),
+                        value = GotestFormat.rupiah(state.priceRupiah),
+                    )
+                } else {
+                    PromoPriceRow(originalRupiah = promo.originalPriceRupiah, priceRupiah = state.priceRupiah)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.upgrade_promo_title),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = GotestTheme.colors.textSecondary,
+                        )
+                        GotestChip(text = promo.label, tone = GotestChipTone.Red)
+                    }
+                }
             }
         }
+    }
+}
+
+/** "Harga Paket" with a promo: the normal price struck through before the promo price, as on the promo card. */
+@Composable
+private fun PromoPriceRow(
+    originalRupiah: Long,
+    priceRupiah: Long,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    val original = GotestFormat.rupiah(originalRupiah)
+    val originalDescription = stringResource(R.string.upgrade_promo_cd_original_price, original)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.upgrade_checkout_price),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textSecondary,
+        )
+        Text(
+            text = original,
+            modifier = Modifier.semantics { contentDescription = originalDescription },
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.textSecondary,
+            textDecoration = TextDecoration.LineThrough,
+        )
+        Text(
+            text = GotestFormat.rupiah(priceRupiah),
+            style = MaterialTheme.typography.labelLarge,
+            color = colors.textPrimary,
+        )
     }
 }
 
@@ -286,7 +357,11 @@ private val previewSuccess =
         fullName = "Gilang Permana",
         email = "gilang@gmail.com",
         plan = UpgradePreviewData.premiumPlan,
+        promo = null,
         selectedMethod = PaymentMethodType.VirtualAccount,
+        selectedWallet = EWallet.GoPay,
+        isWalletSheetVisible = false,
+        priceRupiah = 100_000,
         feeRupiah = 10_000,
         totalRupiah = 110_000,
         isSubmitting = false,
@@ -312,6 +387,20 @@ private fun CheckoutScreenSubmittingPreview() {
     GotestTheme {
         CheckoutScreen(
             uiState = previewSuccess.copy(selectedMethod = PaymentMethodType.Qris, isSubmitting = true),
+            onEvent = {},
+            onBack = {},
+            onEditProfile = {},
+            snackbarHostState = remember { SnackbarHostState() },
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun CheckoutScreenPromoPreview() {
+    GotestTheme {
+        CheckoutScreen(
+            uiState = previewSuccess.copy(promo = UpgradePreviewData.promo),
             onEvent = {},
             onBack = {},
             onEditProfile = {},

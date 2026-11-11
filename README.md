@@ -33,6 +33,7 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
 | DI | Hilt (KSP) |
 | Navigasi | Navigation Compose, type-safe destinations (`kotlinx-serialization`) |
 | Gambar | Coil 3 |
+| Kamera / QR | CameraX (`camera-compose`) untuk Ambil Foto, ZXing core untuk kode QRIS |
 | Kualitas kode | ktlint (`ktlint_official`) + compose-rules, detekt + compose-rules, Android Lint |
 | SDK | minSdk 24, targetSdk/compileSdk 37; `desugar_jdk_libs` untuk `java.time` di API 24–25 |
 
@@ -57,7 +58,7 @@ app/src/main/java/com/gotest/app/
 
 Fitur yang ada: `auth`, `home` (Beranda, Pencarian, Notifikasi), `studypackage` (Paket), `exam` (Ujian,
 Hasil, Pembahasan), `history`, `leaderboard`, `account` (Profil, Akun, Pengaturan, Langganan, Bantuan),
-`upgrade`, `assistant` (Asisten AI), dan `multiplayer` (Main Bareng). Totalnya 41 destinasi.
+`upgrade`, `assistant` (Asisten AI), dan `multiplayer` (Main Bareng). Totalnya 49 destinasi.
 
 Aturan layar:
 - `XxxRoute` mengambil ViewModel dengan `hiltViewModel()` dan `collectAsStateWithLifecycle()`, lalu
@@ -73,8 +74,11 @@ UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu dig
 2. Ganti `@Binds` di `core/data/di/DataModule.kt` (Auth, User, StudyPackage, Exam, Leaderboard,
    Subscription) dan di modul per fitur:
    - `feature/home/data/di` (Notification, Search)
-   - `feature/account/data/di` (Settings, Help)
-   - `feature/assistant/data/di`
+   - `feature/studypackage/data/di` (SavedPackage)
+   - `feature/history/data/di` (History, HistoryExporter)
+   - `feature/account/data/di` (Settings, Help, AccountData, ProfilePhotoProcessor)
+   - `feature/upgrade/data/di` (Promo)
+   - `feature/assistant/data/di` (Assistant, AttachmentReader)
    - `feature/multiplayer/data/di`
 3. Gambar dummy dimuat lewat `drawableUri("nama")` dan `DrawableNameMapper`. Gambar dari server cukup berupa
    URL http(s). Setelah data dummy dihapus, mapper boleh ikut dihapus.
@@ -116,19 +120,16 @@ desain disimpan sebagai konstanta bernama di objek `XxxDimens` milik fiturnya.
 - [ ] **Teks yang ditulis sendiri (bukan dari desain), perlu dicek copywriter:**
   - validasi form, state error/empty, snackbar, teks share, dan dialog Keluar
   - isi FAQ dan topik bantuan "Paket" dan "Pembayaran"
+  - isi file ekspor Riwayat (judul dan kolom PDF/CSV), seed percakapan Asisten, dan balasan Asisten
+    untuk lampiran
   - "Monitoring update data sistem secara realtime." (subjudul Aktivitas Terkini) disalin dari desain
     tapi terdengar seperti teks admin
 - [ ] **Desain yang tidak konsisten:** gaya judul app bar (SemiBold 16/16 vs Medium 16/24) dan angka mockup
   yang saling bertentangan (mis. akurasi 100% di Beranda vs 86% di Profil). Aplikasi memakai data dummy
-  yang konsisten.
+  yang konsisten. Contoh lain: promo Semangat Merdeka mencoret harga Rp200.000, padahal paket Premium
+  Tahunan di Upgrade Akun memang Rp100.000.
 
-**Belum diimplementasikan (saat ini snackbar "Fitur ini segera hadir")**
-- [ ] Ambil Foto (kamera). Perlu `FileProvider` atau izin kamera; Pilih dari Galeri sudah jalan.
-- [ ] Pembayaran QRIS dan E-Wallet. Hanya alur Virtual Account yang ada di desain.
-- [ ] Pengaturan: Jenjang Utama, Data Pribadi, Unduh Data Akun.
-- [ ] Bookmark paket, sort/export Riwayat, info Leaderboard, pencarian Leaderboard Paket.
-- [ ] Menu dan lampiran Asisten.
-- [ ] "Lihat Semua" dan "Detail" Riwayat Main Bareng.
+**Belum diimplementasikan**
 - [ ] Deep link `https://gotest.id/main/{kode}` untuk mengisi kode Main Bareng otomatis. Perlu
   intent-filter, `deepLinks`, dan parameter kode.
 
@@ -141,7 +142,15 @@ desain disimpan sebagai konstanta bernama di objek `XxxDimens` milik fiturnya.
   - waktu "Diperbarui" untuk peringkat per paket
   - `StudyPackage.categoryId` dan jumlah topik
   - id tryout seasonal yang asli
-- [ ] Foto profil dari galeri baru berupa `content://` URI sementara; perlu di-upload ke server.
+  - akurasi per attempt untuk urutan Riwayat (sekarang dihitung di `FakeHistoryRepository`)
+- [ ] Endpoint untuk Paket Tersimpan, riwayat percakapan Asisten, upload lampiran Asisten, dan promo.
+- [ ] Pembayaran QRIS/E-Wallet: payload QRIS dan tautan pembayaran e-wallet harus datang dari payment
+  gateway. Sekarang QR dibuat dari payload dummy dan "Buka <wallet>" hanya membuka aplikasinya lewat nama
+  paket. "Ganti metode pembayaran" juga perlu membatalkan order lama.
+- [ ] Foto profil dari galeri baru berupa `content://` URI sementara, dan foto dari kamera berupa file di
+  `cacheDir/profile_photo/`; keduanya perlu di-upload ke server.
+- [ ] URL Kebijakan Privasi di Data Pribadi (`account_personal_policy_url`) masih tebakan:
+  `https://gotest.id/kebijakan-privasi`.
 
 **Teknis**
 - [ ] Unit test ViewModel dan aturan domain (mis. `ExamRules`, `GameRules`, `CredentialValidator`) belum

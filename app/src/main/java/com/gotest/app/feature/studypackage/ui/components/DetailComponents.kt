@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -22,10 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestCard
@@ -211,13 +215,18 @@ internal fun RulesCard(
     }
 }
 
-/** White bottom bar with an optional "Progres terakhir" line above the primary button. */
+/**
+ * White bottom bar with an optional "Progres terakhir" line above the primary button.
+ * [snackbarHost] floats 12dp above the button, over the progress line and the content, where the
+ * "Tersimpan" frames put the toast; it takes no space in the bar.
+ */
 @Composable
 internal fun DetailBottomBar(
     buttonText: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     progressText: String? = null,
+    snackbarHost: @Composable () -> Unit = {},
 ) {
     val spacing = GotestTheme.spacing
     Column(modifier = modifier.fillMaxWidth().background(GotestTheme.colors.bgApp)) {
@@ -247,10 +256,20 @@ internal fun DetailBottomBar(
                     )
                 }
             }
-            GotestButton(text = buttonText, onClick = onClick, modifier = Modifier.fillMaxWidth())
+            Box {
+                GotestButton(text = buttonText, onClick = onClick, modifier = Modifier.fillMaxWidth())
+                Box(modifier = Modifier.align(Alignment.TopCenter).floatAbove(spacing.md)) { snackbarHost() }
+            }
         }
     }
 }
+
+/** Lays the content out with no height of its own, its bottom edge [gap] above this slot's top. */
+private fun Modifier.floatAbove(gap: Dp): Modifier =
+    layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+        layout(placeable.width, 0) { placeable.placeRelative(0, -placeable.height - gap.roundToPx()) }
+    }
 
 @Preview(showBackground = true, widthDp = 440)
 @Composable
@@ -280,6 +299,29 @@ private fun DetailComponentsPreview() {
             )
             RulesCard(title = "Sebelum mulai", rules = listOf("Pembahasan tersedia setelah latihan selesai."))
             DetailBottomBar(buttonText = "Lanjutkan Latihan", onClick = {}, progressText = "5 / 20 soal")
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 240)
+@Composable
+private fun DetailBottomBarToastPreview() {
+    GotestTheme {
+        Box(modifier = Modifier.fillMaxSize().background(GotestTheme.colors.bgSubtle)) {
+            DetailBottomBar(
+                buttonText = "Lanjutkan Latihan",
+                onClick = {},
+                modifier = Modifier.align(Alignment.BottomCenter),
+                progressText = "5 / 20 soal",
+                snackbarHost = {
+                    PackageToast(
+                        title = "Paket disimpan",
+                        message = "Buka kapan saja dari Paket Tersimpan.",
+                        icon = GotestIcons.Bold.ArchiveTick,
+                        actionText = "Lihat",
+                    )
+                },
+            )
         }
     }
 }

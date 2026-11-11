@@ -29,6 +29,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object NotificationDestination
 
+/** A promo opened from Beranda's banner (e.g. "Semangat Merdeka"). */
+@Serializable data class PromoDestination(
+    val promoId: String,
+)
+
 // Study packages ("Paket")
 @Serializable data class PackageListDestination(
     val categoryId: String? = null,
@@ -49,6 +54,8 @@ import kotlinx.serialization.Serializable
 @Serializable data class TryoutDetailDestination(
     val packageId: String,
 )
+
+@Serializable data object SavedPackagesDestination
 
 // Exam ("Ujian")
 @Serializable data class ExamDestination(
@@ -78,6 +85,10 @@ import kotlinx.serialization.Serializable
     val packageId: String,
 )
 
+@Serializable data class PackageLeaderboardSearchDestination(
+    val packageId: String,
+)
+
 // Account
 @Serializable data object EditProfileDestination
 
@@ -86,6 +97,12 @@ import kotlinx.serialization.Serializable
 @Serializable data object DeleteAccountDestination
 
 @Serializable data object SettingsDestination
+
+@Serializable data object MainLevelDestination
+
+@Serializable data object PersonalDataDestination
+
+@Serializable data object DownloadAccountDataDestination
 
 @Serializable data object SubscriptionDestination
 
@@ -98,8 +115,10 @@ import kotlinx.serialization.Serializable
 // Upgrade
 @Serializable data object UpgradePlanDestination
 
+/** [promoId] applies a promo's discount (e.g. from [PromoDestination]). */
 @Serializable data class CheckoutDestination(
     val planId: String,
+    val promoId: String? = null,
 )
 
 @Serializable data class PaymentPendingDestination(
@@ -120,7 +139,10 @@ import kotlinx.serialization.Serializable
     val openJoinSheet: Boolean = false,
 )
 
-@Serializable data object CreateGameDestination
+/** [copyFromGameCode] prefills the form with that game's settings ("Buat Ulang dengan Pengaturan Sama"). */
+@Serializable data class CreateGameDestination(
+    val copyFromGameCode: String? = null,
+)
 
 @Serializable data class WaitingRoomDestination(
     val gameCode: String,
@@ -135,5 +157,11 @@ import kotlinx.serialization.Serializable
 )
 
 @Serializable data class GameResultDestination(
+    val gameCode: String,
+)
+
+@Serializable data object MultiplayerHistoryDestination
+
+@Serializable data class GameDetailDestination(
     val gameCode: String,
 )

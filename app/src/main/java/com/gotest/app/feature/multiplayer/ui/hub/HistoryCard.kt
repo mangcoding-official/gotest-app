@@ -19,28 +19,28 @@ import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestButtonSize
 import com.gotest.app.core.designsystem.component.GotestButtonVariant
 import com.gotest.app.core.designsystem.component.GotestCard
-import com.gotest.app.core.designsystem.component.GotestChip
-import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestDivider
-import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.feature.multiplayer.domain.GameHistoryItem
-import com.gotest.app.feature.multiplayer.domain.GameType
 import com.gotest.app.feature.multiplayer.domain.HistoryOutcome
+import com.gotest.app.feature.multiplayer.ui.components.MbGameTypeChip
+import com.gotest.app.feature.multiplayer.ui.components.MbOutcomeChip
 import com.gotest.app.feature.multiplayer.ui.components.MbSeatList
 import com.gotest.app.feature.multiplayer.ui.components.MultiplayerPreviewData
 import com.gotest.app.feature.multiplayer.ui.components.durationLabel
-import com.gotest.app.feature.multiplayer.ui.components.gameTypeLabel
 import com.gotest.app.feature.multiplayer.ui.components.playedAtLabel
 import com.gotest.app.feature.multiplayer.ui.components.questionCountLabel
 
-/** "Riwayat Main Bareng": past games with their result chip. */
+/** Rows the hub card shows; "Lihat Semua" opens the rest (frame 12410). */
+private const val MAX_ROWS = 4
+
+/** "Riwayat Main Bareng": the newest games with their result chip. */
 @Composable
 fun HistoryCard(
     history: List<GameHistoryItem>,
     onOpenResult: (code: String) -> Unit,
     onSeeAll: () -> Unit,
-    onDetail: () -> Unit,
+    onDetail: (code: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = GotestTheme.colors
@@ -78,11 +78,11 @@ fun HistoryCard(
             )
         } else {
             MbSeatList {
-                history.forEachIndexed { index, item ->
+                history.take(MAX_ROWS).forEachIndexed { index, item ->
                     if (index > 0) GotestDivider()
                     HistoryRow(
                         item = item,
-                        onAction = { if (item.hasResult) onOpenResult(item.code) else onDetail() },
+                        onAction = { if (item.hasResult) onOpenResult(item.code) else onDetail(item.code) },
                     )
                 }
             }
@@ -103,11 +103,8 @@ private fun HistoryRow(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
-            GotestChip(
-                text = gameTypeLabel(item.settings.type),
-                tone = if (item.settings.type == GameType.Duel) GotestChipTone.Violet else GotestChipTone.Blue,
-            )
-            OutcomeChip(outcome = item.outcome)
+            MbGameTypeChip(type = item.settings.type)
+            MbOutcomeChip(outcome = item.outcome, highlighted = true)
         }
         Column {
             Text(text = item.settings.subtest, style = MaterialTheme.typography.labelLarge, color = colors.textPrimary)
@@ -133,43 +130,6 @@ private fun HistoryRow(
                 variant = GotestButtonVariant.Plain,
                 size = GotestButtonSize.Small,
             )
-        }
-    }
-}
-
-@Composable
-private fun OutcomeChip(
-    outcome: HistoryOutcome,
-    modifier: Modifier = Modifier,
-) {
-    when (outcome) {
-        HistoryOutcome.Won -> {
-            GotestChip(
-                text = stringResource(R.string.multiplayer_outcome_won),
-                modifier = modifier,
-                tone = GotestChipTone.Green,
-                leadingIcon = GotestIcons.Bold.Award,
-            )
-        }
-
-        HistoryOutcome.Lost -> {
-            GotestChip(stringResource(R.string.multiplayer_outcome_lost), modifier, GotestChipTone.Red)
-        }
-
-        HistoryOutcome.Draw -> {
-            GotestChip(stringResource(R.string.multiplayer_outcome_draw), modifier, GotestChipTone.Yellow)
-        }
-
-        is HistoryOutcome.Ranked -> {
-            GotestChip(
-                text = stringResource(R.string.multiplayer_outcome_ranked, outcome.rank, outcome.players),
-                modifier = modifier,
-                tone = GotestChipTone.Violet,
-            )
-        }
-
-        HistoryOutcome.Cancelled -> {
-            GotestChip(stringResource(R.string.multiplayer_outcome_cancelled), modifier, GotestChipTone.Red)
         }
     }
 }

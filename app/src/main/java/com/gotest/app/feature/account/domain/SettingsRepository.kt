@@ -24,12 +24,20 @@ enum class SettingSwitch {
     PromoEmails,
 }
 
+/** "Jenjang Utama": the exam the student prepares for; it drives Beranda's packages and tryouts. */
+enum class MainLevel {
+    UtbkSnbt,
+    Cpns,
+    SekolahKedinasan,
+    SmaSlta,
+    Smp,
+}
+
 data class AccountSettings(
     val switches: Map<SettingSwitch, Boolean>,
     /** Time of the daily study reminder. */
     val reminderTime: LocalTime,
-    /** "Jenjang Utama", e.g. UTBK-SNBT. */
-    val mainLevel: String,
+    val mainLevel: MainLevel,
 ) {
     fun isOn(switch: SettingSwitch): Boolean = switches[switch] == true
 }
@@ -42,4 +50,6 @@ interface SettingsRepository {
         switch: SettingSwitch,
         enabled: Boolean,
     ): Result<Unit>
+
+    suspend fun setMainLevel(level: MainLevel): Result<Unit>
 }

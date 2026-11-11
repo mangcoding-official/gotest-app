@@ -14,6 +14,8 @@ import com.gotest.app.feature.account.domain.HelpContactType
 import com.gotest.app.feature.account.domain.HelpFaq
 import com.gotest.app.feature.account.domain.HelpTopic
 import com.gotest.app.feature.account.domain.HelpTopicTag
+import com.gotest.app.feature.account.domain.MainLevel
+import com.gotest.app.feature.account.domain.PersonalDetails
 import com.gotest.app.feature.account.domain.SettingSwitch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -88,7 +90,15 @@ internal object AccountPreviewData {
                     SettingSwitch.PromoEmails to false,
                 ),
             reminderTime = LocalTime.of(19, 0),
-            mainLevel = "UTBK-SNBT",
+            mainLevel = MainLevel.UtbkSnbt,
+        )
+
+    val personalDetails =
+        PersonalDetails(
+            phoneNumber = "0812-3456-7890",
+            birthDate = LocalDate.of(2008, 5, 14),
+            school = "SMA Negeri 3 Bandung",
+            city = "Bandung, Jawa Barat",
         )
 
     val helpCategories =

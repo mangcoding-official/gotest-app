@@ -5,6 +5,7 @@ import com.gotest.app.core.model.Question
 import com.gotest.app.core.model.QuestionAnswer
 import com.gotest.app.core.model.QuestionOption
 import com.gotest.app.core.model.QuestionType
+import com.gotest.app.feature.multiplayer.domain.CancelReason
 import com.gotest.app.feature.multiplayer.domain.Game
 import com.gotest.app.feature.multiplayer.domain.GameHistoryItem
 import com.gotest.app.feature.multiplayer.domain.GamePlayer
@@ -26,6 +27,7 @@ internal object MultiplayerPreviewData {
     private const val CODE = "KTR4QZ"
     private const val CREATED_AGO = 48_000L
     private const val AUTO_CANCEL_IN = 252_000L
+    private const val CANCELLED_AGO = 10 * 24 * 60 * MINUTE
 
     // Previews show the bundled avatars through their resource ids.
     private val gilangAvatar = R.drawable.avatar_gilang
@@ -116,7 +118,7 @@ internal object MultiplayerPreviewData {
 
     private val pmSettings = settings(GameType.Duel).copy(topics = emptyList())
 
-    /** "Riwayat Main Bareng" (frame 12376). */
+    /** "Riwayat Main Bareng" (frames 12376 and 23813), newest first. */
     val history: List<GameHistoryItem> =
         listOf(
             GameHistoryItem(
@@ -155,7 +157,7 @@ internal object MultiplayerPreviewData {
                 playerCount = 2,
             ),
             GameHistoryItem(
-                code = "BATAL1",
+                code = "QX7P2M",
                 settings =
                     pmSettings.copy(type = GameType.Room, subtest = "Penalaran Umum", durationMinutes = 30),
                 playedAt = LocalDateTime.of(2026, 10, 19, 9, 12),
@@ -163,6 +165,42 @@ internal object MultiplayerPreviewData {
                 opponentName = null,
                 playerCount = 1,
             ),
+            GameHistoryItem(
+                code = "KLH17R",
+                settings = pmSettings.copy(subtest = "Literasi Bahasa Inggris", questionCount = 15),
+                playedAt = LocalDateTime.of(2026, 10, 17, 21, 30),
+                outcome = HistoryOutcome.Lost,
+                opponentName = "Rizky Hidayat",
+                playerCount = 2,
+            ),
+        )
+
+    /** "QX7P2M": the student's room that cancelled itself with nobody else in it (frame 23999). */
+    val cancelledRoom: Game =
+        Game(
+            code = "QX7P2M",
+            settings = pmSettings.copy(type = GameType.Room, subtest = "Penalaran Umum", durationMinutes = 30),
+            status = GameStatus.Cancelled,
+            players = listOf(hostRoomLobby.players.first()),
+            createdAtMillis = NOW - CANCELLED_AGO,
+            autoCancelAtMillis = NOW - CANCELLED_AGO + GameRules.AUTO_CANCEL_MILLIS,
+            startedAtMillis = null,
+            cancelReason = CancelReason.AutoCancel,
+            cancelledAtMillis = NOW - CANCELLED_AGO + GameRules.AUTO_CANCEL_MILLIS,
+        )
+
+    /** Nadia Putri's room that she cancelled while the student and Rizky waited. */
+    val hostCancelledRoom: Game =
+        cancelledRoom.copy(
+            code = "BTL14N",
+            players =
+                listOf(
+                    player("nadia", "Nadia Putri", nadiaAvatar, PlayerState.Host),
+                    player("me", "Gilang Permana", gilangAvatar, PlayerState.Joined, isCurrentUser = true),
+                    player("rizky", "Rizky Ramadhan", rizkyAvatar, PlayerState.Joined),
+                ),
+            cancelReason = CancelReason.ByHost,
+            cancelledAtMillis = NOW - CANCELLED_AGO + 3 * MINUTE,
         )
 
     /** The design's question 4 (frame 19024), repeated for a 20-question game. */

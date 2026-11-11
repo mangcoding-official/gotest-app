@@ -1,9 +1,13 @@
 package com.gotest.app.feature.multiplayer.ui.create
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.gotest.app.feature.multiplayer.domain.GameCategory
+import com.gotest.app.feature.multiplayer.domain.GameSettings
 import com.gotest.app.feature.multiplayer.domain.MultiplayerRepository
+import com.gotest.app.navigation.CreateGameDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -13,8 +17,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -31,8 +36,11 @@ private const val DEFAULT_TOPIC_COUNT = 2
 class CreateGameViewModel
     @Inject
     constructor(
+        savedStateHandle: SavedStateHandle,
         private val repository: MultiplayerRepository,
     ) : ViewModel() {
+        /** "Buat Ulang dengan Pengaturan Sama": the game whose settings fill the form. */
+        private val copyFromGameCode = savedStateHandle.toRoute<CreateGameDestination>().copyFromGameCode
         private val refresh = MutableStateFlow(0)
         private val form = MutableStateFlow<CreateGameForm?>(null)
         private val submitting = MutableStateFlow(false)
@@ -40,14 +48,15 @@ class CreateGameViewModel
         private val catalog: Flow<CatalogLoad> =
             refresh
                 .flatMapLatest {
-                    repository
-                        .observeCatalog()
-                        .map<List<GameCategory>, CatalogLoad> { CatalogLoad.Loaded(it) }
-                        .onStart { emit(CatalogLoad.Loading) }
+                    combine<List<GameCategory>, GameSettings?, CatalogLoad>(
+                        repository.observeCatalog(),
+                        copiedSettings(),
+                        CatalogLoad::Loaded,
+                    ).onStart { emit(CatalogLoad.Loading) }
                         .catch { emit(CatalogLoad.Failed) }
                 }.onEach { load ->
                     if (load is CatalogLoad.Loaded && form.value == null && load.categories.isNotEmpty()) {
-                        form.value = initialForm(load.categories)
+                        form.value = initialForm(load.categories, load.copied)
                     }
                 }
 
@@ -70,6 +79,10 @@ class CreateGameViewModel
                 else -> updateForm { it.reduce(event) }
             }
         }
+
+        /** Settings of the game to copy, or null for a fresh form. */
+        private fun copiedSettings(): Flow<GameSettings?> =
+            flow { emit(copyFromGameCode?.let { repository.observeGame(it).first().settings }) }
 
         private fun updateForm(transform: (CreateGameForm) -> CreateGameForm) {
             form.update { current -> current?.let(transform) }
@@ -95,6 +108,7 @@ class CreateGameViewModel
 
             data class Loaded(
                 val categories: List<GameCategory>,
+                val copied: GameSettings?,
             ) : CatalogLoad
         }
 
@@ -103,8 +117,13 @@ class CreateGameViewModel
         }
     }
 
-private fun initialForm(categories: List<GameCategory>): CreateGameForm {
+/** A copy of [copied], or the design's defaults with the first topics preselected. */
+private fun initialForm(
+    categories: List<GameCategory>,
+    copied: GameSettings?,
+): CreateGameForm {
     val form = CreateGameForm(categories = categories)
+    if (copied != null) return form.withSettings(copied)
     return form.copy(
         selectedTopics =
             form.subtest.topics

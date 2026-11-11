@@ -21,11 +21,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
@@ -49,12 +47,17 @@ import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.account.ui.components.AccountListCard
 import com.gotest.app.feature.account.ui.components.AccountMenuRow
 import com.gotest.app.feature.account.ui.components.AccountMenuTone
+import com.gotest.app.feature.account.ui.components.AccountNotice
+import com.gotest.app.feature.account.ui.components.AccountNoticeEffect
 import com.gotest.app.feature.account.ui.components.AccountPreviewData
 import com.gotest.app.feature.account.ui.components.AccountSectionTitle
+import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
+import com.gotest.app.feature.account.ui.components.ProfilePhotoCaptureDialog
 import com.gotest.app.feature.account.ui.components.ProfilePhotoSheet
 import com.gotest.app.feature.account.ui.components.ProfilePhotoSheetContent
 import com.gotest.app.feature.account.ui.components.rememberGalleryPhotoPicker
+import com.gotest.app.feature.account.ui.components.rememberTakePhotoAction
 import kotlinx.coroutines.launch
 
 /** Navigation out of Profil, grouped so the screen signature stays readable. */
@@ -71,7 +74,7 @@ data class ProfileNavigation(
 @Composable
 fun ProfileRoute(
     navigation: ProfileNavigation,
-    notice: ProfileNotice?,
+    notice: AccountNotice?,
     onNoticeConsume: () -> Unit,
     onSignOutSuccess: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,17 +83,11 @@ fun ProfileRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val sheetSnackbarHostState = remember { SnackbarHostState() }
+    val captureSnackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
-    val currentOnNoticeConsume by rememberUpdatedState(onNoticeConsume)
 
-    LaunchedEffect(notice) {
-        if (notice != null) {
-            // Launched outside this effect: consuming the notice restarts it.
-            scope.launch { snackbarHostState.showSnackbar(resources.getString(notice.messageRes)) }
-            currentOnNoticeConsume()
-        }
-    }
+    AccountNoticeEffect(notice = notice, onConsume = onNoticeConsume, snackbarHostState = snackbarHostState)
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             ProfileEffect.SignedOut -> {
@@ -98,22 +95,28 @@ fun ProfileRoute(
             }
 
             is ProfileEffect.ShowMessage -> {
-                val host = if (effect.inPhotoSheet) sheetSnackbarHostState else snackbarHostState
+                val host =
+                    when (effect.host) {
+                        PhotoMessageHost.Screen -> snackbarHostState
+                        PhotoMessageHost.Sheet -> sheetSnackbarHostState
+                        PhotoMessageHost.Capture -> captureSnackbarHostState
+                    }
                 scope.launch { host.showSnackbar(resources.getString(effect.messageRes)) }
             }
         }
     }
     val pickPhoto = rememberGalleryPhotoPicker { viewModel.onEvent(ProfileUiEvent.PhotoPick(it)) }
-    val comingSoon = stringResource(R.string.coming_soon)
+    val takePhoto = rememberTakePhotoAction(sheetSnackbarHostState) { viewModel.onEvent(ProfileUiEvent.TakePhoto) }
     ProfileScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
         navigation = navigation,
-        onTakePhoto = { scope.launch { sheetSnackbarHostState.showSnackbar(comingSoon) } },
+        onTakePhoto = takePhoto,
         onPickPhoto = pickPhoto,
         modifier = modifier,
         snackbarHostState = snackbarHostState,
         sheetSnackbarHostState = sheetSnackbarHostState,
+        captureSnackbarHostState = captureSnackbarHostState,
     )
 }
 
@@ -127,6 +130,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     sheetSnackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    captureSnackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     // Tab roots draw under the floating bottom bar.
     val bottomInset =
@@ -172,6 +176,7 @@ fun ProfileScreen(
                 onTakePhoto = onTakePhoto,
                 onPickPhoto = onPickPhoto,
                 sheetSnackbarHostState = sheetSnackbarHostState,
+                captureSnackbarHostState = captureSnackbarHostState,
             )
         }
     }
@@ -302,7 +307,7 @@ private fun ProfileMenu(
     }
 }
 
-/** The "Foto Profil" sheet and the sign-out confirmation. */
+/** The "Foto Profil" sheet with its camera flow, and the sign-out confirmation. */
 @Composable
 private fun ProfileOverlays(
     state: ProfileUiState.Success,
@@ -310,6 +315,7 @@ private fun ProfileOverlays(
     onTakePhoto: () -> Unit,
     onPickPhoto: () -> Unit,
     sheetSnackbarHostState: SnackbarHostState,
+    captureSnackbarHostState: SnackbarHostState,
 ) {
     state.photoSheet?.let { sheet ->
         ProfilePhotoSheet(
@@ -321,6 +327,14 @@ private fun ProfileOverlays(
             onSave = { onEvent(ProfileUiEvent.SavePhoto) },
             onDismiss = { onEvent(ProfileUiEvent.DismissPhotoSheet) },
         )
+        sheet.capture?.let { capture ->
+            ProfilePhotoCaptureDialog(
+                state = capture,
+                onEvent = { onEvent(ProfileUiEvent.PhotoCapture(it)) },
+                onPickFromGallery = onPickPhoto,
+                snackbarHostState = captureSnackbarHostState,
+            )
+        }
     }
     if (state.showSignOutDialog) {
         GotestDialog(

@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Profile photo camera and assistant attachments; both still work without a camera. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- E-wallet payment: "Buka <wallet>" checks whether the wallet app is installed (Android 11+ visibility). -->
+    <queries>
+        <package android:name="com.gojek.gopay" />
+        <package android:name="ovo.id" />
+        <package android:name="id.dana" />
+        <package android:name="com.shopee.id" />
+    </queries>
+
     <application
         android:name=".GotestApplication"
         android:allowBackup="true"
@@ -24,6 +39,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

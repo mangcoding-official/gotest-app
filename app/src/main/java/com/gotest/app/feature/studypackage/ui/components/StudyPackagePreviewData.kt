@@ -13,6 +13,7 @@ import com.gotest.app.core.model.StudyPackageDetail
 import com.gotest.app.core.model.Subject
 import com.gotest.app.core.model.Topic
 import com.gotest.app.core.model.TryoutSection
+import com.gotest.app.feature.studypackage.domain.SavedPackage
 import java.time.LocalDate
 
 /** Sample data for this feature's @Preview functions only. */
@@ -116,6 +117,27 @@ internal object StudyPackagePreviewData {
                     "Timer wajib aktif per section.",
                     "Saat waktu habis, section dikunci dan otomatis lanjut ke section berikutnya.",
                 ),
+        )
+
+    /** The three cards of "Paket / Tersimpan"; the latihan has no timer, as in the design. */
+    val savedPackages: List<SavedPackage> =
+        listOf(
+            SavedPackage(studyPackage = tryoutPackage, savedOn = LocalDate.of(2026, 10, 28)),
+            SavedPackage(
+                studyPackage = practicePackage.copy(title = "Latihan September Session 01", durationMinutes = null),
+                savedOn = LocalDate.of(2026, 10, 26),
+            ),
+            SavedPackage(
+                studyPackage =
+                    tryoutPackage.copy(
+                        id = "pkg_tryout_cpns",
+                        title = "Simulasi CPNS SKD Batch 3",
+                        examLabel = "CPNS",
+                        questionCount = 110,
+                        durationMinutes = 100,
+                    ),
+                savedOn = LocalDate.of(2026, 10, 20),
+            ),
         )
 
     val seasonalTryout: SeasonalTryout =

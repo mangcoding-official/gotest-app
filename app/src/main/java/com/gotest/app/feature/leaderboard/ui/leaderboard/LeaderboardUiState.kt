@@ -51,12 +51,16 @@ sealed interface PackageRankingsUiState {
     ) : PackageRankingsUiState
 }
 
-/** Each segment loads and retries on its own; [selectedTab] picks the one on screen. */
+/**
+ * Each segment loads and retries on its own; [selectedTab] picks the one on screen.
+ * [isInfoVisible] shows the "Tentang Leaderboard" sheet.
+ */
 @Immutable
 data class LeaderboardUiState(
     val selectedTab: LeaderboardTab = LeaderboardTab.Global,
     val global: GlobalLeaderboardUiState = GlobalLeaderboardUiState.Loading,
     val packages: PackageRankingsUiState = PackageRankingsUiState.Loading,
+    val isInfoVisible: Boolean = false,
 )
 
 sealed interface LeaderboardUiEvent {
@@ -64,14 +68,12 @@ sealed interface LeaderboardUiEvent {
         val tab: LeaderboardTab,
     ) : LeaderboardUiEvent
 
-    /** The info button has no design yet. */
     data object InfoClick : LeaderboardUiEvent
+
+    /** "Mengerti", or the sheet swiped away. */
+    data object InfoDismiss : LeaderboardUiEvent
 
     data object RetryGlobal : LeaderboardUiEvent
 
     data object RetryPackages : LeaderboardUiEvent
-}
-
-sealed interface LeaderboardEffect {
-    data object ShowComingSoon : LeaderboardEffect
 }

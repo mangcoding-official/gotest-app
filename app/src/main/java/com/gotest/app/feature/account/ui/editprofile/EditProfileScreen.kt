@@ -45,10 +45,13 @@ import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.account.ui.components.AccountBottomActions
 import com.gotest.app.feature.account.ui.components.AccountDetailScaffold
 import com.gotest.app.feature.account.ui.components.AccountNote
+import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
+import com.gotest.app.feature.account.ui.components.ProfilePhotoCaptureDialog
 import com.gotest.app.feature.account.ui.components.ProfilePhotoSheet
 import com.gotest.app.feature.account.ui.components.ProfilePhotoSheetContent
 import com.gotest.app.feature.account.ui.components.rememberGalleryPhotoPicker
+import com.gotest.app.feature.account.ui.components.rememberTakePhotoAction
 import kotlinx.coroutines.launch
 
 @Composable
@@ -61,6 +64,7 @@ fun EditProfileRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val sheetSnackbarHostState = remember { SnackbarHostState() }
+    val captureSnackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.effects) { effect ->
@@ -70,22 +74,28 @@ fun EditProfileRoute(
             }
 
             is EditProfileEffect.ShowMessage -> {
-                val host = if (effect.inPhotoSheet) sheetSnackbarHostState else snackbarHostState
+                val host =
+                    when (effect.host) {
+                        PhotoMessageHost.Screen -> snackbarHostState
+                        PhotoMessageHost.Sheet -> sheetSnackbarHostState
+                        PhotoMessageHost.Capture -> captureSnackbarHostState
+                    }
                 scope.launch { host.showSnackbar(resources.getString(effect.messageRes)) }
             }
         }
     }
     val pickPhoto = rememberGalleryPhotoPicker { viewModel.onEvent(EditProfileUiEvent.PhotoPick(it)) }
-    val comingSoon = stringResource(R.string.coming_soon)
+    val takePhoto = rememberTakePhotoAction(sheetSnackbarHostState) { viewModel.onEvent(EditProfileUiEvent.TakePhoto) }
     EditProfileScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
         onBack = onBack,
-        onTakePhoto = { scope.launch { sheetSnackbarHostState.showSnackbar(comingSoon) } },
+        onTakePhoto = takePhoto,
         onPickPhoto = pickPhoto,
         modifier = modifier,
         snackbarHostState = snackbarHostState,
         sheetSnackbarHostState = sheetSnackbarHostState,
+        captureSnackbarHostState = captureSnackbarHostState,
     )
 }
 
@@ -99,6 +109,7 @@ fun EditProfileScreen(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     sheetSnackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    captureSnackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     AccountDetailScaffold(
         title = stringResource(R.string.account_edit_title),
@@ -142,6 +153,14 @@ fun EditProfileScreen(
                         onSave = { onEvent(EditProfileUiEvent.SavePhoto) },
                         onDismiss = { onEvent(EditProfileUiEvent.DismissPhotoSheet) },
                     )
+                    sheet.capture?.let { capture ->
+                        ProfilePhotoCaptureDialog(
+                            state = capture,
+                            onEvent = { onEvent(EditProfileUiEvent.PhotoCapture(it)) },
+                            onPickFromGallery = onPickPhoto,
+                            snackbarHostState = captureSnackbarHostState,
+                        )
+                    }
                 }
             }
         }

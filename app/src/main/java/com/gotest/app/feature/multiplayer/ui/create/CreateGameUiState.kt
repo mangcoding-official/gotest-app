@@ -96,6 +96,28 @@ data class CreateGameForm(
 
     fun withDuration(minutes: Int): CreateGameForm =
         if (durationOptions.any { it.minutes == minutes && it.enabled }) copy(durationMinutes = minutes) else this
+
+    /**
+     * "Buat Ulang dengan Pengaturan Sama": the form filled with [settings] through the same rules as
+     * the controls, so a count or duration that is no longer allowed falls back and a stock shortfall
+     * still shows. Settings the catalog no longer has leave the form unchanged.
+     */
+    fun withSettings(settings: GameSettings): CreateGameForm {
+        val subtest =
+            categories
+                .firstOrNull { it.name == settings.category }
+                ?.subtests
+                ?.firstOrNull { it.name == settings.subtest }
+                ?: return this
+        val topics = subtest.topics.map { it.name }
+        return copy(
+            type = settings.type,
+            categoryName = settings.category,
+            subtestName = subtest.name,
+            selectedTopics = settings.topics.filter { it in topics },
+        ).withQuestionCount(settings.questionCount)
+            .withDuration(settings.durationMinutes)
+    }
 }
 
 sealed interface CreateGameUiEvent {

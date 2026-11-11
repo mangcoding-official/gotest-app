@@ -3,12 +3,15 @@ package com.gotest.app.core.data.fake
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.SubscriptionRepository
 import com.gotest.app.core.domain.repository.UserRepository
+import com.gotest.app.core.model.EWallet
 import com.gotest.app.core.model.Order
+import com.gotest.app.core.model.OrderPromo
 import com.gotest.app.core.model.OrderStatus
 import com.gotest.app.core.model.PaymentMethodType
 import com.gotest.app.core.model.PaymentRecord
 import com.gotest.app.core.model.Plan
 import com.gotest.app.core.model.PlanTier
+import com.gotest.app.core.model.QrisCode
 import com.gotest.app.core.model.Subscription
 import com.gotest.app.core.model.UserProfile
 import com.gotest.app.core.model.UserStats
@@ -32,6 +35,11 @@ private const val PREMIUM_PRICE = 100_000L
 private const val ADMIN_FEE = 10_000L
 private const val PAYMENT_WINDOW_HOURS = 6L
 private const val PAYMENT_WINDOW_MINUTES = 25L
+private const val QRIS_WINDOW_MINUTES = 15L
+private const val EWALLET_WINDOW_MINUTES = 10L
+private const val QRIS_MERCHANT = "GoTest Indonesia"
+private const val QRIS_NMID = "ID1026412398571"
+private const val HEX_RADIX = 16
 
 /** In-memory account shared by the auth, profile and subscription fakes. */
 @Singleton
@@ -226,11 +234,28 @@ class FakeSubscriptionRepository
         override suspend fun createOrder(
             planId: String,
             method: PaymentMethodType,
+            eWallet: EWallet?,
+            promo: OrderPromo?,
         ): Order {
+            require(method != PaymentMethodType.EWallet || eWallet != null) { "e-wallet order without a wallet" }
             simulateLatency()
             val plan = plans.first { it.id == planId }
+            val price = promo?.priceRupiah ?: plan.priceRupiah
             val window =
-                TimeUnit.HOURS.toMillis(PAYMENT_WINDOW_HOURS) - TimeUnit.MINUTES.toMillis(PAYMENT_WINDOW_MINUTES)
+                when (method) {
+                    PaymentMethodType.VirtualAccount -> {
+                        TimeUnit.HOURS.toMillis(PAYMENT_WINDOW_HOURS) -
+                            TimeUnit.MINUTES.toMillis(PAYMENT_WINDOW_MINUTES)
+                    }
+
+                    PaymentMethodType.Qris -> {
+                        TimeUnit.MINUTES.toMillis(QRIS_WINDOW_MINUTES)
+                    }
+
+                    PaymentMethodType.EWallet -> {
+                        TimeUnit.MINUTES.toMillis(EWALLET_WINDOW_MINUTES)
+                    }
+                }
             val order =
                 Order(
                     id = "order_${UUID.randomUUID()}",
@@ -247,10 +272,18 @@ class FakeSubscriptionRepository
                         } else {
                             null
                         },
-                    priceRupiah = plan.priceRupiah,
+                    priceRupiah = price,
                     feeRupiah = plan.adminFeeRupiah,
                     expiresAtEpochMillis = System.currentTimeMillis() + window,
                     status = OrderStatus.Pending,
+                    qris =
+                        if (method == PaymentMethodType.Qris) {
+                            QrisCode(fakeQrisPayload(price + plan.adminFeeRupiah), QRIS_MERCHANT, QRIS_NMID)
+                        } else {
+                            null
+                        },
+                    eWallet = eWallet.takeIf { method == PaymentMethodType.EWallet },
+                    promoId = promo?.promoId,
                 )
             orders.update { it + (order.id to order) }
             return order
@@ -272,7 +305,7 @@ class FakeSubscriptionRepository
                             planName = "GoTest Premium Tahunan",
                             activatedOn = today,
                             activeUntil = today.plusYears(1),
-                            paymentMethod = "Virtual Account BCA",
+                            paymentMethod = order.methodName(),
                         ),
                 )
             }
@@ -282,7 +315,12 @@ class FakeSubscriptionRepository
                         id = order.id,
                         planName = "Premium Tahunan",
                         paidOn = today,
-                        methodLabel = "VA BCA",
+                        methodLabel =
+                            if (order.method == PaymentMethodType.VirtualAccount) {
+                                "VA ${order.bankName}"
+                            } else {
+                                order.methodName()
+                            },
                         amountRupiah = order.totalRupiah,
                         succeeded = true,
                     ),
@@ -291,3 +329,39 @@ class FakeSubscriptionRepository
             return Result.success(Unit)
         }
     }
+
+/** "Virtual Account BCA", "QRIS", "GoPay". */
+private fun Order.methodName(): String =
+    when (method) {
+        PaymentMethodType.VirtualAccount -> "Virtual Account $bankName"
+        PaymentMethodType.Qris -> "QRIS"
+        PaymentMethodType.EWallet -> eWallet?.displayName ?: "E-Wallet"
+    }
+
+private val EWallet.displayName: String
+    get() =
+        when (this) {
+            EWallet.GoPay -> "GoPay"
+            EWallet.Ovo -> "OVO"
+            EWallet.Dana -> "DANA"
+            EWallet.ShopeePay -> "ShopeePay"
+        }
+
+/** A dynamic QRIS-shaped EMVCo payload (TLV fields + CRC-16/CCITT), so the dummy QR scans as real text. */
+private fun fakeQrisPayload(amountRupiah: Long): String {
+    fun tlv(
+        tag: String,
+        value: String,
+    ) = tag + value.length.toString().padStart(2, '0') + value
+    val merchantAccount = tlv("00", "ID.CO.QRIS.WWW") + tlv("02", QRIS_NMID) + tlv("03", "UMI")
+    val body =
+        tlv("00", "01") + tlv("01", "12") + tlv("51", merchantAccount) + tlv("52", "8299") + tlv("53", "360") +
+            tlv("54", amountRupiah.toString()) + tlv("58", "ID") + tlv("59", QRIS_MERCHANT) +
+            tlv("60", "JAKARTA") + "6304"
+    var crc = 0xFFFF
+    body.toByteArray().forEach { byte ->
+        crc = crc xor (byte.toInt() and 0xFF shl 8)
+        repeat(8) { crc = if (crc and 0x8000 != 0) crc shl 1 xor 0x1021 else crc shl 1 }
+    }
+    return body + (crc and 0xFFFF).toString(HEX_RADIX).uppercase().padStart(4, '0')
+}

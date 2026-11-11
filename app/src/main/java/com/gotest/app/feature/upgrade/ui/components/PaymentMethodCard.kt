@@ -152,7 +152,7 @@ private fun PaymentMethodCard(
 
 /** The design's 20dp radio: a thick dark ring when selected, a hairline circle otherwise. */
 @Composable
-private fun RadioIndicator(
+internal fun RadioIndicator(
     selected: Boolean,
     modifier: Modifier = Modifier,
 ) {

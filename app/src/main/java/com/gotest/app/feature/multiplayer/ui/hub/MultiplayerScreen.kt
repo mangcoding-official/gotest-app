@@ -15,13 +15,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -42,17 +38,15 @@ import com.gotest.app.core.designsystem.component.GotestTopAppBar
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.ObserveAsEvents
-import com.gotest.app.feature.multiplayer.ui.components.MbBadgeTone
+import com.gotest.app.feature.multiplayer.domain.CreateBlock
 import com.gotest.app.feature.multiplayer.ui.components.MbCodeBoxes
-import com.gotest.app.feature.multiplayer.ui.components.MbDialog
-import com.gotest.app.feature.multiplayer.ui.components.MbDialogContent
+import com.gotest.app.feature.multiplayer.ui.components.MbCreateBlockedDialog
+import com.gotest.app.feature.multiplayer.ui.components.MbCreateBlockedDialogContent
 import com.gotest.app.feature.multiplayer.ui.components.MbIconTile
 import com.gotest.app.feature.multiplayer.ui.components.MbPreviewOverlay
 import com.gotest.app.feature.multiplayer.ui.components.MbPreviewSheet
 import com.gotest.app.feature.multiplayer.ui.components.MultiplayerDimens
 import com.gotest.app.feature.multiplayer.ui.components.MultiplayerPreviewData
-import com.gotest.app.feature.multiplayer.ui.components.gameTitle
-import kotlinx.coroutines.launch
 
 @Composable
 fun MultiplayerRoute(
@@ -61,14 +55,13 @@ fun MultiplayerRoute(
     onUpgrade: () -> Unit,
     onOpenGame: (code: String, screen: GameScreen) -> Unit,
     onOpenResult: (code: String) -> Unit,
+    onSeeAllHistory: () -> Unit,
+    onOpenGameDetail: (code: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MultiplayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val overlay by viewModel.overlay.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             MultiplayerEffect.OpenCreateGame -> onCreateGame()
@@ -82,9 +75,9 @@ fun MultiplayerRoute(
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onOpenResult = onOpenResult,
-        onComingSoon = { scope.launch { snackbarHostState.showSnackbar(comingSoon) } },
+        onSeeAllHistory = onSeeAllHistory,
+        onOpenGameDetail = onOpenGameDetail,
         modifier = modifier,
-        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -95,9 +88,9 @@ fun MultiplayerScreen(
     onEvent: (MultiplayerUiEvent) -> Unit,
     onBack: () -> Unit,
     onOpenResult: (code: String) -> Unit,
-    onComingSoon: () -> Unit,
+    onSeeAllHistory: () -> Unit,
+    onOpenGameDetail: (code: String) -> Unit,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Box(
         modifier =
@@ -127,19 +120,21 @@ fun MultiplayerScreen(
                         state = uiState,
                         onEvent = onEvent,
                         onOpenResult = onOpenResult,
-                        onComingSoon = onComingSoon,
+                        onSeeAllHistory = onSeeAllHistory,
+                        onOpenGameDetail = onOpenGameDetail,
                     )
                 }
             }
         }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.navigationBars),
-        )
-        overlay.dialog?.let { HubDialogHost(dialog = it, onEvent = onEvent) }
+        overlay.dialog?.let { block ->
+            MbCreateBlockedDialog(
+                block = block,
+                onUpgrade = { onEvent(MultiplayerUiEvent.UpgradeClick) },
+                onJoinWithCode = { onEvent(MultiplayerUiEvent.OpenJoinSheet) },
+                onReturnToGame = { onEvent(MultiplayerUiEvent.ReturnToGame(it)) },
+                onDismissRequest = { onEvent(MultiplayerUiEvent.DismissDialog) },
+            )
+        }
         overlay.joinSheet?.let { JoinGameSheet(state = it, onEvent = onEvent) }
     }
 }
@@ -149,7 +144,8 @@ private fun HubContent(
     state: MultiplayerUiState.Success,
     onEvent: (MultiplayerUiEvent) -> Unit,
     onOpenResult: (code: String) -> Unit,
-    onComingSoon: () -> Unit,
+    onSeeAllHistory: () -> Unit,
+    onOpenGameDetail: (code: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -193,8 +189,8 @@ private fun HubContent(
         HistoryCard(
             history = state.history,
             onOpenResult = onOpenResult,
-            onSeeAll = onComingSoon,
-            onDetail = onComingSoon,
+            onSeeAll = onSeeAllHistory,
+            onDetail = onOpenGameDetail,
         )
     }
 }
@@ -362,46 +358,6 @@ private fun RulesCard(
 private const val RULE_LABEL_WEIGHT = 0.3f
 private const val RULE_VALUE_WEIGHT = 0.7f
 
-@Composable
-private fun HubDialogHost(
-    dialog: HubDialog,
-    onEvent: (MultiplayerUiEvent) -> Unit,
-) {
-    when (dialog) {
-        HubDialog.PremiumRequired -> {
-            MbDialog(
-                icon = GotestIcons.Bold.Award,
-                tone = MbBadgeTone.Yellow,
-                title = stringResource(R.string.multiplayer_premium_dialog_title),
-                message = stringResource(R.string.multiplayer_premium_dialog_message),
-                confirmText = stringResource(R.string.multiplayer_premium_dialog_upgrade),
-                onConfirm = { onEvent(MultiplayerUiEvent.UpgradeClick) },
-                onDismissRequest = { onEvent(MultiplayerUiEvent.DismissDialog) },
-                dismissText = stringResource(R.string.multiplayer_join_title),
-                onDismiss = { onEvent(MultiplayerUiEvent.OpenJoinSheet) },
-            )
-        }
-
-        is HubDialog.InAnotherGame -> {
-            MbDialog(
-                icon = GotestIcons.Bold.InfoCircle,
-                tone = MbBadgeTone.Blue,
-                title = stringResource(R.string.multiplayer_in_game_title),
-                message =
-                    stringResource(
-                        R.string.multiplayer_in_game_create_message,
-                        gameTitle(dialog.game.type, dialog.game.settings.subtest),
-                        dialog.game.code,
-                    ),
-                confirmText = stringResource(R.string.multiplayer_back_to_game),
-                onConfirm = { onEvent(MultiplayerUiEvent.ReturnToGame(dialog.game)) },
-                onDismissRequest = { onEvent(MultiplayerUiEvent.DismissDialog) },
-                dismissText = stringResource(R.string.multiplayer_close),
-            )
-        }
-    }
-}
-
 private val previewSuccess =
     MultiplayerUiState.Success(history = MultiplayerPreviewData.history, isPremium = true, activeGame = null)
 
@@ -416,7 +372,8 @@ private fun HubPreview(
         onEvent = {},
         onBack = {},
         onOpenResult = {},
-        onComingSoon = {},
+        onSeeAllHistory = {},
+        onOpenGameDetail = {},
     )
 }
 
@@ -449,15 +406,12 @@ private fun MultiplayerScreenErrorPreview() {
 private fun MultiplayerPremiumDialogPreview() {
     GotestTheme {
         MbPreviewOverlay(screen = { HubPreview() }) {
-            MbDialogContent(
-                icon = GotestIcons.Bold.Award,
-                tone = MbBadgeTone.Yellow,
-                title = stringResource(R.string.multiplayer_premium_dialog_title),
-                message = stringResource(R.string.multiplayer_premium_dialog_message),
-                confirmText = stringResource(R.string.multiplayer_premium_dialog_upgrade),
-                onConfirm = {},
-                onDismiss = {},
-                dismissText = stringResource(R.string.multiplayer_join_title),
+            MbCreateBlockedDialogContent(
+                block = CreateBlock.PremiumRequired,
+                onUpgrade = {},
+                onJoinWithCode = {},
+                onReturnToGame = {},
+                onClose = {},
                 modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
             )
         }
@@ -469,20 +423,12 @@ private fun MultiplayerPremiumDialogPreview() {
 private fun MultiplayerInAnotherGameDialogPreview() {
     GotestTheme {
         MbPreviewOverlay(screen = { HubPreview() }) {
-            MbDialogContent(
-                icon = GotestIcons.Bold.InfoCircle,
-                tone = MbBadgeTone.Blue,
-                title = stringResource(R.string.multiplayer_in_game_title),
-                message =
-                    stringResource(
-                        R.string.multiplayer_in_game_create_message,
-                        gameTitle(MultiplayerPreviewData.hostDuelLobby.type, "Penalaran Matematika"),
-                        "KTR4QZ",
-                    ),
-                confirmText = stringResource(R.string.multiplayer_back_to_game),
-                onConfirm = {},
-                onDismiss = {},
-                dismissText = stringResource(R.string.multiplayer_close),
+            MbCreateBlockedDialogContent(
+                block = CreateBlock.InAnotherGame(MultiplayerPreviewData.hostDuelLobby),
+                onUpgrade = {},
+                onJoinWithCode = {},
+                onReturnToGame = {},
+                onClose = {},
                 modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
             )
         }

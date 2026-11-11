@@ -45,7 +45,7 @@ import com.gotest.app.core.model.LeaderboardEntry
 import com.gotest.app.core.ui.GotestFormat
 import kotlin.math.absoluteValue
 
-/** Podium and row sizes the shared tokens do not cover (measured from frames 3616 and 9653). */
+/** Leaderboard sizes the shared tokens do not cover (measured from frames 3616 and 9653 unless noted). */
 internal object LeaderboardDimens {
     /** Frame holding the laurel and the avatar ("Frame 360"). */
     val laurelFrameWidth = 104.dp
@@ -64,6 +64,14 @@ internal object LeaderboardDimens {
     val rankColumn = 24.dp
     val trophyWidth = 117.dp
     val trophyHeight = 76.dp
+
+    /** White icon tile of the "Tentang Leaderboard" items (frame 21007). */
+    val infoTile = 36.dp
+    val infoTileRadius = 10.dp
+
+    /** Fixed-width rank column and initials avatar of the participant search rows (frame 21556). */
+    val searchRankColumn = 28.dp
+    val searchAvatar = 36.dp
 }
 
 /** What the second line of a leaderboard row shows. */
@@ -102,7 +110,7 @@ private fun podiumStyle(rank: Int): PodiumStyle {
 
 /** "Selesai dalam 2:32:41" or "141x attempt". */
 @Composable
-private fun entryCaption(
+internal fun entryCaption(
     entry: LeaderboardEntry,
     metric: LeaderboardMetric,
 ): String =
@@ -116,8 +124,9 @@ private fun entryCaption(
         }
     }
 
+/** The name, with "(Kamu)" on the student's own entry. */
 @Composable
-private fun displayName(entry: LeaderboardEntry): String =
+internal fun displayName(entry: LeaderboardEntry): String =
     if (entry.isCurrentUser) stringResource(R.string.leaderboard_you, entry.name) else entry.name
 
 /**

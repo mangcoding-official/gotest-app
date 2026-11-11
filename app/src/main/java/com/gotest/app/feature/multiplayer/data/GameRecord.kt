@@ -102,6 +102,7 @@ internal data class GameRecord(
             autoCancelAtMillis = autoCancelAt,
             startedAtMillis = startedAt?.takeIf { it <= now },
             cancelReason = reason,
+            cancelledAtMillis = if (status == GameStatus.Cancelled) cancelledAt ?: autoCancelAt else null,
         )
     }
 

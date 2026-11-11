@@ -15,14 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,33 +35,24 @@ import com.gotest.app.core.designsystem.component.GotestTopAppBar
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.LeaderboardEntry
-import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.core.ui.examChipTone
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardList
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardMetric
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardPodium
-import kotlinx.coroutines.launch
 
 @Composable
 fun PackageLeaderboardRoute(
     onBack: () -> Unit,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PackageLeaderboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
-    ObserveAsEvents(viewModel.effects) { effect ->
-        when (effect) {
-            PackageLeaderboardEffect.ShowComingSoon -> scope.launch { snackbarHostState.showSnackbar(comingSoon) }
-        }
-    }
     PackageLeaderboardScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         onEvent = viewModel::onEvent,
         onBack = onBack,
+        onSearch = onSearch,
         modifier = modifier,
     )
 }
@@ -74,9 +60,9 @@ fun PackageLeaderboardRoute(
 @Composable
 fun PackageLeaderboardScreen(
     uiState: PackageLeaderboardUiState,
-    snackbarHostState: SnackbarHostState,
     onEvent: (PackageLeaderboardUiEvent) -> Unit,
     onBack: () -> Unit,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val header =
@@ -85,37 +71,28 @@ fun PackageLeaderboardScreen(
             is PackageLeaderboardUiState.Empty -> uiState.header
             else -> null
         }
-    Box(
+    Column(
         modifier =
             modifier
                 .fillMaxSize()
                 .background(GotestTheme.colors.bgSubtle),
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            GotestTopAppBar(
-                title = stringResource(R.string.leaderboard_package_title),
-                subtitle = header?.title,
-                navigationIcon = { GotestBackButton(onClick = onBack) },
-                actions = {
-                    GotestIconButton(
-                        icon = GotestIcons.Linear.SearchNormal,
-                        contentDescription = stringResource(R.string.leaderboard_cd_search),
-                        onClick = { onEvent(PackageLeaderboardUiEvent.SearchClick) },
-                    )
-                },
-            )
-            PackageLeaderboardBody(
-                uiState = uiState,
-                onRetry = { onEvent(PackageLeaderboardUiEvent.Retry) },
-                modifier = Modifier.weight(1f),
-            )
-        }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.navigationBars),
+        GotestTopAppBar(
+            title = stringResource(R.string.leaderboard_package_title),
+            subtitle = header?.title,
+            navigationIcon = { GotestBackButton(onClick = onBack) },
+            actions = {
+                GotestIconButton(
+                    icon = GotestIcons.Linear.SearchNormal,
+                    contentDescription = stringResource(R.string.leaderboard_cd_search),
+                    onClick = onSearch,
+                )
+            },
+        )
+        PackageLeaderboardBody(
+            uiState = uiState,
+            onRetry = { onEvent(PackageLeaderboardUiEvent.Retry) },
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -258,9 +235,9 @@ private fun PackageLeaderboardPreviewHost(uiState: PackageLeaderboardUiState) {
     GotestTheme {
         PackageLeaderboardScreen(
             uiState = uiState,
-            snackbarHostState = remember { SnackbarHostState() },
             onEvent = {},
             onBack = {},
+            onSearch = {},
         )
     }
 }

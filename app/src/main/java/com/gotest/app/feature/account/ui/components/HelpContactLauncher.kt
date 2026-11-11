@@ -18,3 +18,7 @@ fun Context.openHelpContact(contact: HelpContact): Boolean {
         }
     return runCatching { startActivity(Intent(action, contact.uri.toUri())) }.isSuccess
 }
+
+/** Opens [url] (e.g. the privacy policy) in a browser. Returns false when no installed app can handle it. */
+fun Context.openWebLink(url: String): Boolean =
+    runCatching { startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }.isSuccess

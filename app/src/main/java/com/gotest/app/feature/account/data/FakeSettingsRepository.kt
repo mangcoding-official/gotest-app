@@ -3,6 +3,7 @@ package com.gotest.app.feature.account.data
 import com.gotest.app.core.data.fake.simulateLatency
 import com.gotest.app.core.data.fake.withFakeLatency
 import com.gotest.app.feature.account.domain.AccountSettings
+import com.gotest.app.feature.account.domain.MainLevel
 import com.gotest.app.feature.account.domain.SettingSwitch
 import com.gotest.app.feature.account.domain.SettingsRepository
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +33,7 @@ class FakeSettingsRepository
                             SettingSwitch.PromoEmails to false,
                         ),
                     reminderTime = LocalTime.of(REMINDER_HOUR, 0),
-                    mainLevel = "UTBK-SNBT",
+                    mainLevel = MainLevel.UtbkSnbt,
                 ),
             )
 
@@ -45,6 +46,12 @@ class FakeSettingsRepository
             // Optimistic: the switch flips at once, then the "server" catches up.
             settings.update { it.copy(switches = it.switches + (switch to enabled)) }
             simulateLatency()
+            return Result.success(Unit)
+        }
+
+        override suspend fun setMainLevel(level: MainLevel): Result<Unit> {
+            simulateLatency()
+            settings.update { it.copy(mainLevel = level) }
             return Result.success(Unit)
         }
     }

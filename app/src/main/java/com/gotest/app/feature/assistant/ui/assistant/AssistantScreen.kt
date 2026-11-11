@@ -17,6 +17,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -28,7 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.designsystem.component.GotestDialog
 import com.gotest.app.core.designsystem.component.GotestErrorView
+import com.gotest.app.core.designsystem.component.GotestIconBadgeColors
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
@@ -36,8 +39,11 @@ import com.gotest.app.core.model.PackageType
 import com.gotest.app.core.model.StudyPackage
 import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.assistant.domain.AssistantAction
+import com.gotest.app.feature.assistant.domain.AttachmentRules
+import com.gotest.app.feature.assistant.ui.components.AssistantAttachmentSheet
 import com.gotest.app.feature.assistant.ui.components.AssistantComposer
 import com.gotest.app.feature.assistant.ui.components.AssistantDayDivider
+import com.gotest.app.feature.assistant.ui.components.AssistantHistoryPanel
 import com.gotest.app.feature.assistant.ui.components.AssistantMessageItem
 import com.gotest.app.feature.assistant.ui.components.AssistantTopBar
 import com.gotest.app.feature.assistant.ui.components.AssistantTypingIndicator
@@ -57,6 +63,7 @@ fun AssistantRoute(
     viewModel: AssistantViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val history by viewModel.history.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
@@ -70,9 +77,18 @@ fun AssistantRoute(
             is AssistantEffect.ShowMessage -> showMessage(effect.messageRes)
         }
     }
+    val attachedCount = uiState.composer?.attachments?.size ?: 0
+    val pickAttachment =
+        rememberAttachmentPicker(
+            remainingSlots = AttachmentRules.MAX_FILES - attachedCount,
+            onPick = { uris -> viewModel.onEvent(AssistantUiEvent.AttachmentsPicked(uris)) },
+            onMessage = showMessage,
+        )
     AssistantScreen(
         uiState = uiState,
+        history = history,
         input = viewModel.input,
+        historyQuery = viewModel.historyQuery,
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onPackageClick = { pkg ->
@@ -88,8 +104,7 @@ fun AssistantRoute(
                 AssistantAction.OpenLeaderboard -> onOpenLeaderboard()
             }
         },
-        // The menu and the "+" attachment button have no design yet.
-        onComingSoon = { showMessage(R.string.coming_soon) },
+        onPickAttachment = pickAttachment,
         snackbarHostState = snackbarHostState,
         focusRequester = focusRequester,
         modifier = modifier,
@@ -98,28 +113,28 @@ fun AssistantRoute(
 
 /**
  * "Asisten Gotest": welcome (frame 11855) until the first question, then the conversation
- * (frame 11990), with the voice overlay (frame 12266) on top while listening.
+ * (frame 11990), with the voice overlay (frame 12266), "Tambah Lampiran" (frame 22009) or
+ * "Riwayat Percakapan" (frame 21622) on top.
  */
 @Composable
 fun AssistantScreen(
     uiState: AssistantUiState,
+    history: ConversationHistoryUiState,
     input: String,
+    historyQuery: String,
     onEvent: (AssistantUiEvent) -> Unit,
     onBack: () -> Unit,
     onPackageClick: (StudyPackage) -> Unit,
     onActionClick: (AssistantAction) -> Unit,
-    onComingSoon: () -> Unit,
+    onPickAttachment: (AttachmentSource) -> Unit,
     snackbarHostState: SnackbarHostState,
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
-    val voice =
-        when (uiState) {
-            is AssistantUiState.Empty -> uiState.voice
-            is AssistantUiState.Success -> uiState.voice
-            else -> null
-        }
+    val composer = uiState.composer
+    val voice = composer?.voice
     BackHandler(enabled = voice != null) { onEvent(AssistantUiEvent.CancelVoice) }
+    BackHandler(enabled = history.isOpen) { onEvent(AssistantUiEvent.CloseHistory) }
     Box(modifier = modifier.fillMaxSize().background(assistantBackgroundBrush())) {
         Scaffold(
             topBar = {
@@ -127,20 +142,22 @@ fun AssistantScreen(
                     navigationIcon = GotestIcons.Linear.ArrowLeft,
                     navigationContentDescription = stringResource(R.string.cd_back),
                     onNavigationClick = onBack,
-                    onMenuClick = onComingSoon,
+                    onMenuClick = { onEvent(AssistantUiEvent.OpenHistory) },
                 )
             },
             bottomBar = {
-                if (uiState is AssistantUiState.Empty || uiState is AssistantUiState.Success) {
+                if (composer != null) {
                     AssistantComposer(
                         input = input,
                         prompts = if (uiState is AssistantUiState.Success) conversationPrompts() else emptyList(),
+                        attachments = composer.attachments,
                         focusRequester = focusRequester,
                         onInputChange = { onEvent(AssistantUiEvent.InputChange(it)) },
                         onSend = { onEvent(AssistantUiEvent.Send) },
                         onPromptClick = { onEvent(AssistantUiEvent.SendPrompt(it)) },
                         onMicClick = { onEvent(AssistantUiEvent.StartVoice) },
-                        onAttachClick = onComingSoon,
+                        onAttachClick = { onEvent(AssistantUiEvent.OpenAttachmentSheet) },
+                        onRemoveAttachment = { onEvent(AssistantUiEvent.RemoveAttachment(it.uri)) },
                     )
                 }
             },
@@ -159,12 +176,56 @@ fun AssistantScreen(
         if (voice != null) {
             AssistantVoiceOverlay(
                 voice = voice,
-                onMenuClick = onComingSoon,
+                onMenuClick = { onEvent(AssistantUiEvent.OpenHistory) },
                 onTypeClick = { onEvent(AssistantUiEvent.SwitchToKeyboard) },
                 onDoneClick = { onEvent(AssistantUiEvent.FinishVoice) },
                 onCancelClick = { onEvent(AssistantUiEvent.CancelVoice) },
             )
         }
+        AssistantHistoryPanel(
+            state = history,
+            query = historyQuery,
+            onQueryChange = { onEvent(AssistantUiEvent.HistoryQueryChange(it)) },
+            onNewConversation = { onEvent(AssistantUiEvent.NewConversation) },
+            onConversationClick = { onEvent(AssistantUiEvent.OpenConversation(it)) },
+            onClearClick = { onEvent(AssistantUiEvent.ClearHistory) },
+            onClose = { onEvent(AssistantUiEvent.CloseHistory) },
+        )
+    }
+    AssistantOverlays(
+        isAttachmentSheetOpen = composer?.isAttachmentSheetOpen == true,
+        isConfirmingClear = history.isConfirmingClear,
+        onEvent = onEvent,
+        onPickAttachment = onPickAttachment,
+    )
+}
+
+/** "Tambah Lampiran" and the clear-history confirmation, both in their own windows. */
+@Composable
+private fun AssistantOverlays(
+    isAttachmentSheetOpen: Boolean,
+    isConfirmingClear: Boolean,
+    onEvent: (AssistantUiEvent) -> Unit,
+    onPickAttachment: (AttachmentSource) -> Unit,
+) {
+    if (isAttachmentSheetOpen) {
+        AssistantAttachmentSheet(
+            onSourceClick = onPickAttachment,
+            onDismiss = { onEvent(AssistantUiEvent.DismissAttachmentSheet) },
+        )
+    }
+    if (isConfirmingClear) {
+        // Not in the design: the app's standard confirmation with a danger badge.
+        GotestDialog(
+            title = stringResource(R.string.assistant_history_clear_title),
+            message = stringResource(R.string.assistant_history_clear_message),
+            confirmText = stringResource(R.string.assistant_history_clear_confirm),
+            onConfirm = { onEvent(AssistantUiEvent.ConfirmClearHistory) },
+            onDismissRequest = { onEvent(AssistantUiEvent.DismissClearHistory) },
+            icon = GotestIcons.Linear.Trash,
+            iconColors = GotestIconBadgeColors(GotestTheme.colors.statusDangerSoft, GotestTheme.colors.statusDanger),
+            dismissText = stringResource(R.string.assistant_history_clear_cancel),
+        )
     }
 }
 
@@ -203,12 +264,15 @@ private fun AssistantContent(
         }
 
         is AssistantUiState.Success -> {
-            Conversation(
-                items = uiState.items,
-                onPackageClick = onPackageClick,
-                onActionClick = onActionClick,
-                modifier = modifier,
-            )
+            // A conversation opened from the history starts at its newest message, not mid-scroll.
+            key(uiState.conversationId) {
+                Conversation(
+                    items = uiState.items,
+                    onPackageClick = onPackageClick,
+                    onActionClick = onActionClick,
+                    modifier = modifier,
+                )
+            }
         }
     }
 }
@@ -220,7 +284,7 @@ private fun Conversation(
     onActionClick: (AssistantAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val listState = rememberLazyListState()
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = items.lastIndex.coerceAtLeast(0))
     // Keep the newest message (or the typing dots) in view.
     LaunchedEffect(items.size) {
         if (items.isNotEmpty()) listState.animateScrollToItem(items.lastIndex)
@@ -253,96 +317,95 @@ private fun Conversation(
     }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
-private fun AssistantScreenWelcomePreview() {
+private fun AssistantPreviewScreen(
+    uiState: AssistantUiState,
+    history: ConversationHistoryUiState = ConversationHistoryUiState(isLoading = false),
+) {
     GotestTheme {
         AssistantScreen(
-            uiState = AssistantUiState.Empty(firstName = "Gilang", voice = null),
+            uiState = uiState,
+            history = history,
             input = "",
+            historyQuery = "",
             onEvent = {},
             onBack = {},
             onPackageClick = {},
             onActionClick = {},
-            onComingSoon = {},
+            onPickAttachment = {},
             snackbarHostState = remember { SnackbarHostState() },
             focusRequester = remember { FocusRequester() },
         )
     }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun AssistantScreenWelcomePreview() {
+    AssistantPreviewScreen(uiState = AssistantUiState.Empty(firstName = "Gilang", composer = ComposerState()))
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun AssistantScreenConversationPreview() {
-    GotestTheme {
-        AssistantScreen(
-            uiState = AssistantUiState.Success(items = AssistantPreviewData.conversation, voice = null),
-            input = "",
-            onEvent = {},
-            onBack = {},
-            onPackageClick = {},
-            onActionClick = {},
-            onComingSoon = {},
-            snackbarHostState = remember { SnackbarHostState() },
-            focusRequester = remember { FocusRequester() },
-        )
-    }
+    AssistantPreviewScreen(
+        uiState =
+            AssistantUiState.Success(
+                conversationId = "conv_seed_utbk",
+                items = AssistantPreviewData.conversation,
+                composer = ComposerState(),
+            ),
+    )
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun AssistantScreenAttachmentsPreview() {
+    AssistantPreviewScreen(
+        uiState =
+            AssistantUiState.Success(
+                conversationId = "conv_seed_utbk",
+                items = AssistantPreviewData.conversation,
+                composer = ComposerState(attachments = AssistantPreviewData.attachments),
+            ),
+    )
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun AssistantScreenHistoryPreview() {
+    AssistantPreviewScreen(
+        uiState =
+            AssistantUiState.Success(
+                conversationId = "conv_seed_utbk",
+                items = AssistantPreviewData.conversation,
+                composer = ComposerState(),
+            ),
+        history = AssistantPreviewData.history,
+    )
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun AssistantScreenVoicePreview() {
-    GotestTheme {
-        AssistantScreen(
-            uiState =
-                AssistantUiState.Success(
-                    items = AssistantPreviewData.conversation,
-                    voice = VoiceInputState(transcript = "Aku mau latihan matematika buat persiapan UTBK"),
-                ),
-            input = "",
-            onEvent = {},
-            onBack = {},
-            onPackageClick = {},
-            onActionClick = {},
-            onComingSoon = {},
-            snackbarHostState = remember { SnackbarHostState() },
-            focusRequester = remember { FocusRequester() },
-        )
-    }
+    AssistantPreviewScreen(
+        uiState =
+            AssistantUiState.Success(
+                conversationId = "conv_seed_utbk",
+                items = AssistantPreviewData.conversation,
+                composer = ComposerState(voice = VoiceInputState(transcript = AssistantPreviewData.VOICE_TRANSCRIPT)),
+            ),
+    )
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun AssistantScreenLoadingPreview() {
-    GotestTheme {
-        AssistantScreen(
-            uiState = AssistantUiState.Loading,
-            input = "",
-            onEvent = {},
-            onBack = {},
-            onPackageClick = {},
-            onActionClick = {},
-            onComingSoon = {},
-            snackbarHostState = remember { SnackbarHostState() },
-            focusRequester = remember { FocusRequester() },
-        )
-    }
+    AssistantPreviewScreen(uiState = AssistantUiState.Loading)
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun AssistantScreenErrorPreview() {
-    GotestTheme {
-        AssistantScreen(
-            uiState = AssistantUiState.Error,
-            input = "",
-            onEvent = {},
-            onBack = {},
-            onPackageClick = {},
-            onActionClick = {},
-            onComingSoon = {},
-            snackbarHostState = remember { SnackbarHostState() },
-            focusRequester = remember { FocusRequester() },
-        )
-    }
+    AssistantPreviewScreen(uiState = AssistantUiState.Error)
 }

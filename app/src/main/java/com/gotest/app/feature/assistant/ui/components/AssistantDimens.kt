@@ -35,6 +35,28 @@ internal object AssistantDimens {
     val typingDot = 8.dp
     val typingBubblePaddingVertical = 14.dp
 
+    /** "Riwayat Percakapan" panel (frame 21622). */
+    val historyPanelWidth = 340.dp
+    val historySearchHeight = 40.dp
+
+    /** Corner radius, vertical padding and icon gap of a history row and "Hapus semua riwayat". */
+    val historyRowRadius = 10.dp
+    val historyRowSpacing = 10.dp
+
+    /** The 18dp glyphs of the history panel and the attachment hint. */
+    val smallIcon = 18.dp
+
+    /** "Tambah Lampiran" tiles (frame 22009). */
+    val attachmentTileIconBox = 48.dp
+    val attachmentTileIconRadius = 14.dp
+    val attachmentTileIcon = 22.dp
+
+    /** Pending attachments above the input and sent ones above the student's bubble (not in the design). */
+    val pendingAttachmentThumbnail = 32.dp
+    val pendingAttachmentNameMaxWidth = 120.dp
+    val sentAttachmentImage = 96.dp
+    val sentAttachmentNameMaxWidth = 160.dp
+
     val voiceButton = 56.dp
     val voiceDoneButton = 72.dp
     val voiceButtonIcon = 22.dp

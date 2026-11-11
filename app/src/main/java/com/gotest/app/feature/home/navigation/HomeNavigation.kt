@@ -16,6 +16,7 @@ import com.gotest.app.navigation.HomeDestination
 import com.gotest.app.navigation.MultiplayerDestination
 import com.gotest.app.navigation.NotificationDestination
 import com.gotest.app.navigation.PracticeDetailDestination
+import com.gotest.app.navigation.PromoDestination
 import com.gotest.app.navigation.SearchDestination
 import com.gotest.app.navigation.TopLevelDestination
 import com.gotest.app.navigation.TryoutDetailDestination
@@ -34,7 +35,8 @@ fun NavGraphBuilder.homeScreens(navController: NavController) {
             onSeeAllActivity = { navController.openTab(TopLevelDestination.History) },
             onOpenResult = { attemptId -> navController.navigate(HistoryDetailDestination(attemptId)) },
             onJoinGame = { navController.navigate(MultiplayerDestination(openJoinSheet = true)) },
-            onCreateGame = { navController.navigate(CreateGameDestination) },
+            onCreateGame = { navController.navigate(CreateGameDestination()) },
+            onOpenPromo = { promoId -> navController.navigate(PromoDestination(promoId)) },
         )
     }
     composable<SearchDestination> {

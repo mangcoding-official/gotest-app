@@ -8,6 +8,7 @@ import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.UserProfile
 import com.gotest.app.feature.account.domain.AccountValidator
 import com.gotest.app.feature.account.domain.ProfileFieldError
+import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -90,6 +91,8 @@ class EditProfileViewModel
                 is EditProfileUiEvent.EmailChange -> form.update { it.copy(email = event.value, emailError = null) }
                 EditProfileUiEvent.Submit -> submit()
                 EditProfileUiEvent.ChangePhotoClick -> photoEditor.open()
+                EditProfileUiEvent.TakePhoto -> photoEditor.openCamera()
+                is EditProfileUiEvent.PhotoCapture -> onCaptureEvent(event.event)
                 is EditProfileUiEvent.PhotoPick -> photoEditor.select(event.photoUri)
                 EditProfileUiEvent.SavePhoto -> savePhoto()
                 EditProfileUiEvent.DismissPhotoSheet -> photoEditor.dismiss()
@@ -129,9 +132,19 @@ class EditProfileViewModel
                     if (result.isSuccess) {
                         EditProfileEffect.ShowMessage(R.string.account_notice_photo_saved)
                     } else {
-                        EditProfileEffect.ShowMessage(R.string.account_error_save, inPhotoSheet = photoEditor.isOpen)
+                        EditProfileEffect.ShowMessage(R.string.account_error_save, host = photoEditor.messageHost)
                     }
                 _effects.send(effect)
+            }
+        }
+
+        private fun onCaptureEvent(event: PhotoCaptureEvent) {
+            viewModelScope.launch {
+                photoEditor.onCaptureEvent(event)?.onFailure {
+                    _effects.send(
+                        EditProfileEffect.ShowMessage(R.string.account_adjust_error, host = photoEditor.messageHost),
+                    )
+                }
             }
         }
 

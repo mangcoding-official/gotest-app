@@ -1,5 +1,8 @@
 package com.gotest.app.feature.history.ui.history
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,8 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -43,6 +48,7 @@ import com.gotest.app.core.model.AttemptSummary
 import com.gotest.app.core.model.PackageType
 import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.history.domain.ExportFormat
 import com.gotest.app.feature.history.ui.components.HistoryMonthSection
 import com.gotest.app.feature.history.ui.components.HistoryStatTile
 import kotlinx.coroutines.launch
@@ -57,17 +63,28 @@ fun HistoryRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
+    val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
+    val resources = LocalResources.current
+    val showMessage: (Int) -> Unit = { messageRes ->
+        scope.launch { snackbarHostState.showSnackbar(resources.getString(messageRes)) }
+    }
+    val pickExportDestination =
+        rememberExportDestinationPicker(
+            onPick = { uri -> viewModel.onEvent(HistoryUiEvent.ExportDestinationPick(uri)) },
+            onUnavailable = { showMessage(R.string.history_export_failure) },
+        )
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            HistoryEffect.ShowComingSoon -> scope.launch { snackbarHostState.showSnackbar(comingSoon) }
+            is HistoryEffect.PickExportDestination -> pickExportDestination(effect.format, effect.fileName)
+            is HistoryEffect.ShowMessage -> showMessage(effect.messageRes)
         }
     }
     HistoryScreen(
         uiState = uiState,
         query = query,
+        sheet = sheet,
         snackbarHostState = snackbarHostState,
         onEvent = viewModel::onEvent,
         onViewResult = onViewResult,
@@ -75,10 +92,39 @@ fun HistoryRoute(
     )
 }
 
+/**
+ * Opens the system "save as" dialog (Storage Access Framework, no storage permission) and
+ * reports the new document's URI; cancelling reports nothing. Needs an Activity, so call it from
+ * a Route, never from a previewed Screen.
+ */
+@Composable
+private fun rememberExportDestinationPicker(
+    onPick: (uri: String) -> Unit,
+    onUnavailable: () -> Unit,
+): (ExportFormat, String) -> Unit {
+    val currentOnPick by rememberUpdatedState(onPick)
+    val currentOnUnavailable by rememberUpdatedState(onUnavailable)
+    val onResult: (Uri?) -> Unit = { uri -> uri?.let { currentOnPick(it.toString()) } }
+    val pdf = rememberLauncherForActivityResult(CreateDocument(ExportFormat.Pdf.mimeType), onResult)
+    val csv = rememberLauncherForActivityResult(CreateDocument(ExportFormat.Csv.mimeType), onResult)
+    return remember(pdf, csv) {
+        { format: ExportFormat, fileName: String ->
+            val launcher =
+                when (format) {
+                    ExportFormat.Pdf -> pdf
+                    ExportFormat.Csv -> csv
+                }
+            // Some devices ship without a document provider to save into.
+            if (runCatching { launcher.launch(fileName) }.isFailure) currentOnUnavailable()
+        }
+    }
+}
+
 @Composable
 fun HistoryScreen(
     uiState: HistoryUiState,
     query: String,
+    sheet: HistorySheetUiState?,
     snackbarHostState: SnackbarHostState,
     onEvent: (HistoryUiEvent) -> Unit,
     onViewResult: (attemptId: String) -> Unit,
@@ -136,6 +182,7 @@ fun HistoryScreen(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = bottomInset),
         )
+        sheet?.let { HistorySheet(state = it, onEvent = onEvent) }
     }
 }
 
@@ -237,7 +284,7 @@ private fun HistoryContent(
         } else {
             items(state.groups, key = { it.key }) { group ->
                 HistoryMonthSection(
-                    monthStart = group.month.atDay(1),
+                    monthStart = group.month?.atDay(1),
                     attempts = group.attempts,
                     onViewResult = onViewResult,
                     modifier = gutter,
@@ -310,6 +357,7 @@ private fun HistoryPreviewHost(
         HistoryScreen(
             uiState = uiState,
             query = query,
+            sheet = null,
             snackbarHostState = remember { SnackbarHostState() },
             onEvent = {},
             onViewResult = {},
@@ -324,12 +372,29 @@ private fun HistoryScreenSuccessPreview() {
         uiState =
             HistoryUiState.Success(
                 filter = HistoryFilter.All,
+                sort = HistorySort.Newest,
                 totalAttempts = 24,
                 accuracyPercent = 86,
                 groups =
                     previewHistory
                         .groupBy { YearMonth.from(it.completedOn) }
-                        .map { (month, attempts) -> HistoryMonthGroup(month, attempts) },
+                        .map { (month, attempts) -> HistoryAttemptGroup(month, attempts) },
+            ),
+    )
+}
+
+/** "Nama paket (A–Z)": not by date, so one card without month headers. */
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun HistoryScreenSortedByNamePreview() {
+    HistoryPreviewHost(
+        uiState =
+            HistoryUiState.Success(
+                filter = HistoryFilter.All,
+                sort = HistorySort.Name,
+                totalAttempts = 24,
+                accuracyPercent = 86,
+                groups = listOf(HistoryAttemptGroup(month = null, attempts = previewHistory.sortedBy { it.title })),
             ),
     )
 }
@@ -341,6 +406,7 @@ private fun HistoryScreenNoResultsPreview() {
         uiState =
             HistoryUiState.Success(
                 filter = HistoryFilter.Cpns,
+                sort = HistorySort.Newest,
                 totalAttempts = 24,
                 accuracyPercent = 86,
                 groups = emptyList(),

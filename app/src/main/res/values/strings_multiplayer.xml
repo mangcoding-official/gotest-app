@@ -104,6 +104,34 @@
     <string name="multiplayer_outcome_ranked">Peringkat %1$d dari %2$d</string>
     <string name="multiplayer_outcome_cancelled">Batal</string>
 
+    <!-- 09 Riwayat Main Bareng (Lihat Semua) -->
+    <string name="multiplayer_history_filter_all">Semua</string>
+    <string name="multiplayer_history_stat_games">Permainan</string>
+    <string name="multiplayer_history_stat_duel_wins">Menang duel</string>
+    <string name="multiplayer_history_stat_room_wins">Juara room</string>
+    <string name="multiplayer_versus">vs %1$s</string>
+    <string name="multiplayer_history_empty_title">Belum ada permainan</string>
+    <string name="multiplayer_history_empty_message">Buat permainan atau gabung dengan kode dari temanmu.</string>
+    <string name="multiplayer_history_filter_empty_message">Permainan %1$s yang selesai atau batal akan muncul di sini.</string>
+
+    <!-- 09b Detail Permainan -->
+    <string name="multiplayer_game_detail_title">Detail Permainan</string>
+    <string name="multiplayer_game_detail_cancelled">Permainan dibatalkan</string>
+    <string name="multiplayer_game_detail_reason_too_few">Belum ada hasil karena permainan batal sebelum dimulai. Pemain kurang dari 2 saat batas waktu ruang tunggu habis.</string>
+    <string name="multiplayer_game_detail_reason_not_started">Belum ada hasil karena permainan batal sebelum dimulai. Permainan tidak dimulai dalam 5 menit, jadi dibatalkan untuk semua pemain.</string>
+    <string name="multiplayer_game_detail_reason_host">Belum ada hasil karena permainan batal sebelum dimulai. %1$s membatalkan permainan ini.</string>
+    <string name="multiplayer_game_detail_reason_you">Belum ada hasil karena permainan batal sebelum dimulai. Kamu membatalkan permainan ini.</string>
+    <string name="multiplayer_game_detail_mode">Mode</string>
+    <string name="multiplayer_game_detail_questions_duration">Soal &amp; durasi</string>
+    <string name="multiplayer_game_detail_code">Kode</string>
+    <string name="multiplayer_game_detail_created">Dibuat</string>
+    <string name="multiplayer_game_detail_cancelled_at">Dibatalkan</string>
+    <string name="multiplayer_game_detail_automatic">%1$s (otomatis)</string>
+    <string name="multiplayer_game_detail_players">Pemain di ruang tunggu</string>
+    <string name="multiplayer_game_detail_player_joined">Bergabung</string>
+    <string name="multiplayer_game_detail_stock_returned">Stok permainan sudah dikembalikan ke akunmu.</string>
+    <string name="multiplayer_game_detail_recreate">Buat Ulang dengan Pengaturan Sama</string>
+
     <!-- 03c / 03d dialogs -->
     <string name="multiplayer_premium_dialog_title">Buat permainan khusus Premium</string>
     <string name="multiplayer_premium_dialog_message">Akun gratis tetap bisa ikut main bareng lewat kode dari temanmu. Tingkatkan akun untuk membuat permainan sendiri.</string>

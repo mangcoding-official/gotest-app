@@ -42,17 +42,31 @@ import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.account.domain.SettingSwitch
 import com.gotest.app.feature.account.ui.components.AccountDetailScaffold
 import com.gotest.app.feature.account.ui.components.AccountListCard
+import com.gotest.app.feature.account.ui.components.AccountNotice
+import com.gotest.app.feature.account.ui.components.AccountNoticeEffect
 import com.gotest.app.feature.account.ui.components.AccountPreviewData
 import com.gotest.app.feature.account.ui.components.AccountRowArrow
 import com.gotest.app.feature.account.ui.components.AccountSectionTitle
+import com.gotest.app.feature.account.ui.mainlevel.titleRes
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/** Navigation out of Pengaturan, grouped so the screen signature stays readable. */
+data class SettingsNavigation(
+    val onOpenMainLevel: () -> Unit,
+    val onOpenSubscription: () -> Unit,
+    val onOpenPersonalData: () -> Unit,
+    val onOpenDownloadData: () -> Unit,
+)
+
+/** [notice] reports Jenjang Utama and Unduh Data Akun results. */
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
-    onOpenSubscription: () -> Unit,
+    navigation: SettingsNavigation,
+    notice: AccountNotice?,
+    onNoticeConsume: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -60,6 +74,7 @@ fun SettingsRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
+    AccountNoticeEffect(notice = notice, onConsume = onNoticeConsume, snackbarHostState = snackbarHostState)
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             is SettingsEffect.ShowMessage -> {
@@ -67,26 +82,22 @@ fun SettingsRoute(
             }
         }
     }
-    val comingSoon = stringResource(R.string.coming_soon)
     SettingsScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
         onBack = onBack,
-        onOpenSubscription = onOpenSubscription,
-        onComingSoon = { scope.launch { snackbarHostState.showSnackbar(comingSoon) } },
+        navigation = navigation,
         modifier = modifier,
         snackbarHostState = snackbarHostState,
     )
 }
 
-/** [onComingSoon] handles the rows without a designed destination (Jenjang Utama, Data Pribadi, Unduh Data). */
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
     onEvent: (SettingsUiEvent) -> Unit,
     onBack: () -> Unit,
-    onOpenSubscription: () -> Unit,
-    onComingSoon: () -> Unit,
+    navigation: SettingsNavigation,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
@@ -112,8 +123,7 @@ fun SettingsScreen(
                 SettingsContent(
                     state = uiState,
                     onSwitchChange = { switch, enabled -> onEvent(SettingsUiEvent.SwitchChange(switch, enabled)) },
-                    onOpenSubscription = onOpenSubscription,
-                    onComingSoon = onComingSoon,
+                    navigation = navigation,
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -125,8 +135,7 @@ fun SettingsScreen(
 private fun SettingsContent(
     state: SettingsUiState.Success,
     onSwitchChange: (SettingSwitch, Boolean) -> Unit,
-    onOpenSubscription: () -> Unit,
-    onComingSoon: () -> Unit,
+    navigation: SettingsNavigation,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -169,15 +178,16 @@ private fun SettingsContent(
             )
             ClickableSettingRow(
                 title = stringResource(R.string.account_settings_main_level),
-                subtitle = settings.mainLevel,
-                onClick = onComingSoon,
+                subtitle = stringResource(settings.mainLevel.titleRes),
+                onClick = navigation.onOpenMainLevel,
             )
         }
-        SubscriptionSection(state = state, onOpenSubscription = onOpenSubscription)
+        SubscriptionSection(state = state, onOpenSubscription = navigation.onOpenSubscription)
         PrivacySection(
             promoEmails = settings.isOn(SettingSwitch.PromoEmails),
             onPromoEmailsChange = { onSwitchChange(SettingSwitch.PromoEmails, it) },
-            onComingSoon = onComingSoon,
+            onOpenPersonalData = navigation.onOpenPersonalData,
+            onOpenDownloadData = navigation.onOpenDownloadData,
         )
     }
 }
@@ -209,7 +219,8 @@ private fun SubscriptionSection(
 private fun PrivacySection(
     promoEmails: Boolean,
     onPromoEmailsChange: (Boolean) -> Unit,
-    onComingSoon: () -> Unit,
+    onOpenPersonalData: () -> Unit,
+    onOpenDownloadData: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
@@ -218,7 +229,7 @@ private fun PrivacySection(
             ClickableSettingRow(
                 title = stringResource(R.string.account_settings_personal_data),
                 subtitle = stringResource(R.string.account_settings_personal_data_subtitle),
-                onClick = onComingSoon,
+                onClick = onOpenPersonalData,
             )
             SwitchSettingRow(
                 title = stringResource(R.string.account_settings_promo),
@@ -229,7 +240,7 @@ private fun PrivacySection(
             ClickableSettingRow(
                 title = stringResource(R.string.account_settings_download),
                 subtitle = stringResource(R.string.account_settings_download_subtitle),
-                onClick = onComingSoon,
+                onClick = onOpenDownloadData,
             )
         }
     }
@@ -337,9 +348,12 @@ private fun SubscriptionStatusChip(
     )
 }
 
+private val previewNavigation =
+    SettingsNavigation(onOpenMainLevel = {}, onOpenSubscription = {}, onOpenPersonalData = {}, onOpenDownloadData = {})
+
 @Composable
 private fun SettingsPreviewScreen(uiState: SettingsUiState) {
-    SettingsScreen(uiState = uiState, onEvent = {}, onBack = {}, onOpenSubscription = {}, onComingSoon = {})
+    SettingsScreen(uiState = uiState, onEvent = {}, onBack = {}, navigation = previewNavigation)
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)

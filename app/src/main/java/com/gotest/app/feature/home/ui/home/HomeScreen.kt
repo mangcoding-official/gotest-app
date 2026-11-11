@@ -13,27 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.PackageType
 import com.gotest.app.core.model.StudyPackage
 import com.gotest.app.core.model.UserStats
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomeRoute(
@@ -46,13 +38,11 @@ fun HomeRoute(
     onOpenResult: (attemptId: String) -> Unit,
     onJoinGame: () -> Unit,
     onCreateGame: () -> Unit,
+    onOpenPromo: (promoId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val comingSoon = stringResource(R.string.coming_soon)
     HomeScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
@@ -67,11 +57,9 @@ fun HomeRoute(
                 onOpenResult = onOpenResult,
                 onJoinGame = onJoinGame,
                 onCreateGame = onCreateGame,
-                // The promo landing page is not designed yet.
-                onPromoClick = { scope.launch { snackbarHostState.showSnackbar(comingSoon) } },
+                onOpenPromo = onOpenPromo,
             ),
         modifier = modifier,
-        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -87,7 +75,7 @@ data class HomeActions(
     val onOpenResult: (attemptId: String) -> Unit,
     val onJoinGame: () -> Unit,
     val onCreateGame: () -> Unit,
-    val onPromoClick: () -> Unit,
+    val onOpenPromo: (promoId: String) -> Unit,
 )
 
 @Composable
@@ -96,9 +84,7 @@ fun HomeScreen(
     onEvent: (HomeUiEvent) -> Unit,
     actions: HomeActions,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     Box(
         modifier =
             modifier
@@ -143,13 +129,6 @@ fun HomeScreen(
                 )
             }
         }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = GotestTheme.sizes.bottomBarHeight + bottomInset),
-        )
     }
 }
 
@@ -188,7 +167,7 @@ private fun HomeDashboard(
                 modifier = Modifier.padding(bottom = spacing.sm),
             )
         }
-        item(key = "promo") { HomePromoBanner(onClick = actions.onPromoClick) }
+        item(key = "promo") { HomePromoBanner(onClick = { actions.onOpenPromo(HOME_PROMO_ID) }) }
         item(key = "stats") { HomeStatsRow(stats = stats) }
         item(key = "multiplayer") {
             HomeMultiplayerCard(onJoinGame = actions.onJoinGame, onCreateGame = actions.onCreateGame)
@@ -231,7 +210,7 @@ private val previewActions =
         onOpenResult = {},
         onJoinGame = {},
         onCreateGame = {},
-        onPromoClick = {},
+        onOpenPromo = {},
     )
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
