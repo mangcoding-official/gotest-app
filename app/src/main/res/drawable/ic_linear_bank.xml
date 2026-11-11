@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <group
+        android:translateX="-3.966"
+        android:translateY="-3.096">
+        <group
+            android:translateX="5.633"
+            android:translateY="4.8">
+            <path
+                android:pathData="M8.642 0.05L16.142 3.05C16.433 3.167 16.667 3.517 16.667 3.825L16.667 6.592C16.667 7.05 16.292 7.425 15.833 7.425L0.833 7.425C0.375 7.425 0 7.05 0 6.592L0 3.825C0 3.517 0.233 3.167 0.525 3.05L8.025 0.05C8.192 -0.017 8.475 -0.017 8.642 0.05Z"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="5.633"
+            android:translateY="18.058">
+            <path
+                android:pathData="M16.667 3.333L0 3.333L0 0.833C0 0.375 0.375 0 0.833 0L15.833 0C16.292 0 16.667 0.375 16.667 0.833L16.667 3.333Z"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="7.3"
+            android:translateY="12.225">
+            <path
+                android:pathData="M0 5.833L0 0"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="10.633"
+            android:translateY="12.225">
+            <path
+                android:pathData="M0 5.833L0 0"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="13.967"
+            android:translateY="12.225">
+            <path
+                android:pathData="M0 5.833L0 0"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="17.3"
+            android:translateY="12.225">
+            <path
+                android:pathData="M0 5.833L0 0"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="20.633"
+            android:translateY="12.225">
+            <path
+                android:pathData="M0 5.833L0 0"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="4.8"
+            android:translateY="21.392">
+            <path
+                android:pathData="M0 0L18.333 0"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+        <group
+            android:translateX="12.717"
+            android:translateY="7.642">
+            <path
+                android:pathData="M2.5 1.25C2.5 1.94 1.94 2.5 1.25 2.5C0.56 2.5 0 1.94 0 1.25C0 0.56 0.56 0 1.25 0C1.94 0 2.5 0.56 2.5 1.25Z"
+                android:strokeColor="#FF000000"
+                android:strokeWidth="1.2"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+        </group>
+    </group>
+</vector>

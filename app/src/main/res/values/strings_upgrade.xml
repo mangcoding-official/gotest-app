@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared by the upgrade flow -->
+    <string name="upgrade_step_progress">Langkah %1$d dari %2$d</string>
+    <string name="upgrade_product_premium">GoTest Premium</string>
+    <string name="upgrade_product_yearly_detail">Langganan Tahunan • 12 Bulan</string>
+    <string name="upgrade_value_unavailable">-</string>
+
+    <!-- Upgrade / Pilih Paket (frame 11349) -->
+    <string name="upgrade_plan_title">Upgrade Akun</string>
+    <string name="upgrade_plan_close">Tutup</string>
+    <string name="upgrade_plan_headline">Persiapan ujian lebih maksimal bersama GoTest</string>
+    <string name="upgrade_plan_description">Temukan paket yang sesuai dengan target belajarmu. Latihan lebih terarah, hasil lebih maksimal.</string>
+    <string name="upgrade_plan_free_price">Gratis</string>
+    <string name="upgrade_plan_per_period">/%1$s</string>
+    <string name="upgrade_plan_current">Paket kamu saat ini</string>
+    <string name="upgrade_plan_choose_yearly">Pilih Paket Tahunan</string>
+    <string name="upgrade_plan_already_premium">Kamu sudah Premium</string>
+    <string name="upgrade_plan_cancel_note">Bisa dibatalkan kapan saja sebelum perpanjangan.</string>
+    <string name="upgrade_plan_empty_title">Belum ada paket</string>
+    <string name="upgrade_plan_empty_message">Paket langganan belum tersedia. Coba lagi nanti.</string>
+
+    <!-- Upgrade / Checkout (frame 11497) -->
+    <string name="upgrade_checkout_title">Checkout</string>
+    <string name="upgrade_checkout_account_title">Informasi Akun</string>
+    <string name="upgrade_checkout_edit">Ubah</string>
+    <string name="upgrade_checkout_name_label">Nama Lengkap</string>
+    <string name="upgrade_checkout_email_label">Email</string>
+    <string name="upgrade_checkout_account_note">Informasi akun diambil dari profil GoTest.</string>
+    <string name="upgrade_checkout_method_title">Metode Pembayaran</string>
+    <string name="upgrade_method_virtual_account">Virtual Account</string>
+    <string name="upgrade_method_virtual_account_description">Bayar melalui transfer bank</string>
+    <string name="upgrade_method_qris">QRIS</string>
+    <string name="upgrade_method_qris_description">Bayar dengan aplikasi yang mendukung QRIS</string>
+    <string name="upgrade_method_ewallet">E-Wallet</string>
+    <string name="upgrade_method_ewallet_description">Bayar melalui dompet digital</string>
+    <string name="upgrade_checkout_summary_title">Ringkasan Pesanan</string>
+    <string name="upgrade_checkout_fee">Biaya Tambahan</string>
+    <string name="upgrade_checkout_price">Harga Paket</string>
+    <string name="upgrade_checkout_total">Total pembayaran</string>
+    <string name="upgrade_checkout_pay">Bayar Sekarang</string>
+    <string name="upgrade_checkout_terms">Dengan melanjutkan kamu menyetujui syarat dan ketentuan pembayaran GoTest.</string>
+    <string name="upgrade_checkout_error">Pesanan belum bisa dibuat. Coba lagi.</string>
+
+    <!-- Upgrade / Menunggu Pembayaran (frame 11636) -->
+    <string name="upgrade_payment_title">Pembayaran</string>
+    <string name="upgrade_payment_waiting">Menunggu Pembayaran</string>
+    <string name="upgrade_payment_deadline_note">Selesaikan pembayaran sebelum batas waktu berakhir</string>
+    <string name="upgrade_payment_expired_note">Batas waktu pembayaran sudah berakhir.</string>
+    <string name="upgrade_payment_hours">Jam</string>
+    <string name="upgrade_payment_minutes">Menit</string>
+    <string name="upgrade_payment_seconds">Detik</string>
+    <string name="upgrade_payment_countdown_value">%1$02d</string>
+    <string name="upgrade_payment_countdown_separator">:</string>
+    <string name="upgrade_payment_bank_label">Bank Tujuan</string>
+    <string name="upgrade_payment_bank_name">Bank %1$s</string>
+    <string name="upgrade_payment_va_label">Nomor Virtual Account</string>
+    <string name="upgrade_payment_copy">Salin</string>
+    <string name="upgrade_payment_copy_label">Nomor Virtual Account</string>
+    <string name="upgrade_payment_copied">Nomor Virtual Account disalin.</string>
+    <string name="upgrade_payment_steps_title">Cara Membayar</string>
+    <string-array name="upgrade_payment_steps_bca">
+        <item>Buka aplikasi m-BCA atau ATM BCA.</item>
+        <item>Pilih menu m-Transfer → BCA Virtual Account.</item>
+        <item>Masukkan nomor Virtual Account di atas.</item>
+        <item>Periksa detail tagihan lalu konfirmasi pembayaran.</item>
+    </string-array>
+    <string name="upgrade_payment_confirm">Saya Sudah Membayar</string>
+    <string name="upgrade_payment_status_note">Status pembayaran diperbarui otomatis setelah konfirmasi dari bank.</string>
+    <string name="upgrade_payment_confirm_error">Pembayaran belum terkonfirmasi. Coba lagi.</string>
+
+    <!-- Upgrade / Pembayaran Berhasil (frame 11753) -->
+    <string name="upgrade_success_title">Pembayaran Berhasil!</string>
+    <string name="upgrade_success_message">Langganan Premium kamu sudah aktif. Selamat belajar dan raih hasil terbaikmu!</string>
+    <string name="upgrade_success_active">Aktif</string>
+    <string name="upgrade_success_details_title">Detail Langganan</string>
+    <string name="upgrade_success_plan_label">Paket</string>
+    <string name="upgrade_success_plan_value">%1$s (Tahunan)</string>
+    <string name="upgrade_success_activated_label">Tanggal Aktivasi</string>
+    <string name="upgrade_success_period_label">Masa Aktif</string>
+    <string name="upgrade_success_period_value">%1$s – %2$s</string>
+    <string name="upgrade_success_method_label">Metode Pembayaran</string>
+    <string name="upgrade_success_dashboard">Lihat Dashboard</string>
+    <string name="upgrade_success_transaction">Lihat Detail Transaksi</string>
+</resources>

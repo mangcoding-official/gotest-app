@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared Main Bareng copy -->
+    <string name="multiplayer_title">Main Bareng</string>
+    <string name="multiplayer_type_duel">Duel</string>
+    <string name="multiplayer_type_room">Room</string>
+    <string name="multiplayer_game_title">%1$s • %2$s</string>
+    <string name="multiplayer_player_you">%1$s (Kamu)</string>
+    <string name="multiplayer_date_time">%1$s, %2$s</string>
+    <string name="multiplayer_count_of">%1$d dari %2$d</string>
+    <string name="multiplayer_premium">Premium</string>
+    <string name="multiplayer_cancel">Batal</string>
+    <string name="multiplayer_close">Tutup</string>
+    <string name="multiplayer_back">Kembali</string>
+    <string name="multiplayer_back_to_hub">Kembali ke Main Bareng</string>
+    <string name="multiplayer_back_to_game">Kembali ke Permainan</string>
+    <string name="multiplayer_status_waiting">Menunggu pemain</string>
+    <string name="multiplayer_status_finished">Selesai</string>
+    <string name="multiplayer_detail_type">Jenis</string>
+    <string name="multiplayer_detail_subtest">Subtes</string>
+    <string name="multiplayer_detail_question_count">Jumlah soal</string>
+    <string name="multiplayer_detail_duration">Durasi</string>
+    <string name="multiplayer_detail_players">Pemain</string>
+    <string name="multiplayer_meta_two">%1$s • %2$s</string>
+    <string name="multiplayer_meta_three">%1$s • %2$s • %3$s</string>
+    <string name="multiplayer_meta_versus">%1$s • %2$s • vs %3$s</string>
+    <string name="multiplayer_meta_four">%1$s • %2$s • %3$s • %4$s</string>
+    <plurals name="multiplayer_question_count">
+        <item quantity="one">%d soal</item>
+        <item quantity="other">%d soal</item>
+    </plurals>
+    <plurals name="multiplayer_duration_minutes">
+        <item quantity="one">%d menit</item>
+        <item quantity="other">%d menit</item>
+    </plurals>
+    <plurals name="multiplayer_player_count">
+        <item quantity="one">%d pemain</item>
+        <item quantity="other">%d pemain</item>
+    </plurals>
+
+    <!-- MB/Player Row -->
+    <string name="multiplayer_seat_host">Pembuat</string>
+    <string name="multiplayer_seat_ready">Siap</string>
+    <string name="multiplayer_seat_finished">Selesai</string>
+    <string name="multiplayer_seat_playing">Masih mengerjakan</string>
+    <string name="multiplayer_seat_host_subtitle">Pembuat permainan</string>
+    <string name="multiplayer_seat_still_playing">Masih di dalam permainan</string>
+    <string name="multiplayer_seat_empty">Menunggu pemain…</string>
+    <plurals name="multiplayer_seats_left">
+        <item quantity="one">%d kursi tersisa</item>
+        <item quantity="other">%d kursi tersisa</item>
+    </plurals>
+    <string name="multiplayer_seat_empty_duel">Bagikan kode ke satu teman</string>
+    <string name="multiplayer_joined_just_now">Bergabung baru saja</string>
+    <plurals name="multiplayer_joined_ago">
+        <item quantity="one">Bergabung %d menit lalu</item>
+        <item quantity="other">Bergabung %d menit lalu</item>
+    </plurals>
+    <string name="multiplayer_finished_just_now">Selesai baru saja</string>
+    <plurals name="multiplayer_finished_ago">
+        <item quantity="one">Selesai %d menit lalu</item>
+        <item quantity="other">Selesai %d menit lalu</item>
+    </plurals>
+
+    <!-- Accessibility (not shown in the design) -->
+    <string name="multiplayer_cd_game_code">Kode permainan %1$s</string>
+    <string name="multiplayer_cd_code_input">Kode permainan, 6 huruf atau angka</string>
+    <string name="multiplayer_cd_rank">Peringkat %1$d</string>
+    <string name="multiplayer_cd_question_navigator">Navigasi soal</string>
+    <string name="multiplayer_cd_exit_game">Selesai mengerjakan</string>
+    <string name="multiplayer_cd_time_left">Sisa waktu %1$s</string>
+
+    <!-- 02 Halaman Main Bareng -->
+    <string name="multiplayer_intro_title">Belajar bareng teman, lebih seru!</string>
+    <string name="multiplayer_intro_body">Semua pemain mendapat kumpulan soal yang sama dengan batas waktu yang sama. Urutan soal dan pilihan jawaban diacak untuk setiap pemain, lalu skor dan peringkat muncul bersamaan di akhir permainan.</string>
+    <string name="multiplayer_create_title">Buat Permainan</string>
+    <string name="multiplayer_create_body">Pilih duel atau room, subtes, jumlah soal, dan durasi. Lalu bagikan kodenya.</string>
+    <string name="multiplayer_join_title">Gabung dengan Kode</string>
+    <string name="multiplayer_join_body">Masukkan 6 huruf kode dari temanmu. Pemain gratis juga bisa ikut.</string>
+    <string name="multiplayer_join_action">Gabung</string>
+    <string name="multiplayer_rules_duel_heading">DUEL</string>
+    <string name="multiplayer_rules_duel_title">1 lawan 1</string>
+    <string name="multiplayer_rules_room_heading">ROOM</string>
+    <string name="multiplayer_rules_room_title">Grup sampai 10 orang</string>
+    <string name="multiplayer_rules_players">Pemain</string>
+    <string name="multiplayer_rules_start">Bisa mulai</string>
+    <string name="multiplayer_rules_winner">Pemenang</string>
+    <string name="multiplayer_rules_ranking">Peringkat</string>
+    <string name="multiplayer_rules_duel_players">Tepat 2 orang: pembuat dan satu lawan</string>
+    <string name="multiplayer_rules_duel_start">Begitu lawan sudah masuk ruang tunggu</string>
+    <string name="multiplayer_rules_duel_winner">Benar terbanyak; kalau sama, waktu total lebih cepat</string>
+    <string name="multiplayer_rules_room_players">2 sampai 10 orang, termasuk pembuat</string>
+    <string name="multiplayer_rules_room_start">Kapan saja oleh pembuat, minimal 2 pemain</string>
+    <string name="multiplayer_rules_room_ranking">Urutan semua pemain dengan aturan yang sama dengan duel</string>
+    <string name="multiplayer_history_title">Riwayat Main Bareng</string>
+    <string name="multiplayer_history_body">Hasil main bareng tidak masuk riwayat atau peringkat Latihan dan Simulasi.</string>
+    <string name="multiplayer_history_see_all">Lihat Semua</string>
+    <string name="multiplayer_history_empty">Belum ada permainan. Buat permainan atau gabung dengan kode dari temanmu.</string>
+    <string name="multiplayer_history_see_result">Lihat Hasil</string>
+    <string name="multiplayer_history_detail">Detail</string>
+    <string name="multiplayer_outcome_won">Menang</string>
+    <string name="multiplayer_outcome_lost">Kalah</string>
+    <string name="multiplayer_outcome_draw">Seri</string>
+    <string name="multiplayer_outcome_ranked">Peringkat %1$d dari %2$d</string>
+    <string name="multiplayer_outcome_cancelled">Batal</string>
+
+    <!-- 03c / 03d dialogs -->
+    <string name="multiplayer_premium_dialog_title">Buat permainan khusus Premium</string>
+    <string name="multiplayer_premium_dialog_message">Akun gratis tetap bisa ikut main bareng lewat kode dari temanmu. Tingkatkan akun untuk membuat permainan sendiri.</string>
+    <string name="multiplayer_premium_dialog_upgrade">Tingkatkan Akun</string>
+    <string name="multiplayer_in_game_title">Kamu sedang ikut permainan lain</string>
+    <string name="multiplayer_in_game_create_message">Selesaikan atau keluar dari %1$s (kode %2$s) sebelum membuat permainan baru.</string>
+    <string name="multiplayer_in_game_join_message">Selesaikan atau keluar dari %1$s (%2$s) dulu sebelum bergabung.</string>
+
+    <!-- 05 Gabung dengan kode -->
+    <string name="multiplayer_join_sheet_title">Gabung dengan kode</string>
+    <string name="multiplayer_join_sheet_body">Masukkan 6 huruf kode dari temanmu, atau buka tautan yang dibagikan untuk mengisinya otomatis.</string>
+    <string name="multiplayer_join_sheet_note">Pemain gratis maupun Premium boleh bergabung. Belum masuk akun? Kamu akan diarahkan ke Masuk, lalu kembali ke sini.</string>
+    <string name="multiplayer_join_search">Cari Permainan</string>
+    <string name="multiplayer_created_by">Dibuat oleh %1$s</string>
+    <string name="multiplayer_join_not_found_title">Kode tidak ditemukan</string>
+    <string name="multiplayer_join_not_found_message">Periksa lagi 6 huruf kodenya, atau minta tautan baru dari pembuat permainan.</string>
+    <string name="multiplayer_join_started_title">Permainan sudah dimulai</string>
+    <string name="multiplayer_join_started_message">Kamu tidak bisa bergabung karena soal sudah mulai dikerjakan. Tunggu permainan berikutnya.</string>
+    <string name="multiplayer_join_full_title">Permainan penuh</string>
+    <string name="multiplayer_join_full_message">Room ini sudah berisi 10 pemain (atau duel sudah ada 2 pemain).</string>
+    <string name="multiplayer_join_inactive_title">Permainan sudah tidak aktif</string>
+    <string name="multiplayer_join_inactive_message">Permainan ini sudah dibatalkan atau selesai. Minta kode baru dari temanmu.</string>
+    <!-- 03 Buat permainan -->
+    <string name="multiplayer_create_screen_title">Buat permainan</string>
+    <string name="multiplayer_create_intro">Atur permainan lalu bagikan kodenya ke teman. Kamu bisa membuat satu permainan dalam satu waktu.</string>
+    <string name="multiplayer_create_type">Jenis permainan</string>
+    <string name="multiplayer_create_duel_subtitle">1 lawan 1 • tepat 2 pemain</string>
+    <string name="multiplayer_create_room_subtitle">Grup • 2 sampai 10 pemain</string>
+    <string name="multiplayer_create_category">Kategori</string>
+    <string name="multiplayer_create_subtest">Subtes (wajib)</string>
+    <string name="multiplayer_create_topic">Topik</string>
+    <string name="multiplayer_create_topic_hint">opsional, boleh lebih dari satu</string>
+    <string name="multiplayer_create_add_topic">+ Tambah topik</string>
+    <string name="multiplayer_create_topic_helper">Kosongkan untuk memakai semua topik di subtes.</string>
+    <string name="multiplayer_create_stock">Tersedia %1$d soal • maksimal %2$d</string>
+    <string name="multiplayer_create_duration_helper">%1$s dinonaktifkan: kurang dari %2$d detik per soal. Saran: %3$s atau lebih.</string>
+    <string name="multiplayer_create_stock_title">Stok soal tidak cukup</string>
+    <string name="multiplayer_create_stock_message">Pilihan ini hanya punya %1$d soal. Kurangi jumlah soal menjadi %1$d atau tambah topik lain.</string>
+    <string name="multiplayer_create_summary">Ringkasan</string>
+    <string name="multiplayer_create_submit">Buat permainan</string>
+    <string name="multiplayer_create_failed">Permainan belum bisa dibuat. Selesaikan atau keluar dari permainanmu yang lain dulu.</string>
+    <string name="multiplayer_cd_remove_topic">Hapus topik %1$s</string>
+    <string name="multiplayer_cd_fewer_questions">Kurangi jumlah soal</string>
+    <string name="multiplayer_cd_more_questions">Tambah jumlah soal</string>
+
+    <!-- 04 Ruang tunggu -->
+    <string name="multiplayer_waiting_room_title">Ruang tunggu</string>
+    <string name="multiplayer_waiting_subtitle">Ruang tunggu • daftar pemain diperbarui otomatis</string>
+    <string name="multiplayer_waiting_code_label">Kode permainan</string>
+    <string name="multiplayer_link_display" translatable="false">gotest.id/main/%1$s</string>
+    <string name="multiplayer_link_url" translatable="false">https://gotest.id/main/%1$s</string>
+    <string name="multiplayer_copy_code">Salin kode</string>
+    <string name="multiplayer_copy_link">Salin tautan</string>
+    <string name="multiplayer_share_whatsapp">WhatsApp</string>
+    <string name="multiplayer_share_text">Ayo main bareng di GoTest! Masukkan kode %1$s atau buka %2$s untuk bergabung.</string>
+    <string name="multiplayer_code_copied">Kode permainan disalin.</string>
+    <string name="multiplayer_link_copied">Tautan permainan disalin.</string>
+    <string name="multiplayer_auto_cancel_in">Batal otomatis dalam</string>
+    <string name="multiplayer_cd_auto_cancel">Batal otomatis dalam %1$s</string>
+    <string name="multiplayer_waiting_for_host_title">Menunggu pembuat menekan Mulai</string>
+    <string name="multiplayer_waiting_for_host_message">Permainan dimulai bersamaan untuk semua pemain. Tetap di halaman ini ya.</string>
+    <string name="multiplayer_waiting_start">Mulai Permainan</string>
+    <string name="multiplayer_waiting_cancel_game">Batalkan Permainan</string>
+    <string name="multiplayer_waiting_leave">Keluar dari Ruang Tunggu</string>
+    <string name="multiplayer_waiting_start_hint_room">Mulai aktif bila ada minimal 2 pemain.</string>
+    <string name="multiplayer_waiting_start_hint_duel">Mulai aktif begitu lawan masuk ruang tunggu.</string>
+    <string name="multiplayer_cancelled_by_host_title">Permainan dibatalkan pembuat</string>
+    <string name="multiplayer_cancelled_by_host_message">%1$s membatalkan permainan ini. Kamu bisa gabung ke permainan lain dengan kode baru.</string>
+    <string name="multiplayer_auto_cancel_title">Permainan batal otomatis</string>
+    <string name="multiplayer_auto_cancel_message">Permainan tidak dimulai dalam 5 menit, jadi dibatalkan untuk semua pemain. Kamu bisa membuat ulang dengan pengaturan yang sama.</string>
+    <string name="multiplayer_recreate">Buat Ulang</string>
+    <string name="multiplayer_action_failed">Belum berhasil. Coba lagi sebentar lagi.</string>
+    <!-- 06 Mengerjakan soal -->
+    <string name="multiplayer_play_title">Main Bareng • %1$s</string>
+    <string name="multiplayer_play_progress_versus">Soal %1$d dari %2$d • vs %3$s</string>
+    <string name="multiplayer_play_progress_room">Soal %1$d dari %2$d • %3$s</string>
+    <string name="multiplayer_play_question">Soal %1$d</string>
+    <string name="multiplayer_play_previous">Sebelumnya</string>
+    <string name="multiplayer_play_next">Selanjutnya</string>
+    <string name="multiplayer_play_finish">Selesai</string>
+    <string name="multiplayer_play_offline_title">Koneksi terputus</string>
+    <string name="multiplayer_play_offline_one">Jawaban soal %1$d belum tersimpan dan ditandai. Kami akan menyimpannya otomatis saat koneksi kembali.</string>
+    <string name="multiplayer_play_offline_two">Jawaban soal %1$d dan %2$d belum tersimpan dan ditandai. Kami akan menyimpannya otomatis saat koneksi kembali.</string>
+    <plurals name="multiplayer_play_offline_many">
+        <item quantity="one">Jawaban %d soal belum tersimpan dan ditandai. Kami akan menyimpannya otomatis saat koneksi kembali.</item>
+        <item quantity="other">Jawaban %d soal belum tersimpan dan ditandai. Kami akan menyimpannya otomatis saat koneksi kembali.</item>
+    </plurals>
+    <string name="multiplayer_play_offline_none">Jawaban berikutnya akan disimpan otomatis saat koneksi kembali.</string>
+    <string name="multiplayer_finish_title">Selesai sekarang?</string>
+    <plurals name="multiplayer_finish_message">
+        <item quantity="one">Masih ada %d soal yang belum dijawab. Soal kosong dihitung tidak benar dan jawaban tidak bisa diubah lagi.</item>
+        <item quantity="other">Masih ada %d soal yang belum dijawab. Soal kosong dihitung tidak benar dan jawaban tidak bisa diubah lagi.</item>
+    </plurals>
+    <string name="multiplayer_finish_message_all_answered">Semua soal sudah dijawab. Jawaban tidak bisa diubah lagi setelah selesai.</string>
+    <string name="multiplayer_finish_answered">Dijawab</string>
+    <string name="multiplayer_finish_empty">Kosong</string>
+    <string name="multiplayer_finish_confirm">Ya, Selesai</string>
+    <string name="multiplayer_navigator_title">Navigasi Soal</string>
+    <string name="multiplayer_navigator_filled">%1$d/%2$d terisi</string>
+    <string name="multiplayer_navigator_answered">Dijawab</string>
+    <string name="multiplayer_navigator_current">Saat ini</string>
+    <string name="multiplayer_navigator_empty">Belum</string>
+
+    <!-- 07 Menunggu pemain lain -->
+    <string name="multiplayer_sent_title">Jawabanmu sudah terkirim</string>
+    <string name="multiplayer_sent_message">Hasil dan peringkat muncul bersamaan saat semua pemain selesai atau waktu habis, mana yang lebih dulu.</string>
+    <string name="multiplayer_sent_time_left">Sisa waktu permainan</string>
+    <string name="multiplayer_sent_players">Status pemain</string>
+    <string name="multiplayer_sent_finished_count">%1$d dari %2$d selesai</string>
+    <string name="multiplayer_sent_note">Skor siapa pun tidak ditampilkan sampai permainan selesai • diperbarui otomatis</string>
+
+    <!-- 08 Hasil -->
+    <string name="multiplayer_result_title_room">Hasil Room</string>
+    <string name="multiplayer_result_title_duel">Hasil Duel</string>
+    <string name="multiplayer_result_heading">Hasil %1$s • %2$s</string>
+    <string name="multiplayer_result_champion">Juara 1</string>
+    <string name="multiplayer_result_winner">Pemenang</string>
+    <string name="multiplayer_result_champion_meta">%1$d benar • waktu total %2$s</string>
+    <string name="multiplayer_result_ranking">Peringkat</string>
+    <string name="multiplayer_rank_column_position">#</string>
+    <string name="multiplayer_rank_column_name">Nama</string>
+    <string name="multiplayer_rank_column_correct">Benar</string>
+    <string name="multiplayer_rank_column_time">Waktu</string>
+    <string name="multiplayer_result_correct_count">%1$d benar</string>
+    <string name="multiplayer_result_ranking_note">Urutan: benar terbanyak; kalau sama, waktu total lebih cepat. Peringkat ini hanya untuk permainan ini.</string>
+    <string name="multiplayer_result_versus">VS</string>
+    <string name="multiplayer_result_correct">Benar</string>
+    <string name="multiplayer_result_wrong">Salah</string>
+    <string name="multiplayer_result_empty">Kosong</string>
+    <string name="multiplayer_result_total_time">Waktu total</string>
+    <string name="multiplayer_result_duel_note">Pemenang ditentukan dari benar terbanyak; kalau sama, waktu total lebih cepat.</string>
+    <string name="multiplayer_result_summary">Ringkasan kamu</string>
+    <string name="multiplayer_result_per_question">Benar atau salah per soal</string>
+    <string name="multiplayer_result_no_review">Kunci jawaban dan pembahasan tidak ditampilkan di main bareng.</string>
+    <string name="multiplayer_result_footer">Main Lagi memakai pengaturan yang sama (khusus pembuat Premium). Hasil tersimpan di riwayat main bareng dan tidak masuk riwayat atau peringkat Latihan dan Simulasi.</string>
+    <string name="multiplayer_result_play_again">Main Lagi</string>
+    <string name="multiplayer_cd_question_outcome">Soal %1$d: %2$s</string>
+
+    <!-- MB/Duel Result Banner -->
+    <string name="multiplayer_duel_win_title">Kamu menang!</string>
+    <string name="multiplayer_duel_win_message">Selamat, kamu menjawab benar lebih banyak dari lawanmu.</string>
+    <string name="multiplayer_duel_lose_title">Kamu kalah tipis</string>
+    <string name="multiplayer_duel_lose_message">Lawanmu menjawab benar lebih banyak. Coba lagi dengan subtes yang sama?</string>
+    <string name="multiplayer_duel_draw_title">Hasilnya seri!</string>
+    <string name="multiplayer_duel_draw_message">Jumlah benar dan waktu total kalian sama persis.</string>
+</resources>

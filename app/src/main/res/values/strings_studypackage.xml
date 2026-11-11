@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paket (tab root): Kategori Latihan / Tryout -->
+    <string name="studypackage_practice_title">Paket Latihan</string>
+    <string name="studypackage_practice_subtitle">Latihan soal untuk mengasah pemahaman dan akurasi.</string>
+    <string name="studypackage_tryout_title">Paket Tryout</string>
+    <string name="studypackage_tryout_subtitle">Ikuti simulasi ujian dan ukur kemampuanmu.</string>
+    <string name="studypackage_tab_practice">Paket Latihan</string>
+    <string name="studypackage_tab_tryout">Paket Tryout</string>
+    <string name="studypackage_all_levels">Semua Jenjang</string>
+    <string name="studypackage_cd_search">Cari paket</string>
+    <string name="studypackage_category_sub_count">%1$d Sub Kategori</string>
+    <string name="studypackage_category_practice_count">%1$d Paket latihan</string>
+    <string name="studypackage_category_tryout_count">%1$d Paket tryout</string>
+    <string name="studypackage_categories_empty_title">Belum ada kategori</string>
+    <string name="studypackage_categories_empty_message">Kategori paket akan muncul di sini setelah tersedia.</string>
+
+    <!-- Paket / Aktivitas Terkini -->
+    <string name="studypackage_activity_title">Aktivitas Terkini</string>
+    <string name="studypackage_activity_subtitle">Monitoring update data sistem secara realtime.</string>
+    <string name="studypackage_activity_completed">Diselesaikan %1$s</string>
+    <string name="studypackage_activity_action">Lihat Hasil</string>
+    <string name="studypackage_activity_empty">Belum ada aktivitas. Selesaikan latihan pertamamu untuk melihatnya di sini.</string>
+
+    <!-- Paket / Seasonal Tryout -->
+    <string name="studypackage_seasonal_ends_in">Berakhir dalam</string>
+    <string name="studypackage_countdown">%1$dH : %2$02dM : %3$02dS</string>
+    <string name="studypackage_seasonal_start">Mulai Tryout</string>
+    <string name="studypackage_seasonal_again">Kerjakan Lagi</string>
+    <string name="studypackage_ranking">Ranking</string>
+    <string name="studypackage_ranking_value">#%1$d dari %2$s</string>
+
+    <!-- Shared card stats -->
+    <string name="studypackage_score">Skor : %1$d</string>
+    <string name="studypackage_done">Dikerjakan</string>
+    <string name="studypackage_done_on">Dikerjakan Pada</string>
+    <string name="studypackage_value_empty">-</string>
+    <string name="studypackage_question_count">%1$d soal</string>
+
+    <!-- Paket Belajar (flat list) -->
+    <string name="studypackage_list_title">Paket Belajar</string>
+    <string name="studypackage_list_subtitle">Pilih latihan atau tryout sesuai jenjangmu.</string>
+    <string name="studypackage_type_practice">Latihan</string>
+    <string name="studypackage_type_tryout">Tryout</string>
+    <string name="studypackage_filter_all">Semua</string>
+    <string name="studypackage_action_start_practice">Mulai Latihan</string>
+    <string name="studypackage_action_continue">Lanjutkan</string>
+    <string name="studypackage_action_repeat">Ulangi Latihan</string>
+    <string name="studypackage_action_start_tryout">Mulai Tryout</string>
+    <string name="studypackage_packages_empty_title">Paket belum tersedia</string>
+    <string name="studypackage_packages_empty_message">Belum ada paket untuk jenjang ini. Coba pilih jenjang lain.</string>
+
+    <!-- Detail Latihan (bottom sheet) -->
+    <string name="studypackage_sheet_composition">Komposisi Soal</string>
+    <string name="studypackage_sheet_question_count">%1$d Soal</string>
+    <string name="studypackage_difficulty_easy">Mudah</string>
+    <string name="studypackage_difficulty_medium">Medium</string>
+    <string name="studypackage_difficulty_hard">Sulit</string>
+    <string name="studypackage_sheet_timer_title">Pengaturan Waktu</string>
+    <string name="studypackage_sheet_timer_untimed">Paket ini dapat dikerjakan tanpa timer.</string>
+    <string name="studypackage_sheet_close">Tutup</string>
+    <string name="studypackage_sheet_start">Mulai Latihan</string>
+    <string name="studypackage_sheet_repeat">Ulangi Latihan</string>
+    <string name="studypackage_sheet_continue">Lanjutkan</string>
+
+    <!-- Subjek -->
+    <string name="studypackage_subjects_subtitle">Paket Latihan</string>
+    <string name="studypackage_subject_progress">%1$d dari %2$d</string>
+    <string name="studypackage_subject_count">%1$d Subjek</string>
+    <string name="studypackage_subjects_empty_title">Belum ada subjek</string>
+    <string name="studypackage_subjects_empty_message">Subjek untuk jenjang ini sedang disiapkan.</string>
+
+    <!-- Topik -->
+    <string name="studypackage_topics_title_fallback">Topik</string>
+    <string name="studypackage_topics_subtitle">%1$s • %2$d Topik</string>
+    <string name="studypackage_topic_count">%1$d Topik</string>
+    <string name="studypackage_topic_again">Latihan Lagi</string>
+    <string name="studypackage_topics_empty_title">Belum ada topik</string>
+    <string name="studypackage_topics_empty_message">Topik untuk subjek ini sedang disiapkan.</string>
+
+    <!-- Detail Paket -->
+    <string name="studypackage_detail_title">Detail Paket</string>
+    <string name="studypackage_cd_bookmark">Simpan paket</string>
+    <string name="studypackage_chip_practice">Latihan</string>
+    <string name="studypackage_chip_tryout">Tryout</string>
+    <string name="studypackage_tile_questions">Soal</string>
+    <string name="studypackage_tile_duration">Durasi</string>
+    <string name="studypackage_tile_scoring">Penilaian</string>
+    <string name="studypackage_duration_minutes">%1$d mnt</string>
+    <string name="studypackage_duration_untimed">Tanpa timer</string>
+    <string name="studypackage_materials_title">Materi yang diujikan</string>
+    <string name="studypackage_rules_before_start">Sebelum mulai</string>
+    <string name="studypackage_rule_bullet">• %1$s</string>
+    <string name="studypackage_last_progress">Progres terakhir</string>
+    <string name="studypackage_last_progress_value">%1$d / %2$d soal</string>
+    <string name="studypackage_detail_continue">Lanjutkan Latihan</string>
+    <string name="studypackage_detail_start">Mulai Latihan</string>
+
+    <!-- Detail Tryout -->
+    <string name="studypackage_tryout_detail_title">Detail Tryout</string>
+    <string name="studypackage_tile_sections">Section</string>
+    <string name="studypackage_sections_title">Urutan Section</string>
+    <string name="studypackage_sections_server_time">Waktu dikelola server</string>
+    <string name="studypackage_section_meta">%1$d soal • %2$d mnt</string>
+    <string name="studypackage_tryout_rules_title">Ketentuan Pengerjaan</string>
+    <string name="studypackage_tryout_start">Mulai Tryout</string>
+</resources>

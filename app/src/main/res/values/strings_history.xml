@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Riwayat -->
+    <string name="history_title">Riwayat &amp; Hasil</string>
+    <string name="history_subtitle">Semua latihan &amp; tryout yang sudah kamu kerjakan.</string>
+    <string name="history_cd_sort">Urutkan riwayat</string>
+    <string name="history_cd_export">Ekspor riwayat</string>
+    <string name="history_search_hint">Cari paket…</string>
+    <string name="history_filter_all">Semua</string>
+    <string name="history_filter_practice">Latihan</string>
+    <string name="history_filter_tryout">Tryout</string>
+    <string name="history_filter_utbk">UTBK-SNBT</string>
+    <string name="history_filter_cpns">CPNS</string>
+    <string name="history_stat_attempts">Total attempt</string>
+    <string name="history_stat_accuracy">Rata-rata akurasi</string>
+    <string name="history_type_practice">Latihan</string>
+    <string name="history_type_tryout">Tryout</string>
+    <!-- "Tryout • 21 Okt • 20 mnt 32 dtk" -->
+    <string name="history_row_subtitle">%1$s • %2$s • %3$s</string>
+    <string name="history_duration_hours_minutes">%1$d jam %2$d mnt</string>
+    <string name="history_duration_minutes_seconds">%1$d mnt %2$d dtk</string>
+    <string name="history_duration_minutes">%1$d mnt</string>
+    <string name="history_duration_seconds">%1$d dtk</string>
+    <string name="history_view_result">Lihat Hasil</string>
+    <string name="history_empty_title">Belum ada riwayat</string>
+    <string name="history_empty_message">Kerjakan latihan atau tryout untuk melihat hasilnya di sini.</string>
+    <string name="history_no_results_title">Paket tidak ditemukan</string>
+    <string name="history_no_results_message">Coba kata kunci lain atau ganti filter riwayatmu.</string>
+
+    <!-- Riwayat / Detail Hasil -->
+    <string name="history_detail_title">Detail Hasil</string>
+    <string name="history_detail_subtitle_tryout">Simulasi %1$s</string>
+    <string name="history_detail_subtitle_practice">Latihan %1$s</string>
+    <string name="history_detail_cd_share">Bagikan hasil</string>
+    <string name="history_detail_sections_title">Hasil per section</string>
+    <string name="history_detail_correct">Benar</string>
+    <string name="history_detail_wrong">Salah</string>
+    <string name="history_detail_empty">Kosong</string>
+    <string name="history_detail_final_score">Skor Akhir</string>
+    <string name="history_detail_score">Skor</string>
+    <string name="history_detail_ranking_title">Peringkat</string>
+    <string name="history_detail_ranking_note">Hasil latihan internal terbaik setiap peserta pada paket ini. Angka ini bukan skor resmi UTBK-SNBT atau prediksi kelulusan.</string>
+    <string name="history_detail_ranking_empty">Belum ada peserta lain di paket ini.</string>
+    <string name="history_detail_see_more">Lihat Selengkapnya</string>
+    <string name="history_detail_close">Tutup</string>
+    <string name="history_detail_open_discussion">Buka Pembahasan</string>
+    <string name="history_detail_you">%1$s (Kamu)</string>
+    <string name="history_detail_cd_rank">Peringkat %1$d</string>
+    <string name="history_detail_duration_hours_minutes">%1$d Jam %2$d Menit</string>
+    <string name="history_detail_duration_minutes_seconds">%1$d Menit %2$d Detik</string>
+    <string name="history_detail_duration_minutes">%1$d Menit</string>
+    <string name="history_detail_duration_seconds">%1$d Detik</string>
+    <string name="history_detail_not_found_title">Hasil tidak ditemukan</string>
+    <string name="history_detail_not_found_message">Riwayat pengerjaan ini sudah tidak tersedia.</string>
+    <string name="history_detail_share_chooser">Bagikan hasil</string>
+    <string name="history_detail_share_text">Aku meraih skor %1$s di %2$s lewat Gotest!</string>
+    <string name="history_detail_share_text_ranked">Aku meraih skor %1$s di %2$s dan berada di peringkat #%3$s dari %4$s peserta lewat Gotest!</string>
+</resources>

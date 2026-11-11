@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dummy data loads these by name (drawableUri), which resource shrinking and lint cannot see. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/avatar_*,@drawable/question_water_tank" />

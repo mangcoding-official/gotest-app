@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AI Chat / header (frames 11855, 11990, 12266) -->
+    <string name="assistant_title">Asisten Gotest</string>
+    <string name="assistant_status">Online • bantu cari latihan</string>
+    <string name="assistant_menu">Menu asisten</string>
+
+    <!-- AI Chat / Sambutan (frame 11855) -->
+    <string name="assistant_welcome_title">Hai %1$s, mau latihan apa hari ini?</string>
+    <string name="assistant_welcome_body">Aku bisa bantu cari latihan, tryout, atau topik yang perlu kamu perkuat. Ketik pertanyaanmu atau tekan mikrofon untuk bicara.</string>
+    <string name="assistant_suggestion_recommend">Rekomendasikan latihan untukku</string>
+    <string name="assistant_suggestion_tryout">Cari tryout UTBK-SNBT</string>
+    <string name="assistant_suggestion_continue">Lanjutkan latihan terakhir</string>
+    <string name="assistant_suggestion_topics">Topik yang perlu aku perbaiki</string>
+
+    <!-- AI Chat / Percakapan (frame 11990) -->
+    <string name="assistant_today">Hari ini</string>
+    <string name="assistant_yesterday">Kemarin</string>
+    <string name="assistant_voice_message">Pesan suara • %1$s</string>
+    <string name="assistant_voice_duration">%1$d:%2$02d</string>
+    <string name="assistant_start_practice">Mulai Latihan</string>
+    <string name="assistant_start_tryout">Mulai Tryout</string>
+    <string name="assistant_action_start_tryout">Mulai tryout</string>
+    <string name="assistant_action_browse_tryouts">Lihat semua tryout</string>
+    <string name="assistant_action_leaderboard">Lihat peringkat</string>
+    <string name="assistant_prompt_unfinished">Latihan yang belum selesai</string>
+    <string name="assistant_prompt_rank">Lihat peringkatku</string>
+    <string name="assistant_prompt_tryout">Tampilkan tryout</string>
+    <string name="assistant_typing">Asisten sedang mengetik</string>
+    <string name="assistant_send_error">Pesan belum terkirim. Coba lagi.</string>
+
+    <!-- Chat input ("Mobile/Chat Input") -->
+    <string name="assistant_input_hint">Tanya atau cari latihan…</string>
+    <string name="assistant_attach">Tambah lampiran</string>
+    <string name="assistant_voice_start">Bicara dengan mikrofon</string>
+    <string name="assistant_send">Kirim pesan</string>
+
+    <!-- AI Chat / Voice Mendengarkan (frame 12266) -->
+    <string name="assistant_voice_close">Tutup mode suara</string>
+    <string name="assistant_voice_listening">Mendengarkan…</string>
+    <string name="assistant_voice_transcript">“%1$s…”</string>
+    <string name="assistant_voice_waiting">Silakan mulai bicara…</string>
+    <string name="assistant_voice_hint">Coba katakan: “Cari latihan logaritma” atau “Lanjutkan latihan terakhir”</string>
+    <string name="assistant_voice_type">Ketik</string>
+    <string name="assistant_voice_done">Selesai</string>
+    <string name="assistant_voice_cancel">Batal</string>
+</resources>

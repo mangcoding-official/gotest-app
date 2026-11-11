@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ujian / Pengerjaan Soal (latihan and tryout) -->
+    <string name="exam_cd_close">Tutup</string>
+    <string name="exam_cd_navigator">Navigasi soal</string>
+    <string name="exam_cd_time_left">Sisa waktu %1$s</string>
+    <string name="exam_question_position">Soal %1$d dari %2$d</string>
+    <string name="exam_question_number">Soal %1$d</string>
+    <string name="exam_mark">Tandai</string>
+    <string name="exam_marked">Ditandai</string>
+    <string name="exam_previous">Sebelumnya</string>
+    <string name="exam_next">Selanjutnya</string>
+    <string name="exam_finish">Selesaikan</string>
+    <string name="exam_save_error">Jawaban belum tersimpan. Periksa koneksimu, lalu coba lagi.</string>
+    <string name="exam_submit_error">Jawaban belum bisa dikirim. Coba lagi sebentar lagi.</string>
+    <string name="exam_empty_title">Belum ada soal</string>
+    <string name="exam_empty_message">Paket ini belum memiliki soal. Coba paket lain dulu, ya.</string>
+
+    <!-- Ujian / Navigasi Soal (bottom sheet) -->
+    <string name="exam_navigator_title">Navigasi Soal</string>
+    <string name="exam_navigator_filled">%1$d/%2$d terisi</string>
+    <string name="exam_legend_answered">Dijawab</string>
+    <string name="exam_legend_current">Saat ini</string>
+    <string name="exam_legend_empty">Belum</string>
+    <string name="exam_legend_marked">Ditandai</string>
+    <string name="exam_finish_tryout_button">Selesaikan Tryout</string>
+    <string name="exam_finish_practice_button">Selesaikan Latihan</string>
+
+    <!-- Ujian / Konfirmasi selesai tryout (bottom sheet) -->
+    <string name="exam_finish_tryout_title">Selesaikan tryout sekarang?</string>
+    <plurals name="exam_finish_tryout_message">
+        <item quantity="one">Masih ada %1$d soal yang belum dijawab. Soal yang kosong akan dinilai 0 dan kamu tidak bisa mengubah jawaban lagi.</item>
+        <item quantity="other">Masih ada %1$d soal yang belum dijawab. Soal yang kosong akan dinilai 0 dan kamu tidak bisa mengubah jawaban lagi.</item>
+    </plurals>
+    <string name="exam_finish_tryout_message_complete">Semua soal sudah dijawab. Setelah tryout selesai, kamu tidak bisa mengubah jawaban lagi.</string>
+    <string name="exam_count_answered">Dijawab</string>
+    <string name="exam_count_marked">Ditandai</string>
+    <string name="exam_count_empty">Kosong</string>
+    <string name="exam_finish_confirm">Ya, Selesaikan</string>
+    <string name="exam_finish_keep_working">Kembali Mengerjakan</string>
+
+    <!-- Ujian / Konfirmasi selesai latihan (dialog) -->
+    <string name="exam_finish_practice_title">Selesaikan latihan?</string>
+    <string name="exam_finish_practice_message">Cek semua soal sebelum menyelesaikan latihan. Kamu sudah menjawab %1$d dari %2$d soal.</string>
+    <string name="exam_cancel">Batal</string>
+
+    <!-- Ujian / Hasil -->
+    <string name="exam_result_title_tryout">Hasil Tryout</string>
+    <string name="exam_result_title_practice">Hasil Latihan</string>
+    <string name="exam_result_cd_share">Bagikan hasil</string>
+    <string name="exam_result_total_score">Total Skor</string>
+    <string name="exam_result_rank">Peringkat %1$s dari %2$s peserta</string>
+    <string name="exam_result_correct">Benar</string>
+    <string name="exam_result_wrong">Salah</string>
+    <string name="exam_result_empty">Kosong</string>
+    <string name="exam_result_topic_title">Akurasi per Topik</string>
+    <string name="exam_result_average">Rata-rata %1$d%%</string>
+    <string name="exam_result_tip">Fokuskan latihan berikutnya di topik %1$s untuk menaikkan skormu.</string>
+    <string name="exam_result_view_discussion">Lihat Pembahasan</string>
+    <string name="exam_result_back_home">Kembali ke Beranda</string>
+    <string name="exam_result_share_text">Aku meraih skor %1$d di %2$s. Yuk, latihan bareng di Gotest!</string>
+    <string name="exam_result_share_text_ranked">Aku meraih skor %1$d di %2$s dan berada di peringkat %3$s dari %4$s peserta. Yuk, latihan bareng di Gotest!</string>
+
+    <!-- Ujian / Pembahasan -->
+    <string name="exam_discussion_title">Pembahasan</string>
+    <string name="exam_discussion_cd_summary">Ringkasan pembahasan</string>
+    <string name="exam_review_status_correct">Benar • %1$d/%2$d</string>
+    <string name="exam_review_status_wrong">Salah • %1$d/%2$d</string>
+    <string name="exam_review_status_empty">Kosong • %1$d/%2$d</string>
+    <string name="exam_discussion_legend_yours">Jawabanmu</string>
+    <string name="exam_discussion_legend_correct">Jawaban benar</string>
+    <string name="exam_discussion_explanation">Pembahasan</string>
+    <string name="exam_discussion_previous">Soal Sebelumnya</string>
+    <string name="exam_discussion_next">Soal Selanjutnya</string>
+    <string name="exam_discussion_empty_title">Belum ada pembahasan</string>
+    <string name="exam_discussion_empty_message">Pembahasan muncul setelah kamu menyelesaikan latihan atau tryout.</string>
+
+    <!-- Ujian / Pembahasan Ringkasan -->
+    <string name="exam_summary_correct">Benar</string>
+    <string name="exam_summary_wrong">Salah</string>
+    <string name="exam_summary_empty">Kosong</string>
+    <string name="exam_summary_total_score">Total Skor</string>
+    <string name="exam_summary_cd_detail">Pembahasan per soal</string>
+    <string name="exam_summary_all_topics">Semua Topik</string>
+    <string name="exam_summary_your_answer">Jawabanmu</string>
+    <string name="exam_summary_correct_answer">Jawaban benar</string>
+    <string name="exam_summary_explanation">Pembahasan: %1$s</string>
+
+    <!-- Answer formatting used by the review cards -->
+    <string name="exam_answer_option">%1$s. %2$s</string>
+    <string name="exam_answer_statement">%1$d. %2$s</string>
+    <string name="exam_answer_none">Tidak dijawab</string>
+    <string name="exam_answer_separator">", "</string>
+</resources>

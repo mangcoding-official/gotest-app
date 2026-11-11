@@ -1,0 +1,42 @@
+# Overrides on top of detekt's default config (buildUponDefaultConfig = true).
+# Compose rules (io.nlopez.compose.rules) ship their own defaults, all active.
+
+config:
+  # The compose-rules options are not part of detekt's schema.
+  excludes: 'Compose>.*'
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  # Compose files are named after their main composable, and the brief asks for Color.kt/Type.kt.
+  MatchingDeclarationName:
+    active: false
+
+style:
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated: ['Preview']
+    # Design tokens and dummy data are numbers by definition.
+    excludes: ['**/core/designsystem/theme/**', '**/core/data/fake/**', '**/test/**', '**/androidTest/**']
+  MaxLineLength:
+    maxLineLength: 120
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  LongMethod:
+    threshold: 80
+  TooManyFunctions:
+    thresholdInClasses: 15
+    thresholdInInterfaces: 15
+    ignoreAnnotatedFunctions: ['Preview']
+    ignorePrivate: true
+
+Compose:
+  CompositionLocalAllowlist:
+    allowedCompositionLocals: LocalGotestColors,LocalGotestTypography,LocalGotestShapes,LocalGotestSpacing,LocalGotestSizes

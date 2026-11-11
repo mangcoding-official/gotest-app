@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Logo and footer shared by the auth screens -->
+    <string name="auth_logo_text">Gotest.id</string>
+    <string name="auth_copyright">© 2024 BankSoal Indonesia. Seluruh hak cipta dilindungi.</string>
+
+    <!-- Auth / Onboarding -->
+    <string name="onboarding_headline">Persiapan belajar yang lebih terarah, mulai dari sini.</string>
+    <string name="onboarding_body">Akses berbagai paket latihan dan tryout untuk jenjang sekolah, masuk perguruan tinggi, hingga seleksi kerja.</string>
+    <string name="onboarding_sign_in">Masuk</string>
+    <string name="onboarding_register">Daftar Akun Baru</string>
+
+    <!-- Auth / Masuk -->
+    <string name="login_title">Masuk dan lanjutkan progresmu</string>
+    <string name="login_subtitle">Latihan terarah dan simulasi try out dalam satu tempat.</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_email_hint">nama@email.com</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_forgot_password">Lupa Password ?</string>
+    <string name="login_submit">Masuk</string>
+    <string name="login_google">Masuk dengan Google</string>
+    <string name="login_no_account">Belum punya akun?</string>
+    <string name="login_register_link">Daftar</string>
+
+    <!-- Auth / Daftar -->
+    <string name="register_title">Mulai Belajar dengan Akunmu</string>
+    <string name="register_subtitle">Satu akun untuk semua latihan dan try out publik</string>
+    <string name="register_name_label">Nama Lengkap</string>
+    <string name="register_name_hint">Nama pelajar</string>
+    <string name="register_email_label">Alamat Email</string>
+    <string name="register_email_hint">nama@email.com</string>
+    <string name="register_password_label">Kata Sandi</string>
+    <string name="register_password_hint">Minimal 8 karakter</string>
+    <string name="register_confirm_label">Konfirmasi Kata Sandi</string>
+    <string name="register_confirm_hint">Ulangi kata sandi</string>
+    <string name="register_submit">Daftar</string>
+    <string name="register_google">Daftar dengan Google</string>
+    <string name="register_has_account">Sudah punya akun?</string>
+    <string name="register_login_link">Masuk</string>
+    <string name="register_terms_prefix">Dengan mendaftar, kamu menyetujui</string>
+    <string name="register_terms_link">ketentuan penggunaan</string>
+    <string name="register_terms_and">dan</string>
+    <string name="register_privacy_link">kebijakan privasi</string>
+
+    <!-- Auth / Lupa Password -->
+    <string name="forgot_title">Lupa Password ?</string>
+    <string name="forgot_subtitle">Masukkan email untuk mereset password</string>
+    <string name="forgot_email_label">Alamat Email</string>
+    <string name="forgot_email_hint">nama@email.com</string>
+    <string name="forgot_submit">Kirim Email</string>
+    <string name="forgot_back_to_login">Kembali ke halaman login</string>
+
+    <!-- Validation and results (not in the design; see README.md, TODO) -->
+    <string name="auth_error_required">Wajib diisi</string>
+    <string name="auth_error_email">Format email belum benar</string>
+    <string name="auth_error_password_length">Minimal 8 karakter</string>
+    <string name="auth_error_password_mismatch">Kata sandi belum sama</string>
+    <string name="auth_error_sign_in">Email atau password salah</string>
+    <string name="forgot_sent">Link reset password sudah dikirim ke %1$s</string>
+</resources>

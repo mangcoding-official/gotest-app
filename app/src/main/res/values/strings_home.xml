@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Beranda / header -->
+    <string name="home_greeting">Halo, %1$s</string>
+    <string name="home_greeting_subtitle">Yuk lanjutkan belajarmu hari ini!</string>
+    <string name="home_cd_search">Cari</string>
+    <string name="home_cd_notifications">Notifikasi</string>
+    <string name="home_cd_notifications_unread">Notifikasi, ada yang belum dibaca</string>
+    <string name="home_cd_promo">Promo Semangat Merdeka, raih masa depanmu. Lihat promo</string>
+
+    <!-- Beranda / stats -->
+    <string name="home_stat_questions">Soal Dikerjakan</string>
+    <string name="home_stat_accuracy">Akurasi Jawaban</string>
+    <string name="home_stat_packages">Paket Selesai</string>
+    <string name="home_stat_empty">-</string>
+    <string name="home_cd_trend_up">Naik %1$d%% dari minggu lalu</string>
+    <string name="home_cd_trend_down">Turun %1$d%% dari minggu lalu</string>
+
+    <!-- Beranda / Main Bareng -->
+    <string name="home_multiplayer_title">Main Bareng</string>
+    <string name="home_multiplayer_badge">Baru</string>
+    <string name="home_multiplayer_body">Tantang temanmu duel 1 lawan 1 atau buat room sampai 10 orang. Soal sama, urutan diacak, hasil keluar bersamaan.</string>
+    <string name="home_multiplayer_join">Gabung dengan Kode</string>
+    <string name="home_multiplayer_create">Buat Permainan</string>
+
+    <!-- Beranda / Lanjutkan -->
+    <string name="home_continue_action">Lanjutkan</string>
+    <string name="home_package_question_count">%1$d Soal</string>
+    <string name="home_package_duration">%1$d Menit</string>
+    <string name="home_continue_progress">%1$d dari %2$d Soal benar</string>
+
+    <!-- Beranda / Empty State -->
+    <string name="home_first_practice_title">Mulai Latihan Pertamamu</string>
+    <string name="home_first_practice_body">Pilih paket latihan sesuai jenjang dan mulai kerjakan soal sekarang.</string>
+    <string name="home_first_practice_action">Lihat Paket</string>
+
+    <!-- Beranda / Paket Untukmu -->
+    <string name="home_recommended_title">Paket Untukmu</string>
+    <string name="home_recommended_subtitle">Kerjakan latihan atau tryout di sini.</string>
+    <string name="home_recommended_empty">Belum ada paket untuk kategori ini.</string>
+    <string name="home_see_all">Lihat Semua</string>
+    <string name="home_tab_practice">Paket Latihan</string>
+    <string name="home_tab_tryout">Paket Tryout</string>
+    <string name="home_package_start_practice">Mulai Latihan</string>
+    <string name="home_package_retry_practice">Latihan Lagi</string>
+    <string name="home_package_start_tryout">Mulai Tryout</string>
+    <string name="home_package_score">Skor: %1$s</string>
+    <string name="home_package_attempts_label">Dikerjakan</string>
+    <string name="home_package_attempts_value">%1$d Kali</string>
+    <string name="home_package_last_attempt_label">Dikerjakan Pada</string>
+    <string name="home_package_value_empty">-</string>
+
+    <!-- Beranda / Aktivitas Terkini -->
+    <string name="home_activity_title">Aktivitas Terkini</string>
+    <string name="home_activity_subtitle">Monitoring update data sistem secara realtime.</string>
+    <string name="home_activity_completed_on">Diselesaikan %1$s</string>
+    <string name="home_activity_view_result">Lihat Hasil</string>
+    <string name="home_activity_empty_title">Belum ada Aktivitas</string>
+    <string name="home_activity_empty_body">Kerjakan latihan atau tryout untuk melihat aktivitas di sini.</string>
+
+    <!-- Pencarian -->
+    <string name="home_search_placeholder">Cari paket, topik, atau artikel</string>
+    <string name="home_search_cd_clear">Hapus pencarian</string>
+    <string name="home_search_query_quoted">“%1$s”</string>
+    <string name="home_search_results_for">Hasil pencarian untuk %1$s</string>
+    <string name="home_search_filter_all">Semua</string>
+    <string name="home_search_filter_packages">Paket</string>
+    <string name="home_search_filter_topics">Topik</string>
+    <string name="home_search_filter_results">Hasil</string>
+    <string name="home_search_filter_articles">Artikel</string>
+    <string name="home_search_section_tryout">Paket Tryout</string>
+    <string name="home_search_section_practice">Paket Latihan</string>
+    <string name="home_search_section_topics">Topik</string>
+    <string name="home_search_section_results">Hasil Kamu</string>
+    <string name="home_search_section_articles">Artikel &amp; Bantuan</string>
+    <string name="home_search_package_count">%1$d paket</string>
+    <string name="home_search_topic_count">%1$d topik</string>
+    <string name="home_search_package_meta">%1$d Soal • %2$d Menit</string>
+    <string name="home_search_result_date">Dikerjakan %1$s</string>
+    <string name="home_search_result_rank">#%1$d</string>
+    <string name="home_search_article_meta">Pusat Bantuan • %1$d menit baca</string>
+    <string name="home_search_article_action">Lihat</string>
+    <string name="home_search_idle_title">Mau cari apa hari ini?</string>
+    <string name="home_search_idle_body">Ketik nama paket, topik, atau artikel yang ingin kamu temukan.</string>
+    <string name="home_search_empty_title">Tidak ada hasil</string>
+    <string name="home_search_empty_body">Coba kata kunci lain atau ganti filter pencarian.</string>
+
+    <!-- Notifikasi -->
+    <string name="home_notification_title">Notifikasi</string>
+    <string name="home_notification_mark_all_read">Tandai dibaca</string>
+    <string name="home_notification_filter_all">Semua</string>
+    <string name="home_notification_filter_unread">Belum dibaca</string>
+    <string name="home_notification_filter_unread_count">Belum dibaca (%1$d)</string>
+    <string name="home_notification_today">Hari ini</string>
+    <string name="home_notification_yesterday">Kemarin</string>
+    <string name="home_notification_just_now">Baru saja</string>
+    <string name="home_notification_minutes_ago">%1$d mnt</string>
+    <string name="home_notification_hours_ago">%1$d jam</string>
+    <string name="home_notification_days_ago">%1$d hari</string>
+    <string name="home_cd_notification_unread">Belum dibaca</string>
+    <string name="home_notification_empty_title">Belum ada notifikasi</string>
+    <string name="home_notification_empty_body">Semua notifikasi tentang latihan, tryout, dan peringkatmu akan muncul di sini.</string>
+    <string name="home_notification_unread_empty_title">Semua sudah dibaca</string>
+    <string name="home_notification_unread_empty_body">Tidak ada notifikasi yang belum kamu baca.</string>
+</resources>

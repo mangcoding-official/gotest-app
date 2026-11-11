@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug-only living style guide: adb shell am start -n com.gotest.app/.catalog.DesignSystemCatalogActivity -->
+        <activity
+            android:name=".catalog.DesignSystemCatalogActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Gotest" />
+    </application>
+
+</manifest>

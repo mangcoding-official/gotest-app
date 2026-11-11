@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Peringkat -->
+    <string name="leaderboard_title">Leaderboard</string>
+    <string name="leaderboard_subtitle">Bersaing dan jadi yang terbaik!</string>
+    <string name="leaderboard_cd_info">Tentang leaderboard</string>
+    <string name="leaderboard_tab_global">Global</string>
+    <string name="leaderboard_tab_package">Per Paket</string>
+
+    <!-- Peringkat / Global -->
+    <string name="leaderboard_my_rank_label">Peringkatmu saat ini</string>
+    <string name="leaderboard_rank_value">#%1$s</string>
+    <string name="leaderboard_total_users">dari %1$s pengguna</string>
+    <string name="leaderboard_points">%1$s pt</string>
+    <string name="leaderboard_points_time">%1$s pt • %2$s</string>
+    <string name="leaderboard_attempts">%1$sx attempt</string>
+    <string name="leaderboard_you">%1$s (Kamu)</string>
+    <string name="leaderboard_cd_change_up">Naik %1$d peringkat</string>
+    <string name="leaderboard_cd_change_down">Turun %1$d peringkat</string>
+    <string name="leaderboard_cd_change_none">Peringkat tetap</string>
+    <string name="leaderboard_cd_podium_rank">Peringkat %1$d</string>
+    <string name="leaderboard_global_empty_title">Leaderboard masih kosong</string>
+    <string name="leaderboard_global_empty_message">Kerjakan latihan atau tryout untuk mulai mengumpulkan poin.</string>
+
+    <!-- Peringkat / Per Paket -->
+    <string name="leaderboard_packages_title">Semua Paket Tryout</string>
+    <string name="leaderboard_packages_subtitle">Leaderboard dari paket yang sudah kamu selesaikan • Diperbarui %1$s</string>
+    <!-- "21 Okt 2026, 15:30" -->
+    <string name="leaderboard_updated_at">%1$s, %2$s</string>
+    <string name="leaderboard_package_meta">%1$d Soal • %2$d Menit</string>
+    <string name="leaderboard_package_participants">dari %1$s</string>
+    <string name="leaderboard_package_points">Poin</string>
+    <string name="leaderboard_package_accuracy">Akurasi</string>
+    <string name="leaderboard_movement_up">Naik %1$d posisi</string>
+    <string name="leaderboard_movement_down">Turun %1$d posisi</string>
+    <string name="leaderboard_movement_none">Posisi tetap</string>
+    <string name="leaderboard_view_leaderboard">Lihat Leaderboard</string>
+    <string name="leaderboard_packages_empty_title">Belum ada leaderboard paket</string>
+    <string name="leaderboard_packages_empty_message">Selesaikan tryout untuk melihat peringkatmu di setiap paket.</string>
+
+    <!-- Peringkat / Detail Paket -->
+    <string name="leaderboard_package_title">Leaderboard Paket</string>
+    <string name="leaderboard_cd_search">Cari peserta</string>
+    <string name="leaderboard_question_count">%1$d Soal</string>
+    <string name="leaderboard_duration_minutes">%1$d Menit</string>
+    <string name="leaderboard_table_rank">Peringkat</string>
+    <string name="leaderboard_table_time_points">Waktu • Poin</string>
+    <string name="leaderboard_finished_in">Selesai dalam %1$s</string>
+    <string name="leaderboard_package_empty_title">Belum ada peserta</string>
+    <string name="leaderboard_package_empty_message">Leaderboard paket ini muncul setelah ada peserta yang menyelesaikannya.</string>
+</resources>

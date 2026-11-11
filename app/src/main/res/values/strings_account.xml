@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared by the account screens -->
+    <string name="account_active_until">Aktif hingga %1$s</string>
+    <string name="account_chip_active">Aktif</string>
+    <string name="account_chip_expired">Berakhir</string>
+    <string name="account_cancel">Batal</string>
+    <string name="account_error_save">Perubahan belum tersimpan. Coba lagi.</string>
+    <string name="account_accordion_expand">Tampilkan jawaban</string>
+    <string name="account_accordion_collapse">Sembunyikan jawaban</string>
+
+    <!-- Profil (frame 4078) -->
+    <string name="account_profile_title">Profil</string>
+    <string name="account_profile_settings_cd">Pengaturan</string>
+    <string name="account_profile_avatar_cd">Ubah foto profil</string>
+    <string name="account_profile_plan_free">Free</string>
+    <string name="account_profile_plan_premium">Premium</string>
+    <string name="account_profile_stat_questions">Soal</string>
+    <string name="account_profile_stat_accuracy">Akurasi</string>
+    <string name="account_profile_stat_packages">Paket</string>
+    <plurals name="account_profile_trial_remaining">
+        <item quantity="one">%1$d hari tersisa • s/d %2$s</item>
+        <item quantity="other">%1$d hari tersisa • s/d %2$s</item>
+    </plurals>
+    <string name="account_profile_trial_ended">Masa trial berakhir %1$s</string>
+    <string name="account_profile_upgrade">Upgrade</string>
+    <string name="account_profile_section_account">Akun</string>
+    <string name="account_profile_section_other">Lainnya</string>
+    <string name="account_profile_edit">Edit Informasi Akun</string>
+    <string name="account_profile_change_password">Ganti Password</string>
+    <string name="account_profile_notifications">Notifikasi</string>
+    <string name="account_profile_help">Bantuan &amp; Support</string>
+    <string name="account_profile_settings">Pengaturan</string>
+    <string name="account_profile_sign_out">Keluar</string>
+    <string name="account_profile_delete">Hapus Akun</string>
+
+    <!-- Profil / Keluar (not in the design) -->
+    <string name="account_sign_out_title">Keluar dari akun?</string>
+    <string name="account_sign_out_message">Kamu perlu masuk lagi untuk melanjutkan latihan dan tryout.</string>
+    <string name="account_sign_out_confirm">Keluar</string>
+
+    <!-- Results shown on Profil after a sub-screen closes (not in the design) -->
+    <string name="account_notice_profile_saved">Informasi akun berhasil disimpan</string>
+    <string name="account_notice_password_changed">Password berhasil diperbarui</string>
+    <string name="account_notice_photo_saved">Foto profil berhasil diperbarui</string>
+
+    <!-- Akun / Foto Profil (Sheet) (frame 10299) -->
+    <string name="account_photo_title">Foto Profil</string>
+    <string name="account_photo_subtitle">Upload foto baru atau pilih yang sudah ada.</string>
+    <string name="account_photo_take">Ambil Foto</string>
+    <string name="account_photo_gallery">Pilih dari Galeri</string>
+    <string name="account_photo_hint">JPG, JPEG, atau PNG • 500 × 500 px • Maks. 5 MB</string>
+    <string name="account_photo_close">Tutup</string>
+    <string name="account_photo_save">Simpan</string>
+    <string name="account_photo_preview_cd">Pratinjau foto profil</string>
+
+    <!-- Akun / Edit Informasi (frame 9994) -->
+    <string name="account_edit_title">Edit Informasi Akun</string>
+    <string name="account_edit_change_photo">Ubah Foto</string>
+    <string name="account_edit_hint">Perbarui nama tampilan dan email akunmu.</string>
+    <string name="account_edit_name_label">Display Name</string>
+    <string name="account_edit_name_hint">Nama tampilan</string>
+    <string name="account_edit_email_label">Email</string>
+    <string name="account_edit_email_hint">nama@email.com</string>
+    <string name="account_edit_info">Jika email diubah, kami akan mengirim link verifikasi ke email baru.</string>
+    <string name="account_edit_submit">Simpan Informasi Akun</string>
+    <string name="account_error_name_required">Display name wajib diisi</string>
+    <string name="account_error_email_required">Email wajib diisi</string>
+    <string name="account_error_email_invalid">Format email belum benar</string>
+
+    <!-- Akun / Ganti Password (frame 10122) -->
+    <string name="account_password_title">Ganti Password</string>
+    <string name="account_password_description">Pastikan akunmu menggunakan password acak agar tetap aman.</string>
+    <string name="account_password_current_label">Password sebelumnya</string>
+    <string name="account_password_current_hint">Masukkan password sebelumnya</string>
+    <string name="account_password_new_label">Password baru</string>
+    <string name="account_password_new_hint">Masukkan password baru</string>
+    <string name="account_password_confirm_label">Konfirmasi password baru</string>
+    <string name="account_password_confirm_hint">Ulangi password baru</string>
+    <string name="account_password_rule_length">Minimal 8 karakter</string>
+    <string name="account_password_rule_mix">Kombinasi huruf dan angka</string>
+    <string name="account_password_rule_different">Berbeda dari password sebelumnya</string>
+    <string name="account_password_rule_met">Terpenuhi</string>
+    <string name="account_password_rule_unmet">Belum terpenuhi</string>
+    <string name="account_password_mismatch">Konfirmasi password belum sama</string>
+    <string name="account_password_submit">Simpan Password</string>
+    <string name="account_password_error">Password gagal diperbarui. Periksa password sebelumnya lalu coba lagi.</string>
+
+    <!-- Akun / Hapus Akun (frame 10676) -->
+    <string name="account_delete_title">Hapus Akun</string>
+    <string name="account_delete_heading">Hapus akun secara permanen?</string>
+    <string name="account_delete_message">Begitu akun dihapus, semua data dan riwayat akan dihapus permanen dan tidak dapat dipulihkan.</string>
+    <string name="account_delete_consequence_history">Riwayat latihan &amp; tryout akan hilang</string>
+    <string name="account_delete_consequence_ranking">Peringkat dan poin akan dihapus</string>
+    <string name="account_delete_consequence_subscription">Langganan aktif tidak dapat dikembalikan</string>
+    <string name="account_delete_confirm_label">Ketik ulang “%1$s” untuk konfirmasi</string>
+    <string name="account_delete_submit">Hapus Akun Permanen</string>
+    <string name="account_delete_error">Akun gagal dihapus. Coba lagi.</string>
+
+    <!-- Akun / Pengaturan (frame 10819) -->
+    <string name="account_settings_title">Pengaturan</string>
+    <string name="account_settings_notifications">Notifikasi</string>
+    <string name="account_settings_notifications_subtitle">Pilih informasi yang ingin kamu terima.</string>
+    <string name="account_settings_activity">Aktivitas Pengerjaan</string>
+    <string name="account_settings_activity_subtitle">Hasil latihan dan tryout</string>
+    <string name="account_settings_ranking">Peringkat &amp; Pencapaian</string>
+    <string name="account_settings_ranking_subtitle">Perubahan posisi leaderboard</string>
+    <string name="account_settings_new_packages">Paket Baru</string>
+    <string name="account_settings_new_packages_subtitle">Info latihan dan tryout terbaru</string>
+    <string name="account_settings_subscription_status">Langganan</string>
+    <string name="account_settings_subscription_status_subtitle">Status dan masa aktif</string>
+    <string name="account_settings_learning">Preferensi Belajar</string>
+    <string name="account_settings_reminder">Pengingat Belajar</string>
+    <string name="account_settings_reminder_schedule">Setiap hari • %1$s</string>
+    <string name="account_settings_main_level">Jenjang Utama</string>
+    <string name="account_settings_subscription">Langganan</string>
+    <string name="account_settings_privacy">Privasi &amp; Data</string>
+    <string name="account_settings_personal_data">Data Pribadi</string>
+    <string name="account_settings_personal_data_subtitle">Lihat data yang kami simpan</string>
+    <string name="account_settings_promo">Email Promosi</string>
+    <string name="account_settings_promo_subtitle">Info produk, tips belajar, dan promo</string>
+    <string name="account_settings_download">Unduh Data Akun</string>
+    <string name="account_settings_download_subtitle">Minta salinan data akunmu</string>
+
+    <!-- Akun / Langganan (frame 10943) -->
+    <string name="account_subscription_title">Langganan</string>
+    <string name="account_subscription_renew">Perpanjang Langganan</string>
+    <string name="account_subscription_upgrade">Upgrade</string>
+    <string name="account_subscription_details">Detail Langganan</string>
+    <string name="account_subscription_plan">Paket</string>
+    <string name="account_subscription_activated">Tanggal Aktivasi</string>
+    <string name="account_subscription_period">Masa Aktif</string>
+    <string name="account_subscription_period_value">%1$s – %2$s</string>
+    <string name="account_subscription_method">Metode Pembayaran</string>
+    <string name="account_subscription_not_available">-</string>
+    <string name="account_subscription_history">Riwayat Pembayaran</string>
+    <string name="account_subscription_history_meta">%1$s • %2$s</string>
+    <string name="account_subscription_paid">Berhasil</string>
+    <string name="account_subscription_failed">Gagal</string>
+    <string name="account_subscription_history_empty_title">Belum ada pembayaran</string>
+    <string name="account_subscription_history_empty_message">Riwayat pembayaranmu akan muncul di sini setelah kamu berlangganan.</string>
+
+    <!-- Bantuan & Support (frame 11057) -->
+    <string name="account_help_title">Bantuan &amp; Support</string>
+    <string name="account_help_description">Temukan jawaban, panduan, atau hubungi tim kami untuk mendapatkan bantuan.</string>
+    <string name="account_help_search_hint">Cari pertanyaan atau topik…</string>
+    <string name="account_help_categories">Kategori</string>
+    <string name="account_help_faq">FAQ</string>
+    <string name="account_help_contact">Hubungi Kami</string>
+    <string name="account_help_contact_email">Email</string>
+    <string name="account_help_contact_whatsapp">WhatsApp</string>
+    <string name="account_help_search_empty_title">Pertanyaan tidak ditemukan</string>
+    <string name="account_help_search_empty_message">Tidak ada FAQ untuk “%1$s”. Coba kata kunci lain atau hubungi kami.</string>
+    <string name="account_help_no_app">Tidak ada aplikasi untuk membuka kontak ini.</string>
+
+    <!-- Bantuan / Detail Topik (frame 11252) -->
+    <string name="account_help_topic_fallback_title">Topik Bantuan</string>
+    <string name="account_help_topic_need_help">Masih butuh bantuan?</string>
+    <string name="account_help_topic_need_help_message">Tim support kami siap membantu kamu di jam operasional.</string>
+    <string name="account_help_topic_contact">Hubungi Kami</string>
+    <string name="account_help_topic_empty_title">Belum ada artikel</string>
+    <string name="account_help_topic_empty_message">Artikel untuk topik ini sedang kami siapkan. Hubungi kami jika butuh bantuan.</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches color/bg/subtle so the window behind Compose has no flash on launch. -->
+    <color name="window_background">#FFF6F6F6</color>
+    <!-- Launcher icon background: color/bg/brand-soft. -->
+    <color name="ic_launcher_background">#FFF3EAFD</color>
+</resources>
