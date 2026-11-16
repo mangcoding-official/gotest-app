@@ -25,6 +25,9 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
 - **Daftar dengan email dummy:** kode email `123456`; `gilangpermana@mail.com` sudah terdaftar. Jenjang SD, SMP,
   atau SMA/SMK dengan jawaban "Belum" (di bawah 18 tahun) membuka "Menunggu persetujuan orang tua"; tautan
   persetujuan bisa dikirim 3 kali per jam. Status menunggu belum tersimpan setelah aplikasi ditutup (menunggu API).
+- **Masuk dengan kode email dummy:** tab Email lalu "Masuk dengan kode email"; kode `123456` untuk
+  `gilangpermana@mail.com`. Email lain mendapat jawaban yang sama tetapi kodenya tidak pernah cocok;
+  `admin@gotest.id` adalah akun tim yang tetap memakai kata sandi.
 - **Profil dummy:** nomor WhatsApp dengan kode `123456`; `0812 1111 2222` sudah dipakai akun lain. Sesi Aktif berisi
   tiga perangkat; "Keluar dari perangkat lain" menerima password `rahasia123`. Masuk Anak membuka akun anak
   "Keluarga Pratama" (tanpa ubah profil, nomor, password, Sesi Aktif, dan Hapus Akun).

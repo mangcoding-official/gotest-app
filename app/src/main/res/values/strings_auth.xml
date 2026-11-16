@@ -183,4 +183,13 @@
     <string name="consent_send_number">Kirim ke nomor ini</string>
     <string name="consent_sign_out">Keluar</string>
     <string name="consent_delete_account">Hapus akun</string>
+
+    <!-- Masuk dengan kode email (web: Auth/Login.tsx, T-023) -->
+    <string name="login_email_code_link">Masuk dengan kode email</string>
+    <string name="login_password_link">Masuk dengan kata sandi</string>
+    <string name="login_code_email_label">Email</string>
+    <string name="login_code_email_hint">nama@email.com</string>
+    <string name="login_code_note">Kami kirim kode 6 angka ke email ini, jadi kamu bisa masuk tanpa kata sandi.</string>
+    <string name="login_code_send">Kirim kode ke email</string>
+    <string name="login_code_sent">Bila %1$s terdaftar di Gotest, kode 6 angka dikirim ke sana. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
 </resources>

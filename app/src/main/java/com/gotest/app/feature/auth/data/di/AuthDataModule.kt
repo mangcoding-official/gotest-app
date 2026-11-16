@@ -1,8 +1,10 @@
 package com.gotest.app.feature.auth.data.di
 
 import com.gotest.app.feature.auth.data.FakeAuthFlowRepository
+import com.gotest.app.feature.auth.data.FakeEmailCodeSignInRepository
 import com.gotest.app.feature.auth.data.FakeSignUpRepository
 import com.gotest.app.feature.auth.domain.AuthFlowRepository
+import com.gotest.app.feature.auth.domain.EmailCodeSignInRepository
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +17,6 @@ interface AuthDataModule {
     @Binds fun bindAuthFlowRepository(impl: FakeAuthFlowRepository): AuthFlowRepository
 
     @Binds fun bindSignUpRepository(impl: FakeSignUpRepository): SignUpRepository
+
+    @Binds fun bindEmailCodeSignInRepository(impl: FakeEmailCodeSignInRepository): EmailCodeSignInRepository
 }

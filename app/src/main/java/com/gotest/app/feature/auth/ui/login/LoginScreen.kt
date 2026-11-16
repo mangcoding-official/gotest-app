@@ -48,6 +48,11 @@ import com.gotest.app.feature.auth.ui.components.AuthHeading
 import com.gotest.app.feature.auth.ui.components.AuthLogo
 import com.gotest.app.feature.auth.ui.components.AuthMethodTabs
 import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
+import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInEffect
+import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInForm
+import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInUiEvent
+import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInUiState
+import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInViewModel
 import com.gotest.app.feature.auth.ui.phone.PhoneCodeForm
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInEffect
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInUiEvent
@@ -67,9 +72,16 @@ fun LoginRoute(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
     phoneViewModel: PhoneSignInViewModel = hiltViewModel(),
+    emailCodeViewModel: EmailCodeSignInViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val phoneState by phoneViewModel.uiState.collectAsStateWithLifecycle()
+    val emailCodeState by emailCodeViewModel.uiState.collectAsStateWithLifecycle()
+    ObserveAsEvents(emailCodeViewModel.effects) { effect ->
+        when (effect) {
+            EmailCodeSignInEffect.SignedIn -> onSignInSuccess()
+        }
+    }
     ObserveAsEvents(phoneViewModel.effects) { effect ->
         when (effect) {
             PhoneSignInEffect.SignedIn -> onSignInSuccess()
@@ -90,6 +102,8 @@ fun LoginRoute(
         onChildSignIn = onChildSignIn,
         phoneState = phoneState,
         onPhoneEvent = phoneViewModel::onEvent,
+        emailCodeState = emailCodeState,
+        onEmailCodeEvent = emailCodeViewModel::onEvent,
     )
 }
 
@@ -103,6 +117,8 @@ fun LoginScreen(
     onChildSignIn: () -> Unit = {},
     phoneState: PhoneSignInUiState = PhoneSignInUiState(),
     onPhoneEvent: (PhoneSignInUiEvent) -> Unit = {},
+    emailCodeState: EmailCodeSignInUiState = EmailCodeSignInUiState(),
+    onEmailCodeEvent: (EmailCodeSignInUiEvent) -> Unit = {},
 ) {
     val spacing = GotestTheme.spacing
     Column(
@@ -132,46 +148,93 @@ fun LoginScreen(
             var phoneTab by rememberSaveable { mutableStateOf(true) }
             val showPhone = phoneState.isAvailable && phoneTab
             if (phoneState.isAvailable) AuthMethodTabs(phoneSelected = phoneTab, onSelectPhone = { phoneTab = it })
-            if (showPhone) {
-                PhoneCodeForm(
-                    uiState = phoneState,
-                    onEvent = onPhoneEvent,
-                    submitText = stringResource(R.string.phone_submit_login),
-                )
-            } else {
-                LoginForm(uiState = uiState, onEvent = onEvent, onForgotPassword = onForgotPassword)
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-                if (!showPhone) {
-                    GotestButton(
-                        text = stringResource(R.string.login_submit),
-                        onClick = { onEvent(LoginUiEvent.Submit) },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isSubmitting,
+            // T-023: with "Kode lewat email" on, the Email tab may sign in with a code instead of the password.
+            val codeMode = !showPhone && emailCodeState.isAvailable && emailCodeState.isCodeMode
+            when {
+                showPhone -> {
+                    PhoneCodeForm(
+                        uiState = phoneState,
+                        onEvent = onPhoneEvent,
+                        submitText = stringResource(R.string.phone_submit_login),
                     )
                 }
+
+                codeMode -> {
+                    EmailCodeSignInForm(uiState = emailCodeState, onEvent = onEmailCodeEvent)
+                }
+
+                else -> {
+                    LoginForm(uiState = uiState, onEvent = onEvent, onForgotPassword = onForgotPassword)
+                }
+            }
+            LoginActions(
+                passwordForm = !showPhone && !codeMode,
+                codeAvailable = emailCodeState.isAvailable,
+                codeMode = codeMode,
+                isSubmitting = uiState.isSubmitting,
+                onEvent = onEvent,
+                onUseCode = { onEmailCodeEvent(EmailCodeSignInUiEvent.UseCode(true)) },
+                onRegister = onRegister,
+                onChildSignIn = onChildSignIn,
+            )
+            AuthCopyright()
+        }
+    }
+}
+
+/**
+ * Masuk under the form. As on the web, the code form leaves out the password button, Google, and Daftar;
+ * "Masuk dengan kode keluarga" always stays at the bottom (Aturan 11.25).
+ */
+@Composable
+private fun LoginActions(
+    passwordForm: Boolean,
+    codeAvailable: Boolean,
+    codeMode: Boolean,
+    isSubmitting: Boolean,
+    onEvent: (LoginUiEvent) -> Unit,
+    onUseCode: () -> Unit,
+    onRegister: () -> Unit,
+    onChildSignIn: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
+        if (passwordForm) {
+            GotestButton(
+                text = stringResource(R.string.login_submit),
+                onClick = { onEvent(LoginUiEvent.Submit) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isSubmitting,
+            )
+            if (codeAvailable) {
                 GotestButton(
-                    text = stringResource(R.string.login_google),
-                    onClick = { onEvent(LoginUiEvent.GoogleSignIn) },
-                    modifier = Modifier.fillMaxWidth(),
-                    variant = GotestButtonVariant.Plain,
-                    enabled = !uiState.isSubmitting,
-                )
-                AuthSwitchPrompt(
-                    prompt = stringResource(R.string.login_no_account),
-                    linkText = stringResource(R.string.login_register_link),
-                    onLinkClick = onRegister,
-                )
-                // As on the web, always at the bottom of Masuk (Aturan 11.25).
-                GotestButton(
-                    text = stringResource(R.string.child_login_link),
-                    onClick = onChildSignIn,
+                    text = stringResource(R.string.login_email_code_link),
+                    onClick = onUseCode,
                     modifier = Modifier.fillMaxWidth(),
                     variant = GotestButtonVariant.Text,
                 )
             }
-            AuthCopyright()
         }
+        if (!codeMode) {
+            GotestButton(
+                text = stringResource(R.string.login_google),
+                onClick = { onEvent(LoginUiEvent.GoogleSignIn) },
+                modifier = Modifier.fillMaxWidth(),
+                variant = GotestButtonVariant.Plain,
+                enabled = !isSubmitting,
+            )
+            AuthSwitchPrompt(
+                prompt = stringResource(R.string.login_no_account),
+                linkText = stringResource(R.string.login_register_link),
+                onLinkClick = onRegister,
+            )
+        }
+        GotestButton(
+            text = stringResource(R.string.child_login_link),
+            onClick = onChildSignIn,
+            modifier = Modifier.fillMaxWidth(),
+            variant = GotestButtonVariant.Text,
+        )
     }
 }
 
@@ -223,6 +286,26 @@ private fun LoginScreenPreview() {
             onEvent = {},
             onForgotPassword = {},
             onRegister = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 1100)
+@Composable
+private fun LoginScreenEmailCodePreview() {
+    GotestTheme {
+        LoginScreen(
+            uiState = LoginUiState(),
+            onEvent = {},
+            onForgotPassword = {},
+            onRegister = {},
+            emailCodeState =
+                EmailCodeSignInUiState(
+                    isAvailable = true,
+                    isCodeMode = true,
+                    isCodeStep = true,
+                    sentTo = "g***@mail.com",
+                ),
         )
     }
 }
