@@ -17,8 +17,12 @@ data class GotestSpacing(
     val xl: Dp = 24.dp,
     val xxl: Dp = 32.dp,
     val xxxl: Dp = 40.dp,
-    /** Horizontal padding of app bars and screen content. */
-    val screenHorizontal: Dp = 20.dp,
+    /**
+     * Horizontal padding of app bars and screen content. The design's 440dp frames use 20; phones
+     * are usually narrower (Pixel 8 is 411dp), so the app uses 16 to keep card content from
+     * feeling inset.
+     */
+    val screenHorizontal: Dp = 16.dp,
 )
 
 /** Fixed component sizes measured from the design's component page. */

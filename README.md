@@ -109,7 +109,7 @@ UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu dig
 - **Tipografi:** Inter (Regular/Medium/SemiBold) dan BBH Bogle, dipetakan ke role Material. Ada tambahan
   `displayExtraSmall`, `buttonLarge/Small`, `bodyExtraLarge`, dan `labelCompact`.
 - **Bentuk:** radius 4/8/12/16/20/24/full.
-- **Spacing:** 0/2/4/8/12/16/24/32/40, gutter layar 20.
+- **Spacing:** 0/2/4/8/12/16/24/32/40, gutter layar 16 (desain 20 di frame 440dp; dikecilkan karena HP umumnya lebih sempit).
 - **Ukuran komponen:** di `GotestSizes`.
 
 **Komponen reusable** (`core/designsystem/component`)
