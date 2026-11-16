@@ -22,6 +22,9 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
   token `kedaluwarsa` menampilkan pesan tautan tidak berlaku.
 - **Masuk/daftar dengan WhatsApp dummy:** kode `123456`. Nomor `0812 3456 7890` sudah punya akun (langsung masuk);
   nomor lain lanjut ke "Satu langkah lagi". Kirim ulang kode bisa setelah 60 detik.
+- **Daftar dengan email dummy:** kode email `123456`; `gilangpermana@mail.com` sudah terdaftar. Jenjang SD, SMP,
+  atau SMA/SMK dengan jawaban "Belum" (di bawah 18 tahun) membuka "Menunggu persetujuan orang tua"; tautan
+  persetujuan bisa dikirim 3 kali per jam. Status menunggu belum tersimpan setelah aplikasi ditutup (menunggu API).
 - **Kode Main Bareng dummy:**
 
   | Kode | Hasil |
@@ -84,6 +87,7 @@ UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu dig
 1. Implementasikan `XxxRepository` versi remote (Retrofit/Ktor; library belum ditambahkan).
 2. Ganti `@Binds` di `core/data/di/DataModule.kt` (Auth, User, StudyPackage, Exam, Leaderboard,
    Subscription) dan di modul per fitur:
+   - `feature/auth/data/di` (AuthFlow, SignUp)
    - `feature/home/data/di` (Notification, Search)
    - `feature/studypackage/data/di` (SavedPackage)
    - `feature/history/data/di` (History, HistoryExporter)
