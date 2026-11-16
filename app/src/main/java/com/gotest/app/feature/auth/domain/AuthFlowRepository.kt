@@ -1,5 +1,7 @@
 package com.gotest.app.feature.auth.domain
 
+import com.gotest.app.core.model.EducationLevel
+
 /** A refusal with the server's own text (the same as on the web), shown under [field]. */
 class AuthFlowError(
     val field: String,
@@ -11,6 +13,15 @@ data class FamilyChild(
     val id: String,
     val name: String,
 )
+
+/** After the WhatsApp code: a known number is signed in, a new one finishes on "Satu langkah lagi". */
+sealed interface PhoneVerification {
+    data object SignedIn : PhoneVerification
+
+    data class NeedsRegistration(
+        val phoneDisplay: String,
+    ) : PhoneVerification
+}
 
 /**
  * Sign-in flows the web has and the app gains in T-018: resetting the password from the email link and
@@ -30,5 +41,22 @@ interface AuthFlowRepository {
         code: String,
         childId: String,
         pin: String,
+    ): Result<Unit>
+
+    /** Whether the server offers signing in with a WhatsApp code (the web's `phoneSignIn`). */
+    suspend fun isPhoneSignInAvailable(): Boolean
+
+    /** Sends a 6-digit code to [phone] (a stored `628…` number); returns where it went, in display form. */
+    suspend fun sendPhoneCode(phone: String): Result<String>
+
+    suspend fun verifyPhoneCode(
+        phone: String,
+        code: String,
+    ): Result<PhoneVerification>
+
+    /** Finishes a new number's sign-up within 15 minutes of its code ("Selesai daftar"). */
+    suspend fun completePhoneRegistration(
+        fullName: String,
+        level: EducationLevel,
     ): Result<Unit>
 }

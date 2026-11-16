@@ -21,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -43,7 +46,13 @@ import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.auth.ui.components.AuthCopyright
 import com.gotest.app.feature.auth.ui.components.AuthHeading
 import com.gotest.app.feature.auth.ui.components.AuthLogo
+import com.gotest.app.feature.auth.ui.components.AuthMethodTabs
 import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
+import com.gotest.app.feature.auth.ui.phone.PhoneCodeForm
+import com.gotest.app.feature.auth.ui.phone.PhoneSignInEffect
+import com.gotest.app.feature.auth.ui.phone.PhoneSignInUiEvent
+import com.gotest.app.feature.auth.ui.phone.PhoneSignInUiState
+import com.gotest.app.feature.auth.ui.phone.PhoneSignInViewModel
 
 /** The design's door illustration is 301dp wide in a 400dp column. */
 private const val LOGIN_ILLUSTRATION_WIDTH_FRACTION = 0.75f
@@ -54,10 +63,19 @@ fun LoginRoute(
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit,
     onChildSignIn: () -> Unit,
+    onPhoneRegister: (phoneDisplay: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
+    phoneViewModel: PhoneSignInViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val phoneState by phoneViewModel.uiState.collectAsStateWithLifecycle()
+    ObserveAsEvents(phoneViewModel.effects) { effect ->
+        when (effect) {
+            PhoneSignInEffect.SignedIn -> onSignInSuccess()
+            is PhoneSignInEffect.NeedsRegistration -> onPhoneRegister(effect.phoneDisplay)
+        }
+    }
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             LoginEffect.SignedIn -> onSignInSuccess()
@@ -70,6 +88,8 @@ fun LoginRoute(
         onRegister = onRegister,
         modifier = modifier,
         onChildSignIn = onChildSignIn,
+        phoneState = phoneState,
+        onPhoneEvent = phoneViewModel::onEvent,
     )
 }
 
@@ -81,6 +101,8 @@ fun LoginScreen(
     onRegister: () -> Unit,
     modifier: Modifier = Modifier,
     onChildSignIn: () -> Unit = {},
+    phoneState: PhoneSignInUiState = PhoneSignInUiState(),
+    onPhoneEvent: (PhoneSignInUiEvent) -> Unit = {},
 ) {
     val spacing = GotestTheme.spacing
     Column(
@@ -106,14 +128,28 @@ fun LoginScreen(
                 title = stringResource(R.string.login_title),
                 subtitle = stringResource(R.string.login_subtitle),
             )
-            LoginForm(uiState = uiState, onEvent = onEvent, onForgotPassword = onForgotPassword)
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-                GotestButton(
-                    text = stringResource(R.string.login_submit),
-                    onClick = { onEvent(LoginUiEvent.Submit) },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !uiState.isSubmitting,
+            // Nomor HP first while WhatsApp codes are available, as on the web.
+            var phoneTab by rememberSaveable { mutableStateOf(true) }
+            val showPhone = phoneState.isAvailable && phoneTab
+            if (phoneState.isAvailable) AuthMethodTabs(phoneSelected = phoneTab, onSelectPhone = { phoneTab = it })
+            if (showPhone) {
+                PhoneCodeForm(
+                    uiState = phoneState,
+                    onEvent = onPhoneEvent,
+                    submitText = stringResource(R.string.phone_submit_login),
                 )
+            } else {
+                LoginForm(uiState = uiState, onEvent = onEvent, onForgotPassword = onForgotPassword)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                if (!showPhone) {
+                    GotestButton(
+                        text = stringResource(R.string.login_submit),
+                        onClick = { onEvent(LoginUiEvent.Submit) },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !uiState.isSubmitting,
+                    )
+                }
                 GotestButton(
                     text = stringResource(R.string.login_google),
                     onClick = { onEvent(LoginUiEvent.GoogleSignIn) },

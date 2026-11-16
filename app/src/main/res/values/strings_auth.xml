@@ -94,4 +94,36 @@
     <string name="child_pin_length">PIN terdiri dari 4 angka.</string>
     <string name="child_submit">Masuk</string>
     <string name="child_not_me">Bukan %1$s?</string>
+
+    <!-- Masuk / daftar dengan nomor WhatsApp (web: Components/Auth/PhoneOtpForm.tsx, Auth/PhoneRegister.tsx) -->
+    <string name="auth_tab_phone">Nomor HP</string>
+    <string name="auth_tab_email">Email</string>
+    <string name="phone_label">Nomor WhatsApp</string>
+    <string name="phone_hint">0812 3456 7890</string>
+    <string name="phone_helper">Kami kirim kode 6 angka ke WhatsApp nomor ini. Nomor baru langsung didaftarkan.</string>
+    <string name="phone_send">Kirim kode lewat WhatsApp</string>
+    <string name="phone_invalid">Tulis nomor HP Indonesia yang aktif di WhatsApp, misalnya 0812 3456 7890.</string>
+    <string name="phone_code_sent">Kode dikirim ke WhatsApp %1$s. Kode berlaku 5 menit.</string>
+    <string name="phone_code_label">Kode dari WhatsApp</string>
+    <string name="code_hint">6 angka</string>
+    <string name="code_resend_in">Kirim ulang dalam %1$d detik</string>
+    <string name="code_resend">Kirim ulang kode</string>
+    <string name="phone_change">Ganti nomor</string>
+    <string name="phone_submit_login">Masuk</string>
+    <string name="phone_submit_register">Lanjut</string>
+    <string name="phone_register_title">Satu langkah lagi</string>
+    <string name="phone_register_subtitle">Nomor %1$s sudah terverifikasi. Lengkapi data berikut untuk menyelesaikan pendaftaran.</string>
+    <string name="phone_register_name_label">Nama Lengkap</string>
+    <string name="phone_register_name_hint">nama Pelajar</string>
+    <string name="phone_register_name_required">Nama wajib diisi.</string>
+    <string name="phone_register_submit">Selesai daftar</string>
+
+    <!-- Jenjang pendidikan (web: Components/Auth/EducationLevelFields.tsx, app/Support/EducationLevel.php) -->
+    <string name="education_label">Jenjang pendidikan</string>
+    <string name="education_required">Pilih jenjang pendidikanmu.</string>
+    <string name="education_sd">SD</string>
+    <string name="education_smp">SMP</string>
+    <string name="education_sma">SMA/SMK</string>
+    <string name="education_kuliah">Kuliah</string>
+    <string name="education_graduated">Sudah lulus / bekerja</string>
 </resources>

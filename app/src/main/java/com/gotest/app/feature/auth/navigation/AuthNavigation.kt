@@ -7,6 +7,7 @@ import com.gotest.app.feature.auth.ui.childlogin.ChildLoginRoute
 import com.gotest.app.feature.auth.ui.forgotpassword.ForgotPasswordRoute
 import com.gotest.app.feature.auth.ui.login.LoginRoute
 import com.gotest.app.feature.auth.ui.onboarding.OnboardingRoute
+import com.gotest.app.feature.auth.ui.phoneregister.PhoneRegisterRoute
 import com.gotest.app.feature.auth.ui.register.RegisterRoute
 import com.gotest.app.feature.auth.ui.resetpassword.ResetPasswordRoute
 import com.gotest.app.navigation.ChildLoginDestination
@@ -14,6 +15,7 @@ import com.gotest.app.navigation.ForgotPasswordDestination
 import com.gotest.app.navigation.HomeDestination
 import com.gotest.app.navigation.LoginDestination
 import com.gotest.app.navigation.OnboardingDestination
+import com.gotest.app.navigation.PhoneRegisterDestination
 import com.gotest.app.navigation.RegisterDestination
 import com.gotest.app.navigation.ResetPasswordDestination
 
@@ -33,6 +35,7 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
                 navController.navigate(RegisterDestination) { popUpTo<LoginDestination> { inclusive = true } }
             },
             onChildSignIn = { navController.navigate(ChildLoginDestination) },
+            onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
         )
     }
     composable<ChildLoginDestination> {
@@ -58,6 +61,13 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
                 navController.navigate(LoginDestination) { popUpTo<RegisterDestination> { inclusive = true } }
             },
             onBack = navController::navigateUp,
+            onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
+        )
+    }
+    composable<PhoneRegisterDestination> {
+        PhoneRegisterRoute(
+            onRegisterSuccess = navController::navigateToHomeClearingAuth,
+            onChangeNumber = navController::navigateUp,
         )
     }
     composable<ForgotPasswordDestination> {

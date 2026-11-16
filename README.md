@@ -20,6 +20,8 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
 - **Masuk Anak dummy:** kode keluarga `KLG123` (Raka, Sinta), PIN `2468`. PIN salah 5 kali mengunci 15 menit.
 - **Atur ulang kata sandi dummy:** `adb shell am start -a android.intent.action.VIEW -d "https://gotest.id/reset-password/abc?email=budi@contoh.id" com.gotest.app`;
   token `kedaluwarsa` menampilkan pesan tautan tidak berlaku.
+- **Masuk/daftar dengan WhatsApp dummy:** kode `123456`. Nomor `0812 3456 7890` sudah punya akun (langsung masuk);
+  nomor lain lanjut ke "Satu langkah lagi". Kirim ulang kode bisa setelah 60 detik.
 - **Kode Main Bareng dummy:**
 
   | Kode | Hasil |
