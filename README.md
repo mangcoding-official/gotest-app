@@ -17,6 +17,9 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
   Rutenya tidak didaftarkan dan tidak ada tombol menuju ke sana; kodenya tetap ada.
 - **Login dummy:** email apa pun yang valid dengan password minimal 8 karakter, atau tombol
   "Masuk dengan Google".
+- **Masuk Anak dummy:** kode keluarga `KLG123` (Raka, Sinta), PIN `2468`. PIN salah 5 kali mengunci 15 menit.
+- **Atur ulang kata sandi dummy:** `adb shell am start -a android.intent.action.VIEW -d "https://gotest.id/reset-password/abc?email=budi@contoh.id" com.gotest.app`;
+  token `kedaluwarsa` menampilkan pesan tautan tidak berlaku.
 - **Kode Main Bareng dummy:**
 
   | Kode | Hasil |

@@ -23,6 +23,15 @@ class CredentialValidatorTest {
     }
 
     @Test
+    fun `a new password needs eight characters with a letter and a number`() {
+        assertEquals(CredentialError.Required, validator.validateNewPassword(""))
+        assertEquals(CredentialError.NewPasswordTooShort, validator.validateNewPassword("abc123"))
+        assertEquals(CredentialError.PasswordNeedsLetter, validator.validateNewPassword("12345678"))
+        assertEquals(CredentialError.PasswordNeedsNumber, validator.validateNewPassword("abcdefgh"))
+        assertNull(validator.validateNewPassword("rahasia123"))
+    }
+
+    @Test
     fun `confirmation must match the password`() {
         assertEquals(CredentialError.Required, validator.validateConfirmation("rahasia123", ""))
         assertEquals(CredentialError.PasswordMismatch, validator.validateConfirmation("rahasia123", "rahasia124"))

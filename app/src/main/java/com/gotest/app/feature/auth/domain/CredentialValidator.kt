@@ -3,7 +3,17 @@ package com.gotest.app.feature.auth.domain
 import javax.inject.Inject
 
 /** Why a credential field is rejected; the UI maps each to a message. */
-enum class CredentialError { Required, InvalidEmail, PasswordTooShort, PasswordMismatch }
+enum class CredentialError {
+    Required,
+    InvalidEmail,
+    PasswordTooShort,
+    PasswordMismatch,
+
+    /** The new-password rule (reset, register): at least 8 characters with a letter and a number. */
+    NewPasswordTooShort,
+    PasswordNeedsLetter,
+    PasswordNeedsNumber,
+}
 
 /** Client-side checks shared by the sign-in, register and reset forms. */
 class CredentialValidator
@@ -20,6 +30,16 @@ class CredentialValidator
             when {
                 password.isEmpty() -> CredentialError.Required
                 password.length < MIN_PASSWORD_LENGTH -> CredentialError.PasswordTooShort
+                else -> null
+            }
+
+        /** A new password follows the web's rule: at least 8 characters with a letter and a number. */
+        fun validateNewPassword(password: String): CredentialError? =
+            when {
+                password.isEmpty() -> CredentialError.Required
+                password.length < MIN_PASSWORD_LENGTH -> CredentialError.NewPasswordTooShort
+                password.none { it.isLetter() } -> CredentialError.PasswordNeedsLetter
+                password.none { it.isDigit() } -> CredentialError.PasswordNeedsNumber
                 else -> null
             }
 

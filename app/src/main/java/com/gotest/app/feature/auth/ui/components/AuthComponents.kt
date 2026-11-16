@@ -96,6 +96,9 @@ fun CredentialError.messageRes(): Int =
         CredentialError.InvalidEmail -> R.string.auth_error_email
         CredentialError.PasswordTooShort -> R.string.auth_error_password_length
         CredentialError.PasswordMismatch -> R.string.auth_error_password_mismatch
+        CredentialError.NewPasswordTooShort -> R.string.auth_error_new_password_length
+        CredentialError.PasswordNeedsLetter -> R.string.auth_error_password_letter
+        CredentialError.PasswordNeedsNumber -> R.string.auth_error_password_number
     }
 
 @Preview(showBackground = true)

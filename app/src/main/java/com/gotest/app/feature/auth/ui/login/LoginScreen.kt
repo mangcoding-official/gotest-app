@@ -53,6 +53,7 @@ fun LoginRoute(
     onSignInSuccess: () -> Unit,
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit,
+    onChildSignIn: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
@@ -68,6 +69,7 @@ fun LoginRoute(
         onForgotPassword = onForgotPassword,
         onRegister = onRegister,
         modifier = modifier,
+        onChildSignIn = onChildSignIn,
     )
 }
 
@@ -78,6 +80,7 @@ fun LoginScreen(
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit,
     modifier: Modifier = Modifier,
+    onChildSignIn: () -> Unit = {},
 ) {
     val spacing = GotestTheme.spacing
     Column(
@@ -122,6 +125,13 @@ fun LoginScreen(
                     prompt = stringResource(R.string.login_no_account),
                     linkText = stringResource(R.string.login_register_link),
                     onLinkClick = onRegister,
+                )
+                // As on the web, always at the bottom of Masuk (Aturan 11.25).
+                GotestButton(
+                    text = stringResource(R.string.child_login_link),
+                    onClick = onChildSignIn,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = GotestButtonVariant.Text,
                 )
             }
             AuthCopyright()

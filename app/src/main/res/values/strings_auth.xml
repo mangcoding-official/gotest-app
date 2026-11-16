@@ -57,4 +57,41 @@
     <string name="auth_error_password_mismatch">Kata sandi belum sama</string>
     <string name="auth_error_sign_in">Email atau password salah</string>
     <string name="forgot_sent">Link reset password sudah dikirim ke %1$s</string>
+
+    <!-- New password rule, as on the web (T-018) -->
+    <string name="auth_error_new_password_length">Kata sandi minimal 8 karakter.</string>
+    <string name="auth_error_password_letter">Kata sandi harus memuat minimal satu huruf.</string>
+    <string name="auth_error_password_number">Kata sandi harus memuat minimal satu angka.</string>
+    <string name="auth_processing">Memproses...</string>
+
+    <!-- Atur ulang kata sandi from the email link (web: Auth/ResetPassword.tsx) -->
+    <string name="reset_title">Buat kata sandi baru</string>
+    <string name="reset_subtitle">Setelah tersimpan, kamu bisa langsung masuk dengan kata sandi ini.</string>
+    <string name="reset_email_label">Alamat Email</string>
+    <string name="reset_password_label">Kata Sandi Baru</string>
+    <string name="reset_password_hint">Min. 8 karakter, huruf &amp; angka</string>
+    <string name="reset_confirm_label">Konfirmasi Kata Sandi</string>
+    <string name="reset_confirm_hint">Ulangi Kata Sandi</string>
+    <string name="reset_submit">Simpan Kata Sandi</string>
+    <string name="reset_back_to_login">Kembali ke halaman login</string>
+    <string name="reset_done">Kata sandi berhasil diatur ulang. Silakan masuk dengan kata sandi baru.</string>
+
+    <!-- Masuk Anak (web: Auth/ChildLogin.tsx) -->
+    <string name="child_login_link">Masuk dengan kode keluarga</string>
+    <string name="child_title">Masuk dengan kode keluarga</string>
+    <string name="child_subtitle_code">Minta kode keluarga ke orang tua atau gurumu.</string>
+    <string name="child_subtitle_name">Pilih namamu.</string>
+    <string name="child_subtitle_pin">Halo %1$s! Ketik PIN 4 angka-mu.</string>
+    <string name="child_code_label">Kode keluarga</string>
+    <string name="child_code_hint">6 huruf atau angka</string>
+    <string name="child_code_required">Tulis kode keluarga.</string>
+    <string name="child_next">Lanjut</string>
+    <string name="child_other_sign_in">Masuk dengan email atau nomor</string>
+    <string name="child_change_code">Ganti kode keluarga</string>
+    <string name="child_pin_label">PIN</string>
+    <string name="child_pin_hint">4 angka</string>
+    <string name="child_pin_required">Tulis PIN-mu.</string>
+    <string name="child_pin_length">PIN terdiri dari 4 angka.</string>
+    <string name="child_submit">Masuk</string>
+    <string name="child_not_me">Bukan %1$s?</string>
 </resources>

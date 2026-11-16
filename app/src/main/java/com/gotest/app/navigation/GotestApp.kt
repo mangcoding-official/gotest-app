@@ -51,13 +51,24 @@ fun GotestApp(
         navController.navigate(target) { popUpTo(navController.graph.id) { inclusive = true } }
     }
 
-    // A gotest.id link opens its screen once the user is signed in; until then it waits.
+    // A gotest.id link opens its screen. Resetting the password works signed out; the others wait for sign-in.
     val currentOnAppLinkConsume by rememberUpdatedState(onAppLinkConsume)
     LaunchedEffect(appLink, isSignedIn) {
         val link = appLink ?: return@LaunchedEffect
-        if (!isSignedIn) return@LaunchedEffect
-        if (link is AppLink.MainBarengCode) {
-            navController.navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
+        if (link !is AppLink.ResetPassword && !isSignedIn) return@LaunchedEffect
+        when (link) {
+            is AppLink.ResetPassword -> {
+                navController.navigate(ResetPasswordDestination(link.token, link.email))
+            }
+
+            is AppLink.MainBarengCode -> {
+                navController.navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
+            }
+
+            // Gabung ke kelas gets its screen in the next Android task; until then the link only opens the app.
+            is AppLink.JoinCode -> {
+                Unit
+            }
         }
         currentOnAppLinkConsume()
     }

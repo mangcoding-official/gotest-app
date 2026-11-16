@@ -13,6 +13,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object ForgotPasswordDestination
 
+/** "Buat kata sandi baru" from the reset email link (T-018). */
+@Serializable data class ResetPasswordDestination(
+    val token: String,
+    val email: String? = null,
+)
+
+/** Masuk Anak: family code, name, PIN (T-018). */
+@Serializable data object ChildLoginDestination
+
 // Top-level tabs
 
 /** The server refused this app version (426 `update_required`, T-018). */
