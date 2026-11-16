@@ -20,19 +20,29 @@ import com.gotest.app.core.designsystem.component.GotestTextField
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.auth.domain.GuardianChannel
+import com.gotest.app.feature.auth.domain.GuardianQuestion
 import com.gotest.app.feature.auth.ui.components.AuthCopyright
 import com.gotest.app.feature.auth.ui.components.AuthFormCard
 import com.gotest.app.feature.auth.ui.components.EducationLevelPicker
+import com.gotest.app.feature.auth.ui.components.GuardianFields
+import com.gotest.app.feature.auth.ui.components.GuardianFormState
 
 @Composable
 fun PhoneRegisterRoute(
     onRegisterSuccess: () -> Unit,
     onChangeNumber: () -> Unit,
+    onAwaitConsent: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PhoneRegisterViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ObserveAsEvents(viewModel.registerSuccess) { onRegisterSuccess() }
+    ObserveAsEvents(viewModel.effects) { effect ->
+        when (effect) {
+            PhoneRegisterEffect.Registered -> onRegisterSuccess()
+            PhoneRegisterEffect.AwaitingConsent -> onAwaitConsent()
+        }
+    }
     PhoneRegisterScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
@@ -73,6 +83,12 @@ fun PhoneRegisterScreen(
             onSelect = { onEvent(PhoneRegisterUiEvent.LevelPicked(it)) },
             error = uiState.levelErrorRes?.let { stringResource(it) },
         )
+        val question = uiState.guardianQuestion
+        if (question != null && uiState.asksGuardian) {
+            GuardianFields(question = question, state = uiState.guardian, onChange = {
+                onEvent(PhoneRegisterUiEvent.GuardianChanged(it))
+            })
+        }
         Column(verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
             GotestButton(
                 text =
@@ -128,6 +144,34 @@ private fun PhoneRegisterScreenExpiredPreview() {
                 fullName = "Budi Santoso",
                 level = EducationLevel.SmaSmk,
                 nameMessage = "Waktu pendaftaran habis. Minta kode baru dengan nomor HP kamu.",
+            ),
+            onEvent = {},
+            onChangeNumber = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 1100)
+@Composable
+private fun PhoneRegisterScreenGuardianPreview() {
+    GotestTheme {
+        PhoneRegisterScreen(
+            PhoneRegisterUiState(
+                phoneDisplay = "0812-9999-0000",
+                fullName = "Raka Pratama",
+                level = EducationLevel.Smp,
+                guardianQuestion =
+                    GuardianQuestion(
+                        age = 18,
+                        levels = setOf(EducationLevel.Sd, EducationLevel.Smp, EducationLevel.SmaSmk),
+                        channels = listOf(GuardianChannel.WhatsApp, GuardianChannel.Email),
+                    ),
+                guardian =
+                    GuardianFormState(
+                        adult = false,
+                        contact = "0812 9999 0000",
+                        contactMessage = "Tulis nomor orang tua atau wali, bukan nomormu sendiri.",
+                    ),
             ),
             onEvent = {},
             onChangeNumber = {},

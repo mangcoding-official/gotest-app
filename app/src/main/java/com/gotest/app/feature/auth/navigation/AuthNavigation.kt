@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.gotest.app.feature.auth.ui.childlogin.ChildLoginRoute
+import com.gotest.app.feature.auth.ui.consent.GuardianConsentRoute
 import com.gotest.app.feature.auth.ui.forgotpassword.ForgotPasswordRoute
 import com.gotest.app.feature.auth.ui.login.LoginRoute
 import com.gotest.app.feature.auth.ui.onboarding.OnboardingRoute
@@ -11,7 +12,9 @@ import com.gotest.app.feature.auth.ui.phoneregister.PhoneRegisterRoute
 import com.gotest.app.feature.auth.ui.register.RegisterRoute
 import com.gotest.app.feature.auth.ui.resetpassword.ResetPasswordRoute
 import com.gotest.app.navigation.ChildLoginDestination
+import com.gotest.app.navigation.DeleteAccountDestination
 import com.gotest.app.navigation.ForgotPasswordDestination
+import com.gotest.app.navigation.GuardianConsentDestination
 import com.gotest.app.navigation.HomeDestination
 import com.gotest.app.navigation.LoginDestination
 import com.gotest.app.navigation.OnboardingDestination
@@ -62,12 +65,20 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
             },
             onBack = navController::navigateUp,
             onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
+            onAwaitConsent = navController::navigateToConsentClearingAuth,
         )
     }
     composable<PhoneRegisterDestination> {
         PhoneRegisterRoute(
             onRegisterSuccess = navController::navigateToHomeClearingAuth,
             onChangeNumber = navController::navigateUp,
+            onAwaitConsent = navController::navigateToConsentClearingAuth,
+        )
+    }
+    composable<GuardianConsentDestination> {
+        GuardianConsentRoute(
+            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
+            onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
         )
     }
     composable<ForgotPasswordDestination> {
@@ -81,6 +92,14 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
  */
 fun NavController.navigateToHomeClearingAuth() {
     navigate(HomeDestination) {
+        popUpTo(graph.id) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
+/** An under-age account waits for the parent there, with nothing behind it (Aturan 2.15). */
+fun NavController.navigateToConsentClearingAuth() {
+    navigate(GuardianConsentDestination) {
         popUpTo(graph.id) { inclusive = true }
         launchSingleTop = true
     }

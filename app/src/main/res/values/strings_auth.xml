@@ -126,4 +126,61 @@
     <string name="education_sma">SMA/SMK</string>
     <string name="education_kuliah">Kuliah</string>
     <string name="education_graduated">Sudah lulus / bekerja</string>
+
+    <!-- Pertanyaan usia dan kontak orang tua (web: Components/Auth/EducationLevelFields.tsx) -->
+    <string name="guardian_age_question">Usiamu sudah %1$d tahun?</string>
+    <string name="guardian_yes">Ya</string>
+    <string name="guardian_no">Belum</string>
+    <string name="guardian_answer_required">Pilih Ya atau Belum.</string>
+    <string name="guardian_channel_legend">Kirim tautan persetujuan ke</string>
+    <string name="guardian_channel_whatsapp">WhatsApp orang tua</string>
+    <string name="guardian_channel_email">Email orang tua</string>
+    <string name="guardian_phone_label">Nomor WhatsApp orang tua atau wali</string>
+    <string name="guardian_phone_hint">0812 3456 7890</string>
+    <string name="guardian_phone_helper">Kami kirim tautan persetujuan ke WhatsApp nomor ini. Akunmu bisa dipakai setelah orang tua atau wali menyetujui.</string>
+    <string name="guardian_phone_required">Tulis nomor WhatsApp orang tua atau wali.</string>
+    <string name="guardian_email_label">Email orang tua atau wali</string>
+    <string name="guardian_email_hint">nama@contoh.id</string>
+    <string name="guardian_email_helper">Kami kirim tautan persetujuan ke email ini. Akunmu bisa dipakai setelah orang tua atau wali menyetujui.</string>
+    <string name="guardian_email_required">Tulis email orang tua atau wali.</string>
+    <string name="guardian_email_invalid">Tulis email yang benar, misalnya nama@contoh.id.</string>
+
+    <!-- Daftar: kode email dan kode Mitra (web: Auth/Register.tsx, Components/Auth/EmailCodeForm.tsx) -->
+    <string name="register_email_code_note">Kami kirim kode 6 angka ke email ini sebelum akunmu dibuat.</string>
+    <string name="register_code_title">Cek email kamu</string>
+    <string name="register_code_subtitle">Masukkan kode dari email untuk membuat akunmu.</string>
+    <string name="register_code_sent">Kode 6 angka dikirim ke %1$s. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
+    <string name="register_code_label">Kode dari email</string>
+    <string name="register_code_change_email">Ganti email</string>
+    <string name="register_code_submit">Buat akun</string>
+    <string name="register_join_event">Kamu akan bergabung ke %1$s lewat kode %2$s.</string>
+    <string name="register_join_class">Kamu akan bergabung ke kelas %1$s di %2$s.</string>
+    <string name="register_join_drop">Bukan, daftar biasa</string>
+
+    <!-- Menunggu persetujuan orang tua (web: Auth/GuardianConsentWaiting.tsx) -->
+    <string name="consent_title_pending">Menunggu persetujuan orang tua</string>
+    <string name="consent_title_declined">Pendaftaran ditolak orang tua</string>
+    <string name="consent_title_revoked">Persetujuan ditarik</string>
+    <string name="consent_where_email">email %1$s</string>
+    <string name="consent_where_whatsapp">WhatsApp %1$s</string>
+    <string name="consent_guardian">orang tua atau wali</string>
+    <string name="consent_word_contact">kontak</string>
+    <string name="consent_word_number">nomor</string>
+    <string name="consent_word_email">email</string>
+    <string name="consent_queued">Tautan persetujuan sedang dikirim ke %1$s. Muat ulang halaman ini beberapa saat lagi.</string>
+    <string name="consent_sent">Tautan persetujuan sudah dikirim ke %1$s. Akunmu bisa dipakai setelah orang tua atau wali menyetujui. Tautan berlaku sampai %2$s.</string>
+    <string name="consent_limited">Tautan untuk %1$s belum bisa dikirim lagi hari ini. Coba besok, atau ganti %2$s orang tua.</string>
+    <string name="consent_failed">Tautan untuk %1$s belum terkirim. Kirim ulang tautan.</string>
+    <string name="consent_failed_email_closed">Tautan untuk %1$s belum terkirim. Ganti kontak orang tua ke nomor WhatsApp.</string>
+    <string name="consent_expired">Tautan untuk %1$s sudah kedaluwarsa. Kirim ulang tautan supaya orang tua atau wali bisa menyetujui.</string>
+    <string name="consent_declined">Orang tua atau wali di %1$s %2$s menolak pendaftaran ini, jadi akunmu tetap terkunci. Kamu bisa mengirim ulang tautan atau mengganti %3$s orang tua.</string>
+    <string name="consent_revoked">Orang tua atau wali di %1$s %2$s menarik persetujuannya, jadi akunmu terkunci lagi sampai mereka menyetujui kembali.</string>
+    <string name="consent_resend">Kirim ulang tautan</string>
+    <string name="consent_change_contact">Ganti kontak orang tua</string>
+    <string name="consent_change_number">Ganti nomor orang tua</string>
+    <string name="consent_cancel">Batal</string>
+    <string name="consent_send_email">Kirim ke email ini</string>
+    <string name="consent_send_number">Kirim ke nomor ini</string>
+    <string name="consent_sign_out">Keluar</string>
+    <string name="consent_delete_account">Hapus akun</string>
 </resources>

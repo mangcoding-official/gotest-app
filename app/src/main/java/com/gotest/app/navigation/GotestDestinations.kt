@@ -27,6 +27,9 @@ import kotlinx.serialization.Serializable
 /** Masuk Anak: family code, name, PIN (T-018). */
 @Serializable data object ChildLoginDestination
 
+/** "Menunggu persetujuan orang tua" for an under-age account (Aturan 2.15). */
+@Serializable data object GuardianConsentDestination
+
 // Top-level tabs
 
 /** The server refused this app version (426 `update_required`, T-018). */

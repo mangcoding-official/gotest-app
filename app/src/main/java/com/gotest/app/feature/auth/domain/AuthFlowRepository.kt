@@ -1,6 +1,7 @@
 package com.gotest.app.feature.auth.domain
 
 import com.gotest.app.core.model.EducationLevel
+import kotlinx.coroutines.flow.Flow
 
 /** A refusal with the server's own text (the same as on the web), shown under [field]. */
 class AuthFlowError(
@@ -58,5 +59,6 @@ interface AuthFlowRepository {
     suspend fun completePhoneRegistration(
         fullName: String,
         level: EducationLevel,
-    ): Result<Unit>
+        guardian: GuardianAnswer? = null,
+    ): Result<SignUpResult>
 }

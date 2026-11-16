@@ -7,21 +7,25 @@ import com.gotest.app.core.session.SessionStore
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.FamilyChild
+import com.gotest.app.feature.auth.domain.GuardianAnswer
+import com.gotest.app.feature.auth.domain.GuardianChannel
 import com.gotest.app.feature.auth.domain.PhoneVerification
 import com.gotest.app.feature.auth.domain.PinLockout
+import com.gotest.app.feature.auth.domain.SignUpResult
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Dummy data until the API exists (README): family code `KLG123` with Raka and Sinta, PIN `2468`;
  * a reset link whose token is `kedaluwarsa` has expired; WhatsApp code `123456`, where 0812-3456-7890 is
- * an existing account and any other number signs up. Texts and limits are the web's.
+ * an existing account and any other number signs up (Daftar: [FakeSignUpRepository]). Texts and limits are the web's.
  */
 @Singleton
 class FakeAuthFlowRepository
     @Inject
     constructor(
         private val session: SessionStore,
+        private val signUps: FakeSignUpRepository,
     ) : AuthFlowRepository {
         private val lockout = PinLockout()
         private val pinStates = mutableMapOf<String, PinLockout.State>()
@@ -146,15 +150,31 @@ class FakeAuthFlowRepository
         override suspend fun completePhoneRegistration(
             fullName: String,
             level: EducationLevel,
-        ): Result<Unit> {
+            guardian: GuardianAnswer?,
+        ): Result<SignUpResult> {
             simulateLatency()
             val pending = verifiedPhone?.takeIf { System.currentTimeMillis() - it.second <= REGISTRATION_MILLIS }
             verifiedPhone = null
-            return if (pending == null) {
-                Result.failure(AuthFlowError("name", "Waktu pendaftaran habis. Minta kode baru dengan nomor HP kamu."))
-            } else {
-                session.save(FAKE_PHONE_TOKEN)
-                Result.success(Unit)
+            val ownNumber =
+                guardian?.channel == GuardianChannel.WhatsApp &&
+                    guardian.contact?.let(PhoneNumber::normalize) == pending?.first
+            return when {
+                pending == null -> {
+                    Result.failure(
+                        AuthFlowError("name", "Waktu pendaftaran habis. Minta kode baru dengan nomor HP kamu."),
+                    )
+                }
+
+                ownNumber -> {
+                    verifiedPhone = pending
+                    Result.failure(
+                        AuthFlowError("guardian_phone", "Tulis nomor orang tua atau wali, bukan nomormu sendiri."),
+                    )
+                }
+
+                else -> {
+                    Result.success(signUps.finishSignUp(FAKE_PHONE_TOKEN, guardian))
+                }
             }
         }
 
