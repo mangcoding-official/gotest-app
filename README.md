@@ -8,7 +8,13 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
 
 - Butuh Android Studio versi stabil terbaru. Proyek ini memakai AGP 9.4.1; Android Studio 2024.3 tidak
   bisa membukanya. Butuh juga JDK 17+ dan Android SDK 37.
-- Build dan pemeriksaan: `./gradlew assembleDebug ktlintCheck detekt lintDebug`
+- Build dan pemeriksaan: `./gradlew assembleDebug ktlintCheck detekt lintDebug testDebugUnitTest`
+- **Alamat server:** build release memakai `https://gotest.id/`. Build debug memakai server lokal
+  `http://10.0.2.2:8000/` (alamat komputer dari emulator); ganti dengan
+  `gotest.apiBaseUrl=https://…/` di `~/.gradle/gradle.properties` atau `-Pgotest.apiBaseUrl=…`.
+- **Fitur yang disembunyikan** sampai ada di web (`core/config/AppFeatures.kt`, T-018): Asisten AI,
+  Upgrade/Langganan/promo/pembayaran, Notifikasi, Paket Tersimpan, Pengingat Belajar, Unduh Data Akun.
+  Rutenya tidak didaftarkan dan tidak ada tombol menuju ke sana; kodenya tetap ada.
 - **Login dummy:** email apa pun yang valid dengan password minimal 8 karakter, atau tombol
   "Masuk dengan Google".
 - **Kode Main Bareng dummy:**
