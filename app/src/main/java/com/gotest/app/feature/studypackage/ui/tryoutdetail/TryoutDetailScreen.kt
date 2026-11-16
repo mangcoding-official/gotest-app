@@ -46,7 +46,8 @@ import kotlinx.coroutines.launch
 fun TryoutDetailRoute(
     onBack: () -> Unit,
     onStartExam: (packageId: String) -> Unit,
-    onOpenSavedPackages: () -> Unit,
+    /** Null while Paket Tersimpan is hidden (AppFeatures): no bookmark button. */
+    onOpenSavedPackages: (() -> Unit)?,
     modifier: Modifier = Modifier,
     viewModel: TryoutDetailViewModel = hiltViewModel(),
 ) {
@@ -57,7 +58,9 @@ fun TryoutDetailRoute(
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             is TryoutDetailEffect.BookmarkChanged -> {
-                scope.launch { snackbarHostState.showBookmarkResult(effect.saved, resources, onOpenSavedPackages) }
+                onOpenSavedPackages?.let { openSaved ->
+                    scope.launch { snackbarHostState.showBookmarkResult(effect.saved, resources, openSaved) }
+                }
             }
         }
     }
@@ -68,6 +71,7 @@ fun TryoutDetailRoute(
         onBack = onBack,
         onStartExam = onStartExam,
         modifier = modifier,
+        showBookmark = onOpenSavedPackages != null,
     )
 }
 
@@ -83,6 +87,7 @@ fun TryoutDetailScreen(
     onBack: () -> Unit,
     onStartExam: (packageId: String) -> Unit,
     modifier: Modifier = Modifier,
+    showBookmark: Boolean = true,
 ) {
     Scaffold(
         modifier = modifier,
@@ -91,7 +96,7 @@ fun TryoutDetailScreen(
                 title = stringResource(R.string.studypackage_tryout_detail_title),
                 navigationIcon = { GotestBackButton(onClick = onBack) },
                 actions = {
-                    if (uiState is TryoutDetailUiState.Success) {
+                    if (showBookmark && uiState is TryoutDetailUiState.Success) {
                         BookmarkButton(
                             isSaved = uiState.isSaved,
                             onClick = { onEvent(TryoutDetailUiEvent.BookmarkClicked) },

@@ -3,10 +3,15 @@ package com.gotest.app.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -15,8 +20,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestBottomBar
 import com.gotest.app.core.designsystem.component.GotestBottomBarItem
+import com.gotest.app.core.network.SessionEvent
+import com.gotest.app.core.ui.ObserveAsEvents
 
 /**
  * App shell. The bottom bar floats over the content (as in the design) and only shows on
@@ -24,9 +32,36 @@ import com.gotest.app.core.designsystem.component.GotestBottomBarItem
  */
 @Composable
 fun GotestApp(
+    appLink: AppLink?,
+    onAppLinkConsume: () -> Unit,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    viewModel: AppShellViewModel = hiltViewModel(),
 ) {
+    val isSignedIn by viewModel.isSignedIn.collectAsStateWithLifecycle()
+    // A saved session opens on Beranda after the app was closed (T-018).
+    val startDestination: Any = remember { if (viewModel.startSignedIn) HomeDestination else OnboardingDestination }
+
+    ObserveAsEvents(viewModel.sessionEvents) { event ->
+        val target: Any =
+            when (event) {
+                SessionEvent.SignedOut -> LoginDestination
+                SessionEvent.UpdateRequired -> UpdateRequiredDestination
+            }
+        navController.navigate(target) { popUpTo(navController.graph.id) { inclusive = true } }
+    }
+
+    // A gotest.id link opens its screen once the user is signed in; until then it waits.
+    val currentOnAppLinkConsume by rememberUpdatedState(onAppLinkConsume)
+    LaunchedEffect(appLink, isSignedIn) {
+        val link = appLink ?: return@LaunchedEffect
+        if (!isSignedIn) return@LaunchedEffect
+        if (link is AppLink.MainBarengCode) {
+            navController.navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
+        }
+        currentOnAppLinkConsume()
+    }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val currentTab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
@@ -36,6 +71,7 @@ fun GotestApp(
         // design, where the status bar always takes the page colour) and pads its content.
         GotestNavHost(
             navController = navController,
+            startDestination = startDestination,
             modifier = Modifier.fillMaxSize(),
         )
         if (currentTab != null) {
@@ -50,7 +86,7 @@ fun GotestApp(
                     },
                 selectedIndex = currentTab.ordinal,
                 onSelect = { index -> navController.navigateToTab(TopLevelDestination.entries[index]) },
-                onAssistantClick = { navController.navigate(AssistantDestination) },
+                onAssistantClick = { navController.navigate(AssistantDestination) }.takeIf { AppFeatures.ASSISTANT },
                 assistantContentDescription = stringResource(R.string.cd_ai_assistant),
                 modifier = Modifier.align(Alignment.BottomCenter),
             )

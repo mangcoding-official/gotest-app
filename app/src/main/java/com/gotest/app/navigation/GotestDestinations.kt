@@ -14,6 +14,10 @@ import kotlinx.serialization.Serializable
 @Serializable data object ForgotPasswordDestination
 
 // Top-level tabs
+
+/** The server refused this app version (426 `update_required`, T-018). */
+@Serializable data object UpdateRequiredDestination
+
 @Serializable data object HomeDestination
 
 @Serializable data object StudyPackageDestination
@@ -134,9 +138,13 @@ import kotlinx.serialization.Serializable
 
 // Main Bareng (multiplayer)
 
-/** [openJoinSheet] opens "Gabung dengan kode" straight away (Beranda's "Gabung dengan Kode"). */
+/**
+ * [openJoinSheet] opens "Gabung dengan kode" straight away (Beranda's "Gabung dengan Kode");
+ * [joinCode] fills it in, from a `gotest.id/main-bareng?kode=…` link (T-018).
+ */
 @Serializable data class MultiplayerDestination(
     val openJoinSheet: Boolean = false,
+    val joinCode: String? = null,
 )
 
 /** [copyFromGameCode] prefills the form with that game's settings ("Buat Ulang dengan Pengaturan Sama"). */

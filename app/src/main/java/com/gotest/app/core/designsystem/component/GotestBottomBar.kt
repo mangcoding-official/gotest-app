@@ -55,7 +55,8 @@ fun GotestBottomBar(
     items: List<GotestBottomBarItem>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
-    onAssistantClick: () -> Unit,
+    /** Null hides the round Asisten AI button (AppFeatures.ASSISTANT). */
+    onAssistantClick: (() -> Unit)?,
     assistantContentDescription: String,
     modifier: Modifier = Modifier,
 ) {
@@ -102,24 +103,26 @@ fun GotestBottomBar(
                     }
                 }
             }
-            Surface(
-                onClick = onAssistantClick,
-                modifier =
-                    Modifier
-                        .size(sizes.navBarFab)
-                        .semantics { contentDescription = assistantContentDescription },
-                shape = GotestTheme.shapes.full,
-                color = colors.bgBrandDark,
-                contentColor = colors.iconOnBrand,
-                border = BorderStroke(sizes.strokeThin, colors.borderSubtle),
-                shadowElevation = sizes.elevationShadow,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        painter = painterResource(GotestIcons.AiChat),
-                        contentDescription = null,
-                        modifier = Modifier.size(sizes.iconMd),
-                    )
+            if (onAssistantClick != null) {
+                Surface(
+                    onClick = onAssistantClick,
+                    modifier =
+                        Modifier
+                            .size(sizes.navBarFab)
+                            .semantics { contentDescription = assistantContentDescription },
+                    shape = GotestTheme.shapes.full,
+                    color = colors.bgBrandDark,
+                    contentColor = colors.iconOnBrand,
+                    border = BorderStroke(sizes.strokeThin, colors.borderSubtle),
+                    shadowElevation = sizes.elevationShadow,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(GotestIcons.AiChat),
+                            contentDescription = null,
+                            modifier = Modifier.size(sizes.iconMd),
+                        )
+                    }
                 }
             }
         }

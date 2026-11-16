@@ -3,6 +3,7 @@ package com.gotest.app.feature.studypackage.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.studypackage.ui.packagelist.PackageListRoute
 import com.gotest.app.feature.studypackage.ui.practicedetail.PracticeDetailRoute
 import com.gotest.app.feature.studypackage.ui.savedpackages.SavedPackagesRoute
@@ -24,7 +25,11 @@ import com.gotest.app.navigation.TryoutDetailDestination
 /** Paket tab, Paket Belajar, Subjek, Topik, Detail Paket, Detail Tryout and Paket Tersimpan. */
 fun NavGraphBuilder.studyPackageScreens(navController: NavController) {
     val openSearch: () -> Unit = { navController.navigate(SearchDestination) }
-    val openSavedPackages: () -> Unit = { navController.navigate(SavedPackagesDestination) }
+    // Null while Paket Tersimpan is hidden (AppFeatures): no saved icon, bookmark, or "Lihat" link.
+    val openSavedPackages: (() -> Unit)? =
+        {
+            navController.navigate(SavedPackagesDestination)
+        }.takeIf { AppFeatures.SAVED_PACKAGES }
     val startExam: (String) -> Unit = { packageId -> navController.navigate(ExamDestination(packageId)) }
     val openTryout: (String) -> Unit = { packageId -> navController.navigate(TryoutDetailDestination(packageId)) }
 
@@ -75,11 +80,13 @@ fun NavGraphBuilder.studyPackageScreens(navController: NavController) {
             onOpenSavedPackages = openSavedPackages,
         )
     }
-    composable<SavedPackagesDestination> {
-        SavedPackagesRoute(
-            onBack = navController::navigateUp,
-            onOpenTryout = openTryout,
-            onStartExam = startExam,
-        )
+    if (AppFeatures.SAVED_PACKAGES) {
+        composable<SavedPackagesDestination> {
+            SavedPackagesRoute(
+                onBack = navController::navigateUp,
+                onOpenTryout = openTryout,
+                onStartExam = startExam,
+            )
+        }
     }
 }

@@ -181,14 +181,19 @@ private fun RowScope.StatTile(
 fun PlanBanner(
     subscription: Subscription,
     daysRemaining: Long,
-    onUpgrade: () -> Unit,
-    onOpenSubscription: () -> Unit,
+    onUpgrade: (() -> Unit)?,
+    onOpenSubscription: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val shape = GotestTheme.shapes.largeIncreased
     val color = GotestTheme.colors.bgBrandDark
-    if (subscription.isPremium) {
+    if (subscription.isPremium && onOpenSubscription != null) {
         Surface(onClick = onOpenSubscription, modifier = modifier.fillMaxWidth(), shape = shape, color = color) {
+            PlanBannerContent(subscription = subscription, daysRemaining = daysRemaining)
+        }
+    } else if (subscription.isPremium || onUpgrade == null) {
+        // Payments hidden (AppFeatures): the plan is shown without Upgrade or Langganan.
+        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = color) {
             PlanBannerContent(subscription = subscription, daysRemaining = daysRemaining)
         }
     } else {

@@ -7,6 +7,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.account.ui.changepassword.ChangePasswordRoute
 import com.gotest.app.feature.account.ui.components.AccountNotice
 import com.gotest.app.feature.account.ui.deleteaccount.DeleteAccountRoute
@@ -49,8 +50,13 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             navigation =
                 ProfileNavigation(
                     onOpenSettings = { navController.navigate(SettingsDestination) },
-                    onUpgrade = { navController.navigate(UpgradePlanDestination) },
-                    onOpenSubscription = { navController.navigate(SubscriptionDestination) },
+                    onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
+                    onOpenSubscription =
+                        {
+                            navController.navigate(
+                                SubscriptionDestination,
+                            )
+                        }.takeIf { AppFeatures.PAYMENTS },
                     onEditProfile = { navController.navigate(EditProfileDestination) },
                     onChangePassword = { navController.navigate(ChangePasswordDestination) },
                     onOpenHelp = { navController.navigate(HelpDestination) },
@@ -80,11 +86,13 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
         )
     }
     settingsScreens(navController)
-    composable<SubscriptionDestination> {
-        SubscriptionRoute(
-            onBack = navController::navigateUp,
-            onUpgrade = { navController.navigate(UpgradePlanDestination) },
-        )
+    if (AppFeatures.PAYMENTS) {
+        composable<SubscriptionDestination> {
+            SubscriptionRoute(
+                onBack = navController::navigateUp,
+                onUpgrade = { navController.navigate(UpgradePlanDestination) },
+            )
+        }
     }
     composable<HelpDestination> {
         HelpRoute(
@@ -105,9 +113,17 @@ private fun NavGraphBuilder.settingsScreens(navController: NavController) {
             navigation =
                 SettingsNavigation(
                     onOpenMainLevel = { navController.navigate(MainLevelDestination) },
-                    onOpenSubscription = { navController.navigate(SubscriptionDestination) },
+                    onOpenSubscription =
+                        {
+                            navController.navigate(
+                                SubscriptionDestination,
+                            )
+                        }.takeIf { AppFeatures.PAYMENTS },
                     onOpenPersonalData = { navController.navigate(PersonalDataDestination) },
-                    onOpenDownloadData = { navController.navigate(DownloadAccountDataDestination) },
+                    onOpenDownloadData =
+                        {
+                            navController.navigate(DownloadAccountDataDestination)
+                        }.takeIf { AppFeatures.ACCOUNT_DATA_DOWNLOAD },
                 ),
             notice = entry.accountNotice(),
             onNoticeConsume = entry::consumeAccountNotice,
@@ -127,11 +143,13 @@ private fun NavGraphBuilder.settingsScreens(navController: NavController) {
             onNoticeConsume = entry::consumeAccountNotice,
         )
     }
-    composable<DownloadAccountDataDestination> {
-        DownloadDataRoute(
-            onBack = navController::navigateUp,
-            onRequestSuccess = { navController.navigateUpWithNotice(AccountNotice.DataCopyRequested) },
-        )
+    if (AppFeatures.ACCOUNT_DATA_DOWNLOAD) {
+        composable<DownloadAccountDataDestination> {
+            DownloadDataRoute(
+                onBack = navController::navigateUp,
+                onRequestSuccess = { navController.navigateUpWithNotice(AccountNotice.DataCopyRequested) },
+            )
+        }
     }
 }
 

@@ -63,7 +63,7 @@ private const val PERCENT = 100
 internal fun HomeTopBar(
     profile: HomeProfileSummary,
     onSearch: () -> Unit,
-    onNotifications: () -> Unit,
+    onNotifications: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -93,19 +93,21 @@ internal fun HomeTopBar(
                 contentDescription = stringResource(R.string.home_cd_search),
                 onClick = onSearch,
             )
-            GotestIconButton(
-                icon = GotestIcons.Linear.Notification,
-                contentDescription =
-                    stringResource(
-                        if (profile.hasUnreadNotifications) {
-                            R.string.home_cd_notifications_unread
-                        } else {
-                            R.string.home_cd_notifications
-                        },
-                    ),
-                onClick = onNotifications,
-                showBadge = profile.hasUnreadNotifications,
-            )
+            if (onNotifications != null) {
+                GotestIconButton(
+                    icon = GotestIcons.Linear.Notification,
+                    contentDescription =
+                        stringResource(
+                            if (profile.hasUnreadNotifications) {
+                                R.string.home_cd_notifications_unread
+                            } else {
+                                R.string.home_cd_notifications
+                            },
+                        ),
+                    onClick = onNotifications,
+                    showBadge = profile.hasUnreadNotifications,
+                )
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.model.PackageType
 import com.gotest.app.feature.home.ui.home.HomeRoute
 import com.gotest.app.feature.home.ui.notification.NotificationRoute
@@ -28,7 +29,12 @@ fun NavGraphBuilder.homeScreens(navController: NavController) {
     composable<HomeDestination> {
         HomeRoute(
             onSearch = { navController.navigate(SearchDestination) },
-            onNotifications = { navController.navigate(NotificationDestination) },
+            onNotifications =
+                {
+                    navController.navigate(
+                        NotificationDestination,
+                    )
+                }.takeIf { AppFeatures.NOTIFICATION_INBOX },
             onContinue = { packageId -> navController.navigate(ExamDestination(packageId)) },
             onBrowsePackages = { navController.openTab(TopLevelDestination.StudyPackage) },
             onOpenPackage = navController::navigateToPackage,
@@ -36,7 +42,10 @@ fun NavGraphBuilder.homeScreens(navController: NavController) {
             onOpenResult = { attemptId -> navController.navigate(HistoryDetailDestination(attemptId)) },
             onJoinGame = { navController.navigate(MultiplayerDestination(openJoinSheet = true)) },
             onCreateGame = { navController.navigate(CreateGameDestination()) },
-            onOpenPromo = { promoId -> navController.navigate(PromoDestination(promoId)) },
+            onOpenPromo =
+                { promoId: String ->
+                    navController.navigate(PromoDestination(promoId))
+                }.takeIf { AppFeatures.PAYMENTS },
         )
     }
     composable<SearchDestination> {
@@ -48,6 +57,10 @@ fun NavGraphBuilder.homeScreens(navController: NavController) {
             onOpenArticle = { navController.navigate(HelpDestination) },
         )
     }
+    if (AppFeatures.NOTIFICATION_INBOX) notificationScreen(navController)
+}
+
+private fun NavGraphBuilder.notificationScreen(navController: NavController) {
     composable<NotificationDestination> {
         NotificationRoute(
             onBack = navController::navigateUp,

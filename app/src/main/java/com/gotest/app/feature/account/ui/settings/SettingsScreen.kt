@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestChip
 import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestErrorView
@@ -55,9 +56,11 @@ import java.util.Locale
 /** Navigation out of Pengaturan, grouped so the screen signature stays readable. */
 data class SettingsNavigation(
     val onOpenMainLevel: () -> Unit,
-    val onOpenSubscription: () -> Unit,
+    /** Null while payments are hidden (AppFeatures): no Langganan section. */
+    val onOpenSubscription: (() -> Unit)?,
     val onOpenPersonalData: () -> Unit,
-    val onOpenDownloadData: () -> Unit,
+    /** Null while Unduh Data Akun is hidden (AppFeatures): no row. */
+    val onOpenDownloadData: (() -> Unit)?,
 )
 
 /** [notice] reports Jenjang Utama and Unduh Data Akun results. */
@@ -166,23 +169,26 @@ private fun SettingsContent(
         }
         AccountSectionTitle(title = stringResource(R.string.account_settings_learning))
         AccountListCard {
-            SwitchSettingRow(
-                title = stringResource(R.string.account_settings_reminder),
-                subtitle =
-                    stringResource(
-                        R.string.account_settings_reminder_schedule,
-                        GotestFormat.time(settings.reminderTime),
-                    ),
-                checked = settings.isOn(SettingSwitch.StudyReminder),
-                onCheckedChange = { onSwitchChange(SettingSwitch.StudyReminder, it) },
-            )
+            // Pengingat Belajar is hidden until the web has it (AppFeatures).
+            if (AppFeatures.STUDY_REMINDER) {
+                SwitchSettingRow(
+                    title = stringResource(R.string.account_settings_reminder),
+                    subtitle =
+                        stringResource(
+                            R.string.account_settings_reminder_schedule,
+                            GotestFormat.time(settings.reminderTime),
+                        ),
+                    checked = settings.isOn(SettingSwitch.StudyReminder),
+                    onCheckedChange = { onSwitchChange(SettingSwitch.StudyReminder, it) },
+                )
+            }
             ClickableSettingRow(
                 title = stringResource(R.string.account_settings_main_level),
                 subtitle = stringResource(settings.mainLevel.titleRes),
                 onClick = navigation.onOpenMainLevel,
             )
         }
-        SubscriptionSection(state = state, onOpenSubscription = navigation.onOpenSubscription)
+        navigation.onOpenSubscription?.let { SubscriptionSection(state = state, onOpenSubscription = it) }
         PrivacySection(
             promoEmails = settings.isOn(SettingSwitch.PromoEmails),
             onPromoEmailsChange = { onSwitchChange(SettingSwitch.PromoEmails, it) },
@@ -220,7 +226,7 @@ private fun PrivacySection(
     promoEmails: Boolean,
     onPromoEmailsChange: (Boolean) -> Unit,
     onOpenPersonalData: () -> Unit,
-    onOpenDownloadData: () -> Unit,
+    onOpenDownloadData: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
@@ -237,11 +243,13 @@ private fun PrivacySection(
                 checked = promoEmails,
                 onCheckedChange = onPromoEmailsChange,
             )
-            ClickableSettingRow(
-                title = stringResource(R.string.account_settings_download),
-                subtitle = stringResource(R.string.account_settings_download_subtitle),
-                onClick = onOpenDownloadData,
-            )
+            if (onOpenDownloadData != null) {
+                ClickableSettingRow(
+                    title = stringResource(R.string.account_settings_download),
+                    subtitle = stringResource(R.string.account_settings_download_subtitle),
+                    onClick = onOpenDownloadData,
+                )
+            }
         }
     }
 }

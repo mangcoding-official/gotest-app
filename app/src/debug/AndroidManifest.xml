@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application>
+    <!-- Debug builds may talk to a local server over http (T-018). -->
+    <application android:networkSecurityConfig="@xml/network_security_config">
         <!-- Debug-only living style guide: adb shell am start -n com.gotest.app/.catalog.DesignSystemCatalogActivity -->
         <activity
             android:name=".catalog.DesignSystemCatalogActivity"

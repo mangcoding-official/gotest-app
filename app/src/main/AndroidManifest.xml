@@ -8,6 +8,7 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- E-wallet payment: "Buka <wallet>" checks whether the wallet app is installed (Android 11+ visibility). -->
     <queries>
@@ -37,6 +38,21 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Links from gotest.id that open in the app (T-018): reset password, Gabung ke kelas, Main Bareng code.
+                 Verified by https://gotest.id/.well-known/assetlinks.json (API preflight 3.1). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="gotest.id" />
+                <data android:pathPrefix="/reset-password/" />
+                <data android:pathPrefix="/gabung/" />
+                <data android:path="/main-bareng" />
             </intent-filter>
         </activity>
 

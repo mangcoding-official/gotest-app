@@ -24,9 +24,17 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Server address per build type (T-018): release talks to gotest.id.
+        buildConfigField("String", "API_BASE_URL", "\"https://gotest.id/\"")
     }
 
     buildTypes {
+        debug {
+            // A local server by default (the emulator reaches the host as 10.0.2.2); point at staging with
+            // `gotest.apiBaseUrl=https://…/` in ~/.gradle/gradle.properties or with -Pgotest.apiBaseUrl=….
+            val apiBaseUrl = providers.gradleProperty("gotest.apiBaseUrl").getOrElse("http://10.0.2.2:8000/")
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -43,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     lint {
         // Indonesian has no grammatical plural; "%d dari %d" strings are already correct.
@@ -86,6 +95,9 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.compose)
     implementation(libs.zxing.core)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization)
     ksp(libs.hilt.compiler)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
@@ -93,6 +105,8 @@ dependencies {
     detektPlugins(libs.compose.rules.detekt)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

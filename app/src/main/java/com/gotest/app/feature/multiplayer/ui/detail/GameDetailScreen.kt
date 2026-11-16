@@ -63,7 +63,8 @@ import java.time.LocalDateTime
 fun GameDetailRoute(
     onBack: () -> Unit,
     onRecreate: (copyFromGameCode: String) -> Unit,
-    onUpgrade: () -> Unit,
+    /** Null while paying in the app is hidden (AppFeatures). */
+    onUpgrade: (() -> Unit)?,
     onJoinWithCode: () -> Unit,
     onOpenGame: (code: String, screen: GameScreen) -> Unit,
     modifier: Modifier = Modifier,
@@ -74,7 +75,7 @@ fun GameDetailRoute(
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             is GameDetailEffect.OpenCreateGame -> onRecreate(effect.copyFromGameCode)
-            GameDetailEffect.OpenUpgrade -> onUpgrade()
+            GameDetailEffect.OpenUpgrade -> onUpgrade?.invoke()
             GameDetailEffect.OpenJoinSheet -> onJoinWithCode()
             is GameDetailEffect.OpenGame -> onOpenGame(effect.code, effect.screen)
         }
@@ -85,6 +86,7 @@ fun GameDetailRoute(
         onEvent = viewModel::onEvent,
         onBack = onBack,
         modifier = modifier,
+        canUpgrade = onUpgrade != null,
     )
 }
 
@@ -96,6 +98,7 @@ fun GameDetailScreen(
     onEvent: (GameDetailUiEvent) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    canUpgrade: Boolean = true,
 ) {
     Column(
         modifier =
@@ -131,7 +134,7 @@ fun GameDetailScreen(
     dialog?.let { block ->
         MbCreateBlockedDialog(
             block = block,
-            onUpgrade = { onEvent(GameDetailUiEvent.UpgradeClick) },
+            onUpgrade = if (canUpgrade) ({ onEvent(GameDetailUiEvent.UpgradeClick) }) else null,
             onJoinWithCode = { onEvent(GameDetailUiEvent.JoinWithCodeClick) },
             onReturnToGame = { onEvent(GameDetailUiEvent.ReturnToGame(it)) },
             onDismissRequest = { onEvent(GameDetailUiEvent.DismissDialog) },

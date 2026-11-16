@@ -52,7 +52,8 @@ import com.gotest.app.feature.multiplayer.ui.components.MultiplayerPreviewData
 fun MultiplayerRoute(
     onBack: () -> Unit,
     onCreateGame: () -> Unit,
-    onUpgrade: () -> Unit,
+    /** Null while paying in the app is hidden (AppFeatures). */
+    onUpgrade: (() -> Unit)?,
     onOpenGame: (code: String, screen: GameScreen) -> Unit,
     onOpenResult: (code: String) -> Unit,
     onSeeAllHistory: () -> Unit,
@@ -65,7 +66,7 @@ fun MultiplayerRoute(
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             MultiplayerEffect.OpenCreateGame -> onCreateGame()
-            MultiplayerEffect.OpenUpgrade -> onUpgrade()
+            MultiplayerEffect.OpenUpgrade -> onUpgrade?.invoke()
             is MultiplayerEffect.OpenGame -> onOpenGame(effect.code, effect.screen)
         }
     }
@@ -78,6 +79,7 @@ fun MultiplayerRoute(
         onSeeAllHistory = onSeeAllHistory,
         onOpenGameDetail = onOpenGameDetail,
         modifier = modifier,
+        canUpgrade = onUpgrade != null,
     )
 }
 
@@ -91,6 +93,7 @@ fun MultiplayerScreen(
     onSeeAllHistory: () -> Unit,
     onOpenGameDetail: (code: String) -> Unit,
     modifier: Modifier = Modifier,
+    canUpgrade: Boolean = true,
 ) {
     Box(
         modifier =
@@ -129,7 +132,7 @@ fun MultiplayerScreen(
         overlay.dialog?.let { block ->
             MbCreateBlockedDialog(
                 block = block,
-                onUpgrade = { onEvent(MultiplayerUiEvent.UpgradeClick) },
+                onUpgrade = if (canUpgrade) ({ onEvent(MultiplayerUiEvent.UpgradeClick) }) else null,
                 onJoinWithCode = { onEvent(MultiplayerUiEvent.OpenJoinSheet) },
                 onReturnToGame = { onEvent(MultiplayerUiEvent.ReturnToGame(it)) },
                 onDismissRequest = { onEvent(MultiplayerUiEvent.DismissDialog) },

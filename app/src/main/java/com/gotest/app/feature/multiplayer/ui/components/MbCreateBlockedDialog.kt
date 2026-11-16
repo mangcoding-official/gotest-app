@@ -19,7 +19,7 @@ import com.gotest.app.feature.multiplayer.domain.Game
 @Composable
 fun MbCreateBlockedDialog(
     block: CreateBlock,
-    onUpgrade: () -> Unit,
+    onUpgrade: (() -> Unit)?,
     onJoinWithCode: () -> Unit,
     onReturnToGame: (Game) -> Unit,
     onDismissRequest: () -> Unit,
@@ -41,25 +41,40 @@ fun MbCreateBlockedDialog(
 @Composable
 fun MbCreateBlockedDialogContent(
     block: CreateBlock,
-    onUpgrade: () -> Unit,
+    onUpgrade: (() -> Unit)?,
     onJoinWithCode: () -> Unit,
     onReturnToGame: (Game) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (block) {
+        // Paying in the app is hidden (AppFeatures): the dialog only points to joining with a code.
         CreateBlock.PremiumRequired -> {
-            MbDialogContent(
-                icon = GotestIcons.Bold.Award,
-                tone = MbBadgeTone.Yellow,
-                title = stringResource(R.string.multiplayer_premium_dialog_title),
-                message = stringResource(R.string.multiplayer_premium_dialog_message),
-                confirmText = stringResource(R.string.multiplayer_premium_dialog_upgrade),
-                onConfirm = onUpgrade,
-                onDismiss = onJoinWithCode,
-                modifier = modifier,
-                dismissText = stringResource(R.string.multiplayer_join_title),
-            )
+            if (onUpgrade == null) {
+                MbDialogContent(
+                    icon = GotestIcons.Bold.Award,
+                    tone = MbBadgeTone.Yellow,
+                    title = stringResource(R.string.multiplayer_premium_dialog_title),
+                    message = stringResource(R.string.multiplayer_premium_dialog_message_no_upgrade),
+                    confirmText = stringResource(R.string.multiplayer_join_title),
+                    onConfirm = onJoinWithCode,
+                    onDismiss = onClose,
+                    modifier = modifier,
+                    dismissText = stringResource(R.string.multiplayer_close),
+                )
+            } else {
+                MbDialogContent(
+                    icon = GotestIcons.Bold.Award,
+                    tone = MbBadgeTone.Yellow,
+                    title = stringResource(R.string.multiplayer_premium_dialog_title),
+                    message = stringResource(R.string.multiplayer_premium_dialog_message),
+                    confirmText = stringResource(R.string.multiplayer_premium_dialog_upgrade),
+                    onConfirm = onUpgrade,
+                    onDismiss = onJoinWithCode,
+                    modifier = modifier,
+                    dismissText = stringResource(R.string.multiplayer_join_title),
+                )
+            }
         }
 
         is CreateBlock.InAnotherGame -> {
@@ -109,6 +124,26 @@ private fun MbCreateBlockedDialogInGamePreview() {
             onReturnToGame = {},
             onClose = {},
             modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
+        )
+    }
+}
+
+/** Making a game is for Premium, and paying in the app is hidden (AppFeatures): the message and Tutup. */
+@Composable
+fun MbPremiumOnlyDialog(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        MbDialogContent(
+            icon = GotestIcons.Bold.Award,
+            tone = MbBadgeTone.Yellow,
+            title = stringResource(R.string.multiplayer_premium_dialog_title),
+            message = stringResource(R.string.multiplayer_premium_dialog_message_no_upgrade),
+            confirmText = stringResource(R.string.multiplayer_close),
+            onConfirm = onDismissRequest,
+            onDismiss = onDismissRequest,
+            modifier = modifier,
         )
     }
 }

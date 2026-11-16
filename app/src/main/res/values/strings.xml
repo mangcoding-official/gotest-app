@@ -28,4 +28,9 @@
     <!-- Shared question UI ("Mobile/Answer Option") -->
     <string name="question_true">Benar</string>
     <string name="question_false">Salah</string>
+
+    <!-- 426 update_required (T-018) -->
+    <string name="update_required_title">Perbarui aplikasi Gotest untuk melanjutkan.</string>
+    <string name="update_required_message">Versi ini sudah tidak bisa dipakai. Pasang versi terbaru dari Play Store.</string>
+    <string name="update_required_action">Buka Play Store</string>
 </resources>

@@ -37,7 +37,7 @@ import com.gotest.app.feature.studypackage.ui.components.StudyPackagePreviewData
 @Composable
 fun StudyPackageRoute(
     onSearch: () -> Unit,
-    onSavedPackages: () -> Unit,
+    onSavedPackages: (() -> Unit)?,
     onCategoryClick: (categoryId: String) -> Unit,
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
@@ -66,7 +66,7 @@ fun StudyPackageScreen(
     uiState: StudyPackageUiState,
     onEvent: (StudyPackageUiEvent) -> Unit,
     onSearch: () -> Unit,
-    onSavedPackages: () -> Unit,
+    onSavedPackages: (() -> Unit)?,
     onCategoryClick: (categoryId: String) -> Unit,
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
@@ -87,11 +87,14 @@ fun StudyPackageScreen(
                 ),
             style = GotestTopAppBarStyle.Leading,
             actions = {
-                GotestIconButton(
-                    icon = GotestIcons.Linear.ArchiveTick,
-                    contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
-                    onClick = onSavedPackages,
-                )
+                // Paket Tersimpan is hidden until the web has it (AppFeatures).
+                if (onSavedPackages != null) {
+                    GotestIconButton(
+                        icon = GotestIcons.Linear.ArchiveTick,
+                        contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
+                        onClick = onSavedPackages,
+                    )
+                }
                 GotestIconButton(
                     icon = GotestIcons.Linear.SearchNormal,
                     contentDescription = stringResource(R.string.studypackage_cd_search),

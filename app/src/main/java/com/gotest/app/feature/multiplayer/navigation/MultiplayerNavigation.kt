@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.multiplayer.ui.create.CreateGameRoute
 import com.gotest.app.feature.multiplayer.ui.detail.GameDetailRoute
 import com.gotest.app.feature.multiplayer.ui.gamewaiting.GameWaitingRoute
@@ -33,7 +34,7 @@ fun NavGraphBuilder.multiplayerScreens(navController: NavController) {
         MultiplayerRoute(
             onBack = navController::navigateUp,
             onCreateGame = { navController.navigate(CreateGameDestination()) },
-            onUpgrade = { navController.navigate(UpgradePlanDestination) },
+            onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
             onOpenGame = { code, screen -> navController.navigate(screen.destination(code)) },
             onOpenResult = { navController.navigate(GameResultDestination(it)) },
             onSeeAllHistory = { navController.navigate(MultiplayerHistoryDestination) },
@@ -51,7 +52,7 @@ fun NavGraphBuilder.multiplayerScreens(navController: NavController) {
         GameDetailRoute(
             onBack = navController::navigateUp,
             onRecreate = { code -> navController.navigate(CreateGameDestination(copyFromGameCode = code)) },
-            onUpgrade = { navController.navigate(UpgradePlanDestination) },
+            onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
             onJoinWithCode = {
                 navController.navigate(MultiplayerDestination(openJoinSheet = true)) {
                     popUpTo<MultiplayerDestination> { inclusive = true }
@@ -76,7 +77,7 @@ fun NavGraphBuilder.multiplayerScreens(navController: NavController) {
             onOpenWaitingRoom = { code ->
                 navController.replaceWith<WaitingRoomDestination>(WaitingRoomDestination(code))
             },
-            onUpgrade = { navController.navigate(UpgradePlanDestination) },
+            onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
         )
     }
     composable<GamePlayDestination> {
@@ -93,7 +94,7 @@ fun NavGraphBuilder.multiplayerScreens(navController: NavController) {
     composable<GameResultDestination> {
         GameResultRoute(
             onBackToHub = navController::navigateBackFromResult,
-            onUpgrade = { navController.navigate(UpgradePlanDestination) },
+            onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
             onReplay = { code -> navController.replaceWith<GameResultDestination>(WaitingRoomDestination(code)) },
         )
     }

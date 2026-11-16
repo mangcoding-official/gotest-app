@@ -63,8 +63,9 @@ import kotlinx.coroutines.launch
 /** Navigation out of Profil, grouped so the screen signature stays readable. */
 data class ProfileNavigation(
     val onOpenSettings: () -> Unit,
-    val onUpgrade: () -> Unit,
-    val onOpenSubscription: () -> Unit,
+    /** Null while payments are hidden (AppFeatures): the plan banner only shows the plan. */
+    val onUpgrade: (() -> Unit)?,
+    val onOpenSubscription: (() -> Unit)?,
     val onEditProfile: () -> Unit,
     val onChangePassword: () -> Unit,
     val onOpenHelp: () -> Unit,
