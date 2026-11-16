@@ -17,12 +17,16 @@ import com.gotest.app.feature.account.ui.help.HelpRoute
 import com.gotest.app.feature.account.ui.helptopic.HelpTopicRoute
 import com.gotest.app.feature.account.ui.mainlevel.MainLevelRoute
 import com.gotest.app.feature.account.ui.personaldata.PersonalDataRoute
+import com.gotest.app.feature.account.ui.phone.AccountPhoneRoute
 import com.gotest.app.feature.account.ui.profile.ProfileNavigation
 import com.gotest.app.feature.account.ui.profile.ProfileRoute
+import com.gotest.app.feature.account.ui.sessions.ActiveSessionsRoute
 import com.gotest.app.feature.account.ui.settings.SettingsNavigation
 import com.gotest.app.feature.account.ui.settings.SettingsRoute
 import com.gotest.app.feature.account.ui.subscription.SubscriptionRoute
 import com.gotest.app.feature.auth.navigation.navigateToOnboardingClearingAll
+import com.gotest.app.navigation.AccountPhoneDestination
+import com.gotest.app.navigation.ActiveSessionsDestination
 import com.gotest.app.navigation.ChangePasswordDestination
 import com.gotest.app.navigation.DeleteAccountDestination
 import com.gotest.app.navigation.DownloadAccountDataDestination
@@ -61,6 +65,8 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
                     onChangePassword = { navController.navigate(ChangePasswordDestination) },
                     onOpenHelp = { navController.navigate(HelpDestination) },
                     onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+                    onOpenPhone = { navController.navigate(AccountPhoneDestination) },
+                    onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
                 ),
             notice = entry.accountNotice(),
             onNoticeConsume = entry::consumeAccountNotice,
@@ -78,6 +84,12 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             onBack = navController::navigateUp,
             onChangeSuccess = { navController.navigateUpWithNotice(AccountNotice.PasswordChanged) },
         )
+    }
+    composable<AccountPhoneDestination> {
+        AccountPhoneRoute(onBack = navController::navigateUp)
+    }
+    composable<ActiveSessionsDestination> {
+        ActiveSessionsRoute(onBack = navController::navigateUp)
     }
     composable<DeleteAccountDestination> {
         DeleteAccountRoute(

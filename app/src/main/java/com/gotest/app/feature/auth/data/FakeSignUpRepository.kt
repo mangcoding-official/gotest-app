@@ -1,5 +1,6 @@
 package com.gotest.app.feature.auth.data
 
+import com.gotest.app.core.data.fake.FakeAccountStore
 import com.gotest.app.core.data.fake.simulateLatency
 import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.model.PhoneNumber
@@ -33,6 +34,7 @@ class FakeSignUpRepository
     @Inject
     constructor(
         private val session: SessionStore,
+        private val accounts: FakeAccountStore,
     ) : SignUpRepository {
         private var pendingSignUp: SignUpForm? = null
         private var emailCodeWrong = 0
@@ -94,6 +96,7 @@ class FakeSignUpRepository
 
                 else -> {
                     pendingSignUp = null
+                    accounts.useNewEmailAccount(form.fullName, form.email)
                     Result.success(finishSignUp(FAKE_EMAIL_TOKEN, form.guardian))
                 }
             }

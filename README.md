@@ -25,6 +25,9 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
 - **Daftar dengan email dummy:** kode email `123456`; `gilangpermana@mail.com` sudah terdaftar. Jenjang SD, SMP,
   atau SMA/SMK dengan jawaban "Belum" (di bawah 18 tahun) membuka "Menunggu persetujuan orang tua"; tautan
   persetujuan bisa dikirim 3 kali per jam. Status menunggu belum tersimpan setelah aplikasi ditutup (menunggu API).
+- **Profil dummy:** nomor WhatsApp dengan kode `123456`; `0812 1111 2222` sudah dipakai akun lain. Sesi Aktif berisi
+  tiga perangkat; "Keluar dari perangkat lain" menerima password `rahasia123`. Masuk Anak membuka akun anak
+  "Keluarga Pratama" (tanpa ubah profil, nomor, password, Sesi Aktif, dan Hapus Akun).
 - **Kode Main Bareng dummy:**
 
   | Kode | Hasil |
@@ -91,7 +94,7 @@ UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu dig
    - `feature/home/data/di` (Notification, Search)
    - `feature/studypackage/data/di` (SavedPackage)
    - `feature/history/data/di` (History, HistoryExporter)
-   - `feature/account/data/di` (Settings, Help, AccountData, ProfilePhotoProcessor)
+   - `feature/account/data/di` (Settings, Help, AccountData, ProfilePhotoProcessor, AccountSecurity)
    - `feature/upgrade/data/di` (Promo)
    - `feature/assistant/data/di` (Assistant, AttachmentReader)
    - `feature/multiplayer/data/di`

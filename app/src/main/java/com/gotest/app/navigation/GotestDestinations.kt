@@ -117,6 +117,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object DeleteAccountDestination
 
+/** "Nomor WhatsApp" on Profil (DEC-123). */
+@Serializable data object AccountPhoneDestination
+
+/** "Sesi Aktif" on Profil (DEC-102). */
+@Serializable data object ActiveSessionsDestination
+
 @Serializable data object SettingsDestination
 
 @Serializable data object MainLevelDestination

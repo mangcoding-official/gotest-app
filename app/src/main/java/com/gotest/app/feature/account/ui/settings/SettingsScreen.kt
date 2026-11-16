@@ -48,6 +48,7 @@ import com.gotest.app.feature.account.ui.components.AccountNoticeEffect
 import com.gotest.app.feature.account.ui.components.AccountPreviewData
 import com.gotest.app.feature.account.ui.components.AccountRowArrow
 import com.gotest.app.feature.account.ui.components.AccountSectionTitle
+import com.gotest.app.feature.account.ui.components.ManagedAccountNote
 import com.gotest.app.feature.account.ui.mainlevel.titleRes
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
@@ -152,6 +153,7 @@ private fun SettingsContent(
                 .padding(start = spacing.screenHorizontal, end = spacing.screenHorizontal, bottom = spacing.xl),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
+        state.managedBy?.let { ManagedAccountNote(mitra = it, modifier = Modifier.padding(top = spacing.sm)) }
         AccountSectionTitle(
             title = stringResource(R.string.account_settings_notifications),
             subtitle = stringResource(R.string.account_settings_notifications_subtitle),

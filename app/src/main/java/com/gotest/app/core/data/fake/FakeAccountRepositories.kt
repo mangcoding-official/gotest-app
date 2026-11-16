@@ -72,6 +72,39 @@ class FakeAccountStore
                         ),
                 ),
             )
+
+        private val default = profile.value
+
+        /** An email or Google sign-in shows the default account again. */
+        fun useDefault() {
+            profile.value = default
+        }
+
+        /** A new account from Daftar with email. */
+        fun useNewEmailAccount(
+            fullName: String,
+            email: String,
+        ) {
+            profile.value = default.copy(id = "user_new", fullName = fullName, email = email, avatarUrl = null)
+        }
+
+        /** A sign-in or sign-up with a WhatsApp number; [email] is empty for a phone-only account. */
+        fun usePhone(
+            phone: String,
+            fullName: String = default.fullName,
+            email: String = default.email,
+        ) {
+            profile.value = default.copy(fullName = fullName, email = email, phone = phone)
+        }
+
+        /** A child account kept by a Mitra: no email, number, or photo of its own (Aturan 11.30). */
+        fun useChild(
+            name: String,
+            mitra: String,
+        ) {
+            profile.value =
+                default.copy(id = "child_$name", fullName = name, email = "", avatarUrl = null, managedBy = mitra)
+        }
     }
 
 @Singleton
@@ -94,12 +127,14 @@ class FakeAuthRepository
             if (!email.contains('@') || password.length < MIN_PASSWORD_LENGTH) {
                 return Result.failure(IllegalArgumentException("invalid credentials"))
             }
+            store.useDefault()
             session.save(FAKE_TOKEN)
             return Result.success(Unit)
         }
 
         override suspend fun signInWithGoogle(): Result<Unit> {
             simulateLatency()
+            store.useDefault()
             session.save(FAKE_TOKEN)
             return Result.success(Unit)
         }

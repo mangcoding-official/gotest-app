@@ -33,6 +33,11 @@
     <string name="account_profile_settings">Pengaturan</string>
     <string name="account_profile_sign_out">Keluar</string>
     <string name="account_profile_delete">Hapus Akun</string>
+    <string name="account_profile_phone">Nomor WhatsApp</string>
+    <string name="account_profile_phone_add">Tambah Nomor WhatsApp</string>
+    <string name="account_profile_sessions">Sesi Aktif</string>
+    <!-- Akun anak (web: Components/Student/Profile/ManagedAccountNote.tsx) -->
+    <string name="account_managed_note">Akun ini diatur oleh orang tua atau gurumu di %1$s.</string>
 
     <!-- Profil / Keluar (not in the design) -->
     <string name="account_sign_out_title">Keluar dari akun?</string>
@@ -246,4 +251,34 @@
     <string name="account_help_topic_contact">Hubungi Kami</string>
     <string name="account_help_topic_empty_title">Belum ada artikel</string>
     <string name="account_help_topic_empty_message">Artikel untuk topik ini sedang kami siapkan. Hubungi kami jika butuh bantuan.</string>
+
+    <!-- Nomor WhatsApp (web: Components/Student/Profile/PhoneModal.tsx) -->
+    <string name="account_phone_title">Nomor WhatsApp</string>
+    <string name="account_phone_subtitle">Nomor ini bisa dipakai untuk masuk dengan kode dari WhatsApp.</string>
+    <string name="account_phone_close">Tutup</string>
+    <string name="account_phone_remove">Hapus nomor</string>
+    <string name="account_phone_change">Ganti nomor</string>
+    <string name="account_phone_label">Nomor WhatsApp</string>
+    <string name="account_phone_hint">0812 3456 7890</string>
+    <string name="account_phone_back">Kembali</string>
+    <string name="account_phone_send">Kirim kode</string>
+    <string name="account_phone_code_label">Kode dari WhatsApp</string>
+    <string name="account_phone_code_hint">6 angka</string>
+    <string name="account_phone_code_sent">Kode dikirim ke WhatsApp %1$s dan berlaku 5 menit.</string>
+    <string name="account_phone_save">Simpan nomor</string>
+
+    <!-- Sesi Aktif (web: Components/Student/Profile/ActiveSessionsPanel.tsx) -->
+    <string name="account_sessions_title">Sesi Aktif</string>
+    <string name="account_sessions_subtitle">Perangkat yang sedang masuk ke akun ini. Nama perangkat diambil dari peramban yang dipakai.</string>
+    <string name="account_sessions_revoke">Keluar dari perangkat lain</string>
+    <string name="account_sessions_empty">Daftar perangkat belum tersedia.</string>
+    <string name="account_sessions_current">Perangkat ini</string>
+    <string name="account_sessions_unknown_ip">Alamat tidak diketahui</string>
+    <string name="account_sessions_in_use">Sedang dipakai</string>
+    <string name="account_sessions_last_active">Terakhir aktif %1$s</string>
+    <string name="account_sessions_confirm_title">Keluar dari perangkat lain?</string>
+    <string name="account_sessions_confirm_message">%1$d perangkat lain akan keluar dari akun ini dan harus masuk lagi. Perangkat yang sedang kamu pakai tetap masuk. Masukkan password untuk melanjutkan.</string>
+    <string name="account_sessions_password_label">Password Saat Ini</string>
+    <string name="account_sessions_cancel">Batal</string>
+    <string name="account_sessions_revoking">Mengeluarkan...</string>
 </resources>

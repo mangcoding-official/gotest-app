@@ -1,5 +1,6 @@
 package com.gotest.app.feature.auth.data
 
+import com.gotest.app.core.data.fake.FakeAccountStore
 import com.gotest.app.core.data.fake.simulateLatency
 import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.model.PhoneNumber
@@ -26,6 +27,7 @@ class FakeAuthFlowRepository
     constructor(
         private val session: SessionStore,
         private val signUps: FakeSignUpRepository,
+        private val accounts: FakeAccountStore,
     ) : AuthFlowRepository {
         private val lockout = PinLockout()
         private val pinStates = mutableMapOf<String, PinLockout.State>()
@@ -81,6 +83,7 @@ class FakeAuthFlowRepository
 
                 code == FAMILY_CODE && family.any { it.id == childId } && pin == CHILD_PIN -> {
                     pinStates.remove(childId)
+                    accounts.useChild(family.first { it.id == childId }.name, FAMILY_MITRA)
                     session.save(FAKE_CHILD_TOKEN)
                     Result.success(Unit)
                 }
@@ -173,6 +176,7 @@ class FakeAuthFlowRepository
                 }
 
                 else -> {
+                    accounts.usePhone(PhoneNumber.display(pending.first), fullName = fullName, email = "")
                     Result.success(signUps.finishSignUp(FAKE_PHONE_TOKEN, guardian))
                 }
             }
@@ -180,6 +184,7 @@ class FakeAuthFlowRepository
 
         private fun signInOrRegister(phone: String): PhoneVerification =
             if (phone == KNOWN_PHONE) {
+                accounts.usePhone(PhoneNumber.display(phone))
                 session.save(FAKE_PHONE_TOKEN)
                 PhoneVerification.SignedIn
             } else {
@@ -206,6 +211,7 @@ class FakeAuthFlowRepository
 
         private companion object {
             const val FAMILY_CODE = "KLG123"
+            const val FAMILY_MITRA = "Keluarga Pratama"
             const val CHILD_PIN = "2468"
             const val EXPIRED_TOKEN = "kedaluwarsa"
             const val FAKE_CHILD_TOKEN = "fake-child-token"
