@@ -84,6 +84,34 @@ class ApiNetworkTest {
         }
 
     @Test
+    fun `a 403 guardian_consent opens the waiting page and keeps the session`() =
+        runTest {
+            val seen = mutableListOf<SessionEvent>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { events.flow.toList(seen) }
+            session.save("12|menunggu")
+            server.enqueue(
+                MockResponse
+                    .Builder()
+                    .code(403)
+                    .body(CONSENT_BODY)
+                    .build(),
+            )
+            server.enqueue(
+                MockResponse
+                    .Builder()
+                    .code(403)
+                    .body("""{"message":"Tidak boleh.","code":"forbidden"}""")
+                    .build(),
+            )
+            val first = call()
+            call()
+
+            assertTrue(session.isSignedIn.value)
+            assertEquals(listOf<SessionEvent>(SessionEvent.AwaitingConsent), seen)
+            assertEquals(CONSENT_BODY, first)
+        }
+
+    @Test
     fun `a 426 asks to update the app`() =
         runTest {
             val seen = mutableListOf<SessionEvent>()
@@ -116,11 +144,14 @@ class ApiNetworkTest {
 
     private companion object {
         const val WRONG_LOGIN = "Email atau kata sandi tidak sesuai."
+        const val CONSENT_BODY = """{"message":"Akunmu menunggu persetujuan orang tua.","code":"guardian_consent"}"""
     }
 
-    private fun call() {
-        client.newCall(Request.Builder().url(server.url("/api/v1/akun")).build()).execute().close()
-    }
+    /** Returns the body, which the session guard must leave for the screen. */
+    private fun call(): String =
+        client.newCall(Request.Builder().url(server.url("/api/v1/akun")).build()).execute().use {
+            it.body.string()
+        }
 
     private class MemoryStore : KeyValueStore {
         private val values = mutableMapOf<String, String>()

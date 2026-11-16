@@ -24,7 +24,11 @@ class ApiError(
 
     companion object {
         const val UNAUTHORIZED = 401
+        const val FORBIDDEN = 403
         const val UPDATE_REQUIRED = 426
+
+        /** 403: the account waits for, or lost, the parent's approval (DEC-141). */
+        const val GUARDIAN_CONSENT = "guardian_consent"
 
         /** Reads an error response; a body that is not the shared shape keeps the status with [fallbackMessage]. */
         fun from(

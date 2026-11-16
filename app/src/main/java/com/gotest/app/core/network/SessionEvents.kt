@@ -11,6 +11,9 @@ sealed interface SessionEvent {
     /** 401: the token is no longer valid; the app goes back to Masuk. */
     data object SignedOut : SessionEvent
 
+    /** 403 `guardian_consent`: the account waits for the parent; the app shows only the waiting page (API-K6 B). */
+    data object AwaitingConsent : SessionEvent
+
     /** 426 `update_required`: this app version is below the server's minimum. */
     data object UpdateRequired : SessionEvent
 }

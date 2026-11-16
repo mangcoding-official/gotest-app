@@ -46,6 +46,7 @@ fun GotestApp(
         val target: Any =
             when (event) {
                 SessionEvent.SignedOut -> LoginDestination
+                SessionEvent.AwaitingConsent -> GuardianConsentDestination
                 SessionEvent.UpdateRequired -> UpdateRequiredDestination
             }
         navController.navigate(target) { popUpTo(navController.graph.id) { inclusive = true } }
@@ -66,9 +67,7 @@ fun GotestApp(
             }
 
             // Gabung ke kelas gets its screen in the next Android task; until then the link only opens the app.
-            is AppLink.JoinCode -> {
-                Unit
-            }
+            is AppLink.JoinCode -> {}
         }
         currentOnAppLinkConsume()
     }

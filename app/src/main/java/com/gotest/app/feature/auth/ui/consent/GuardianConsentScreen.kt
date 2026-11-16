@@ -18,6 +18,7 @@ import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestButtonVariant
 import com.gotest.app.core.designsystem.component.GotestCard
+import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.core.ui.ObserveAsEvents
@@ -77,8 +78,12 @@ fun GuardianConsentScreen(
         onBack = null,
         modifier = modifier,
     ) {
+        if (consent == null) {
+            GotestLoadingView(modifier = Modifier.fillMaxWidth())
+            return@AuthFormCard
+        }
         uiState.notice?.let { NoticeBox(it) }
-        if (consent?.canResend == true) {
+        if (consent.canResend) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
                 GotestButton(
                     text =
@@ -93,9 +98,9 @@ fun GuardianConsentScreen(
             }
         }
         val change = uiState.change
-        if (consent != null && change != null) {
+        if (change != null) {
             ChangeContactForm(consent = consent, form = change, isSubmitting = uiState.isChanging, onEvent = onEvent)
-        } else if (consent != null) {
+        } else {
             GotestButton(
                 text =
                     stringResource(
@@ -273,6 +278,14 @@ private val PreviewConsent =
         delivery = ConsentDelivery.Sent,
         expiresAt = Instant.parse("2026-11-23T07:30:00Z"),
     )
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun GuardianConsentLoadingPreview() {
+    GotestTheme {
+        GuardianConsentScreen(GuardianConsentUiState(), onEvent = {}, onDeleteAccount = {})
+    }
+}
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
