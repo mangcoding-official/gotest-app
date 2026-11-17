@@ -150,9 +150,7 @@ class ChildLoginViewModel
                     else -> null
                 }
             when {
-                child == null || state.isLoading -> {
-                    Unit
-                }
+                child == null || state.isLoading -> {}
 
                 error != null -> {
                     _uiState.update { it.copy(errorRes = error) }

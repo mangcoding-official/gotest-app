@@ -33,7 +33,7 @@ class ApiHeadersInterceptor(
  */
 class SessionGuardInterceptor(
     private val session: SessionStore,
-    private val events: SessionEvents,
+    private val signals: SessionSignals,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val response = chain.proceed(chain.request())
@@ -42,7 +42,7 @@ class SessionGuardInterceptor(
             ApiError.UNAUTHORIZED -> {
                 if (signedIn) {
                     session.clear()
-                    events.emit(SessionEvent.SignedOut)
+                    signals.markExpired()
                 }
             }
 
@@ -50,12 +50,12 @@ class SessionGuardInterceptor(
                 if (signedIn &&
                     response.errorCode() == ApiError.GUARDIAN_CONSENT
                 ) {
-                    events.emit(SessionEvent.AwaitingConsent)
+                    signals.markAwaitingConsent()
                 }
             }
 
             ApiError.UPDATE_REQUIRED -> {
-                events.emit(SessionEvent.UpdateRequired)
+                signals.markUpdateRequired()
             }
         }
         return response

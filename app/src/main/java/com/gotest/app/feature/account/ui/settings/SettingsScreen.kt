@@ -154,22 +154,28 @@ private fun SettingsContent(
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
         state.managedBy?.let { ManagedAccountNote(mitra = it, modifier = Modifier.padding(top = spacing.sm)) }
-        AccountSectionTitle(
-            title = stringResource(R.string.account_settings_notifications),
-            subtitle = stringResource(R.string.account_settings_notifications_subtitle),
-            modifier = Modifier.padding(top = spacing.sm),
-        )
-        AccountListCard {
-            notificationRows.forEach { row ->
-                SwitchSettingRow(
-                    title = stringResource(row.titleRes),
-                    subtitle = stringResource(row.subtitleRes),
-                    checked = settings.isOn(row.switch),
-                    onCheckedChange = { onSwitchChange(row.switch, it) },
-                )
+        // Hidden until the app sends notifications (AppFeatures, T-018 D1).
+        if (AppFeatures.NOTIFICATION_SETTINGS) {
+            AccountSectionTitle(
+                title = stringResource(R.string.account_settings_notifications),
+                subtitle = stringResource(R.string.account_settings_notifications_subtitle),
+                modifier = Modifier.padding(top = spacing.sm),
+            )
+            AccountListCard {
+                notificationRows.forEach { row ->
+                    SwitchSettingRow(
+                        title = stringResource(row.titleRes),
+                        subtitle = stringResource(row.subtitleRes),
+                        checked = settings.isOn(row.switch),
+                        onCheckedChange = { onSwitchChange(row.switch, it) },
+                    )
+                }
             }
         }
-        AccountSectionTitle(title = stringResource(R.string.account_settings_learning))
+        AccountSectionTitle(
+            title = stringResource(R.string.account_settings_learning),
+            modifier = if (AppFeatures.NOTIFICATION_SETTINGS) Modifier else Modifier.padding(top = spacing.sm),
+        )
         AccountListCard {
             // Pengingat Belajar is hidden until the web has it (AppFeatures).
             if (AppFeatures.STUDY_REMINDER) {
@@ -239,12 +245,15 @@ private fun PrivacySection(
                 subtitle = stringResource(R.string.account_settings_personal_data_subtitle),
                 onClick = onOpenPersonalData,
             )
-            SwitchSettingRow(
-                title = stringResource(R.string.account_settings_promo),
-                subtitle = stringResource(R.string.account_settings_promo_subtitle),
-                checked = promoEmails,
-                onCheckedChange = onPromoEmailsChange,
-            )
+            // The web has no promotional email setting (AppFeatures, T-018 D1).
+            if (AppFeatures.PROMO_EMAILS) {
+                SwitchSettingRow(
+                    title = stringResource(R.string.account_settings_promo),
+                    subtitle = stringResource(R.string.account_settings_promo_subtitle),
+                    checked = promoEmails,
+                    onCheckedChange = onPromoEmailsChange,
+                )
+            }
             if (onOpenDownloadData != null) {
                 ClickableSettingRow(
                     title = stringResource(R.string.account_settings_download),

@@ -35,14 +35,14 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         session: SessionStore,
-        events: SessionEvents,
+        signals: SessionSignals,
     ): OkHttpClient =
         OkHttpClient
             .Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .addInterceptor(ApiHeadersInterceptor(session, BuildConfig.VERSION_CODE))
-            .addInterceptor(SessionGuardInterceptor(session, events))
+            .addInterceptor(SessionGuardInterceptor(session, signals))
             .build()
 
     @Provides

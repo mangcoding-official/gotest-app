@@ -32,9 +32,6 @@ import kotlinx.serialization.Serializable
 
 // Top-level tabs
 
-/** The server refused this app version (426 `update_required`, T-018). */
-@Serializable data object UpdateRequiredDestination
-
 @Serializable data object HomeDestination
 
 @Serializable data object StudyPackageDestination

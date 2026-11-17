@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.account.ui.changepassword.ChangePasswordRoute
 import com.gotest.app.feature.account.ui.components.AccountNotice
+import com.gotest.app.feature.account.ui.components.AdultOnly
 import com.gotest.app.feature.account.ui.deleteaccount.DeleteAccountRoute
 import com.gotest.app.feature.account.ui.downloaddata.DownloadDataRoute
 import com.gotest.app.feature.account.ui.editprofile.EditProfileRoute
@@ -73,29 +74,40 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
         )
     }
+    // A child account may not open these screens, whatever leads there (Aturan 11.30, T-018 review 2).
     composable<EditProfileDestination> {
-        EditProfileRoute(
-            onBack = navController::navigateUp,
-            onSaveSuccess = { navController.navigateUpWithNotice(AccountNotice.ProfileSaved) },
-        )
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            EditProfileRoute(
+                onBack = navController::navigateUp,
+                onSaveSuccess = { navController.navigateUpWithNotice(AccountNotice.ProfileSaved) },
+            )
+        }
     }
     composable<ChangePasswordDestination> {
-        ChangePasswordRoute(
-            onBack = navController::navigateUp,
-            onChangeSuccess = { navController.navigateUpWithNotice(AccountNotice.PasswordChanged) },
-        )
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            ChangePasswordRoute(
+                onBack = navController::navigateUp,
+                onChangeSuccess = { navController.navigateUpWithNotice(AccountNotice.PasswordChanged) },
+            )
+        }
     }
     composable<AccountPhoneDestination> {
-        AccountPhoneRoute(onBack = navController::navigateUp)
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            AccountPhoneRoute(onBack = navController::navigateUp)
+        }
     }
     composable<ActiveSessionsDestination> {
-        ActiveSessionsRoute(onBack = navController::navigateUp)
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            ActiveSessionsRoute(onBack = navController::navigateUp)
+        }
     }
     composable<DeleteAccountDestination> {
-        DeleteAccountRoute(
-            onBack = navController::navigateUp,
-            onDeleteSuccess = navController::navigateToOnboardingClearingAll,
-        )
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            DeleteAccountRoute(
+                onBack = navController::navigateUp,
+                onDeleteSuccess = navController::navigateToOnboardingClearingAll,
+            )
+        }
     }
     settingsScreens(navController)
     if (AppFeatures.PAYMENTS) {

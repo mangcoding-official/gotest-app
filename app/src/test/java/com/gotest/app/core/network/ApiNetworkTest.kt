@@ -3,11 +3,6 @@ package com.gotest.app.core.network
 import com.gotest.app.core.session.KeyValueStore
 import com.gotest.app.core.session.SessionStore
 import com.gotest.app.core.session.TokenCipher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -21,16 +16,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ApiNetworkTest {
     private val server = MockWebServer()
     private val session = SessionStore(MemoryStore(), PlainCipher())
-    private val events = SessionEvents()
+    private val signals = SessionSignals()
     private val client =
         OkHttpClient
             .Builder()
             .addInterceptor(ApiHeadersInterceptor(session, appVersionCode = 3))
-            .addInterceptor(SessionGuardInterceptor(session, events))
+            .addInterceptor(SessionGuardInterceptor(session, signals))
             .build()
 
     @Before
@@ -60,67 +54,56 @@ class ApiNetworkTest {
     }
 
     @Test
-    fun `a 401 on a signed-in request signs out`() =
-        runTest {
-            val seen = mutableListOf<SessionEvent>()
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { events.flow.toList(seen) }
-            session.save("12|kedaluwarsa")
-            server.enqueue(MockResponse.Builder().code(401).build())
-            call()
+    fun `a 401 on a signed-in request signs out and leaves Masuk to open`() {
+        session.save("12|kedaluwarsa")
+        server.enqueue(MockResponse.Builder().code(401).build())
+        call()
 
-            assertFalse(session.isSignedIn.value)
-            assertEquals(listOf<SessionEvent>(SessionEvent.SignedOut), seen)
-        }
+        assertFalse(session.isSignedIn.value)
+        assertTrue(signals.expired.value)
+    }
 
     @Test
-    fun `a 401 while signed out, such as a wrong password, is left to the screen`() =
-        runTest {
-            val seen = mutableListOf<SessionEvent>()
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { events.flow.toList(seen) }
-            server.enqueue(MockResponse.Builder().code(401).build())
-            call()
+    fun `a 401 while signed out, such as a wrong password, is left to the screen`() {
+        server.enqueue(MockResponse.Builder().code(401).build())
+        call()
 
-            assertTrue(seen.isEmpty())
-        }
+        assertFalse(signals.expired.value)
+    }
 
     @Test
-    fun `a 403 guardian_consent opens the waiting page and keeps the session`() =
-        runTest {
-            val seen = mutableListOf<SessionEvent>()
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { events.flow.toList(seen) }
-            session.save("12|menunggu")
-            server.enqueue(
-                MockResponse
-                    .Builder()
-                    .code(403)
-                    .body(CONSENT_BODY)
-                    .build(),
-            )
-            server.enqueue(
-                MockResponse
-                    .Builder()
-                    .code(403)
-                    .body("""{"message":"Tidak boleh.","code":"forbidden"}""")
-                    .build(),
-            )
-            val first = call()
-            call()
+    fun `a 403 guardian_consent opens the waiting page and keeps the session`() {
+        session.save("12|menunggu")
+        server.enqueue(
+            MockResponse
+                .Builder()
+                .code(403)
+                .body("""{"message":"Tidak boleh.","code":"forbidden"}""")
+                .build(),
+        )
+        server.enqueue(
+            MockResponse
+                .Builder()
+                .code(403)
+                .body(CONSENT_BODY)
+                .build(),
+        )
+        call()
+        assertFalse(signals.awaitingConsent.value)
 
-            assertTrue(session.isSignedIn.value)
-            assertEquals(listOf<SessionEvent>(SessionEvent.AwaitingConsent), seen)
-            assertEquals(CONSENT_BODY, first)
-        }
+        val body = call()
+        assertTrue(session.isSignedIn.value)
+        assertTrue(signals.awaitingConsent.value)
+        assertEquals(CONSENT_BODY, body)
+    }
 
     @Test
-    fun `a 426 asks to update the app`() =
-        runTest {
-            val seen = mutableListOf<SessionEvent>()
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { events.flow.toList(seen) }
-            server.enqueue(MockResponse.Builder().code(426).build())
-            call()
+    fun `a 426 asks to update the app`() {
+        server.enqueue(MockResponse.Builder().code(426).build())
+        call()
 
-            assertEquals(listOf<SessionEvent>(SessionEvent.UpdateRequired), seen)
-        }
+        assertTrue(signals.updateRequired.value)
+    }
 
     @Test
     fun `the shared error body is read, with field errors`() {

@@ -29,7 +29,6 @@ fun GotestNavHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        composable<UpdateRequiredDestination> { UpdateRequiredRoute() }
         authScreens(navController)
         accountScreens(navController)
         homeScreens(navController)

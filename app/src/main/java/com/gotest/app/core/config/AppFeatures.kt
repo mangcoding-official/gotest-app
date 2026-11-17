@@ -23,4 +23,10 @@ object AppFeatures {
 
     /** "Unduh Data Akun" in Pengaturan. */
     const val ACCOUNT_DATA_DOWNLOAD: Boolean = false
+
+    /** The Notifikasi switches in Pengaturan and the Notifikasi row on Profil; the app sends none yet (T-018 D1). */
+    const val NOTIFICATION_SETTINGS: Boolean = false
+
+    /** The "Email Promosi" switch in Pengaturan, which the web does not have (T-018 D1). */
+    const val PROMO_EMAILS: Boolean = false
 }

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestDialog
 import com.gotest.app.core.designsystem.component.GotestDialogContent
 import com.gotest.app.core.designsystem.component.GotestErrorView
@@ -320,6 +321,8 @@ private fun AccountSection(
     modifier: Modifier = Modifier,
 ) {
     val adult = !profile.isChild
+    // A child account has none of these rows while Notifikasi is hidden, so the section goes too.
+    if (!adult && !AppFeatures.NOTIFICATION_SETTINGS) return
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
         AccountSectionTitle(title = stringResource(R.string.account_profile_section_account), muted = true)
         AccountListCard {
@@ -362,11 +365,13 @@ private fun AccountSection(
                     onClick = navigation.onOpenSessions,
                 )
             }
-            AccountMenuRow(
-                label = stringResource(R.string.account_profile_notifications),
-                icon = GotestIcons.Linear.Notification,
-                onClick = navigation.onOpenSettings,
-            )
+            if (AppFeatures.NOTIFICATION_SETTINGS) {
+                AccountMenuRow(
+                    label = stringResource(R.string.account_profile_notifications),
+                    icon = GotestIcons.Linear.Notification,
+                    onClick = navigation.onOpenSettings,
+                )
+            }
         }
     }
 }

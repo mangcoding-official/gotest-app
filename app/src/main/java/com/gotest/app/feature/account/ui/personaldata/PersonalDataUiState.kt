@@ -13,6 +13,8 @@ sealed interface PersonalDataUiState {
         val fullName: String,
         val email: String,
         val details: PersonalDetails,
+        /** False for a child account: its parent or teacher keeps the details (Aturan 11.30). */
+        val canEdit: Boolean = true,
     ) : PersonalDataUiState
 }
 

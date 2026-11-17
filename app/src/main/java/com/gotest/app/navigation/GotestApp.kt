@@ -23,8 +23,6 @@ import com.gotest.app.R
 import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestBottomBar
 import com.gotest.app.core.designsystem.component.GotestBottomBarItem
-import com.gotest.app.core.network.SessionEvent
-import com.gotest.app.core.ui.ObserveAsEvents
 
 /**
  * App shell. The bottom bar floats over the content (as in the design) and only shows on
@@ -38,19 +36,23 @@ fun GotestApp(
     navController: NavHostController = rememberNavController(),
     viewModel: AppShellViewModel = hiltViewModel(),
 ) {
+    // 426 stays for the rest of the run: nothing else opens until the app is updated (T-018 review 4).
+    val updateRequired by viewModel.updateRequired.collectAsStateWithLifecycle()
+    if (updateRequired) {
+        UpdateRequiredRoute(modifier = modifier)
+        return
+    }
     val isSignedIn by viewModel.isSignedIn.collectAsStateWithLifecycle()
     // A saved session opens on Beranda after the app was closed (T-018).
     val startDestination: Any = remember { if (viewModel.startSignedIn) HomeDestination else OnboardingDestination }
-
-    ObserveAsEvents(viewModel.sessionEvents) { event ->
-        val target: Any =
-            when (event) {
-                SessionEvent.SignedOut -> LoginDestination
-                SessionEvent.AwaitingConsent -> GuardianConsentDestination
-                SessionEvent.UpdateRequired -> UpdateRequiredDestination
-            }
-        navController.navigate(target) { popUpTo(navController.graph.id) { inclusive = true } }
-    }
+    val expired by viewModel.expired.collectAsStateWithLifecycle()
+    val awaitingConsent by viewModel.awaitingConsent.collectAsStateWithLifecycle()
+    SessionRedirects(
+        navController = navController,
+        expired = expired,
+        awaitingConsent = awaitingConsent,
+        onExpiredHandle = viewModel::consumeExpired,
+    )
 
     // A gotest.id link opens its screen. Resetting the password works signed out; the others wait for sign-in.
     val currentOnAppLinkConsume by rememberUpdatedState(onAppLinkConsume)
@@ -100,6 +102,36 @@ fun GotestApp(
                 assistantContentDescription = stringResource(R.string.cd_ai_assistant),
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
+        }
+    }
+}
+
+/**
+ * The server's session answers, read as state when the app is in the front (T-018 review 4): an expired
+ * session opens Masuk, and an account waiting for its parent sees only the waiting page (and Hapus Akun,
+ * which the waiting page opens).
+ */
+@Composable
+private fun SessionRedirects(
+    navController: NavHostController,
+    expired: Boolean,
+    awaitingConsent: Boolean,
+    onExpiredHandle: () -> Unit,
+) {
+    val currentOnExpiredHandle by rememberUpdatedState(onExpiredHandle)
+    LaunchedEffect(expired) {
+        if (expired) {
+            navController.navigate(LoginDestination) { popUpTo(navController.graph.id) { inclusive = true } }
+            currentOnExpiredHandle()
+        }
+    }
+    LaunchedEffect(awaitingConsent) {
+        val destination = navController.currentDestination
+        val onConsentPages =
+            destination?.hasRoute<GuardianConsentDestination>() == true ||
+                destination?.hasRoute<DeleteAccountDestination>() == true
+        if (awaitingConsent && !onConsentPages) {
+            navController.navigate(GuardianConsentDestination) { popUpTo(navController.graph.id) { inclusive = true } }
         }
     }
 }

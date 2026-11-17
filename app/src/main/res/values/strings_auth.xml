@@ -2,7 +2,7 @@
 <resources>
     <!-- Logo and footer shared by the auth screens -->
     <string name="auth_logo_text">Gotest.id</string>
-    <string name="auth_copyright">© 2024 BankSoal Indonesia. Seluruh hak cipta dilindungi.</string>
+    <string name="auth_copyright">© %1$d Gotest.id. Seluruh hak cipta dilindungi.</string>
 
     <!-- Auth / Onboarding -->
     <string name="onboarding_headline">Persiapan belajar yang lebih terarah, mulai dari sini.</string>

@@ -59,6 +59,32 @@ android {
     }
 }
 
+// T-018 review 1: the fake repositories accept any email, so a release must never ship them. While a Hilt
+// module in src/main still names a Fake* class, packaging a release APK or bundle fails. Debug builds,
+// unit tests, and lintDebug are not affected; the check passes on its own once the fakes move to src/debug
+// or are replaced by the API.
+val checkNoFakeData by tasks.registering {
+    val modules = fileTree("src/main/java") { include("**/di/*.kt") }
+    inputs.files(modules)
+    doLast {
+        val fake = Regex("""\bFake[A-Z]\w*""")
+        val bound =
+            modules.files
+                .filter { fake.containsMatchIn(it.readText()) }
+                .map { it.name }
+                .sorted()
+        if (bound.isNotEmpty()) {
+            throw GradleException(
+                "Release build refused: fake data is still bound in ${bound.joinToString()}. " +
+                    "Bind the API repositories, or move the fakes to src/debug, before releasing (T-018).",
+            )
+        }
+    }
+}
+tasks
+    .matching { it.name in setOf("assembleRelease", "bundleRelease", "packageRelease", "packageReleaseBundle") }
+    .configureEach { dependsOn(checkNoFakeData) }
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
