@@ -1,0 +1,2 @@
+# Penjaga push dijalankan oleh sh, jadi selalu berakhir baris LF, juga di Windows.
+/.githooks/** text eol=lf
