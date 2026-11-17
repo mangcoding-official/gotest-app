@@ -90,6 +90,10 @@ Aturan layar:
 
 UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu diganti cukup binding Hilt:
 
+Selama modul Hilt di `src/main` masih memakai kelas `Fake…`, `assembleRelease` dan `bundleRelease` ditolak oleh
+tugas Gradle `checkNoFakeData` (`app/build.gradle.kts`), supaya data dummy tidak ikut rilis. Penjaga itu lepas sendiri
+setelah semua binding menunjuk ke repository API atau data dummy dipindah ke `src/debug`.
+
 1. Implementasikan `XxxRepository` versi remote (Retrofit/Ktor; library belum ditambahkan).
 2. Ganti `@Binds` di `core/data/di/DataModule.kt` (Auth, User, StudyPackage, Exam, Leaderboard,
    Subscription) dan di modul per fitur:
