@@ -1,0 +1,55 @@
+#!/bin/sh
+# Penjaga push tim Gotest untuk repo gotest-app (salinan penjaga repo bank-soal-tryout;
+# aturannya di docs/kerja/ALUR-KERJA.md bagian 2 dan 7c repo itu).
+#
+# GitHub Free tidak memberlakukan aturan branch di repo private, jadi penjaga ini
+# yang mencegah push ke branch milik bersama dari laptop anggota tim:
+#   - development, staging, dan main hanya boleh di-push oleh Ardy;
+#   - anggota lain hanya boleh push ke branch tugasnya sendiri: <nama>/T-xxx-judul.
+#
+# Sekali per laptop, setelah clone:
+#   git config core.hooksPath .githooks
+#   git config gotest.nama samsul          # atau deni, sesuai nama di docs/kerja
+# Hanya di laptop Ardy:
+#   git config gotest.boleh-gabung true
+#
+# Jangan melewati penjaga ini dengan --no-verify.
+
+nama=$(git config --get gotest.nama)
+boleh=$(git config --get gotest.boleh-gabung)
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    case "$remote_ref" in
+        refs/heads/*) branch=${remote_ref#refs/heads/} ;;
+        *) continue ;;
+    esac
+
+    if [ "$boleh" = "true" ]; then
+        continue
+    fi
+
+    case "$branch" in
+        development|staging|main)
+            echo "Ditolak: push ke '$branch' hanya untuk Ardy." >&2
+            echo "Push branch tugasmu sendiri, lalu buat PR ke main. Lihat docs/kerja/ALUR-KERJA.md bagian 2 dan 7c di repo bank-soal-tryout." >&2
+            exit 1
+            ;;
+    esac
+
+    if [ -z "$nama" ]; then
+        echo "Ditolak: nama pemilik laptop belum diatur." >&2
+        echo "Jalankan sekali: git config gotest.nama <nama>   (misalnya samsul atau deni)" >&2
+        exit 1
+    fi
+
+    case "$branch" in
+        "$nama"/*) ;;
+        *)
+            echo "Ditolak: kamu hanya boleh push ke branch '$nama/T-xxx-judul', bukan '$branch'." >&2
+            echo "Branch tugas orang lain dan branch bersama tidak boleh diubah. Lihat docs/kerja/ALUR-KERJA.md bagian 2 di repo bank-soal-tryout." >&2
+            exit 1
+            ;;
+    esac
+done
+
+exit 0
