@@ -51,7 +51,7 @@ import com.gotest.app.feature.studypackage.ui.components.practiceAction
 fun PackageListRoute(
     onBack: () -> Unit,
     onSearch: () -> Unit,
-    onSavedPackages: () -> Unit,
+    onSavedPackages: (() -> Unit)?,
     onTryoutClick: (packageId: String) -> Unit,
     onStartExam: (packageId: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -81,7 +81,7 @@ fun PackageListScreen(
     onEvent: (PackageListUiEvent) -> Unit,
     onBack: () -> Unit,
     onSearch: () -> Unit,
-    onSavedPackages: () -> Unit,
+    onSavedPackages: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -93,11 +93,14 @@ fun PackageListScreen(
             style = GotestTopAppBarStyle.Leading,
             navigationIcon = { GotestBackButton(onClick = onBack) },
             actions = {
-                GotestIconButton(
-                    icon = GotestIcons.Linear.ArchiveTick,
-                    contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
-                    onClick = onSavedPackages,
-                )
+                // Paket Tersimpan is hidden until the web has it (AppFeatures).
+                if (onSavedPackages != null) {
+                    GotestIconButton(
+                        icon = GotestIcons.Linear.ArchiveTick,
+                        contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
+                        onClick = onSavedPackages,
+                    )
+                }
                 GotestIconButton(
                     icon = GotestIcons.Linear.SearchNormal,
                     contentDescription = stringResource(R.string.studypackage_cd_search),

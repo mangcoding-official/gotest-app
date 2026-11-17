@@ -15,6 +15,8 @@ sealed interface ProfileUiState {
     @Immutable
     data class Success(
         val profile: UserProfile,
+        /** Whether the server offers WhatsApp codes: "Tambah Nomor WhatsApp" needs it (the web's `phoneSignIn`). */
+        val phoneSignIn: Boolean = false,
         /** Days until the plan ends ("30 hari tersisa"); negative once it has ended. */
         val daysRemaining: Long,
         /** Null while the "Foto Profil" sheet is closed. */

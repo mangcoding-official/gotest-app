@@ -46,7 +46,8 @@ import kotlinx.coroutines.launch
 fun PracticeDetailRoute(
     onBack: () -> Unit,
     onStartExam: (packageId: String) -> Unit,
-    onOpenSavedPackages: () -> Unit,
+    /** Null while Paket Tersimpan is hidden (AppFeatures): no bookmark button. */
+    onOpenSavedPackages: (() -> Unit)?,
     modifier: Modifier = Modifier,
     viewModel: PracticeDetailViewModel = hiltViewModel(),
 ) {
@@ -57,7 +58,9 @@ fun PracticeDetailRoute(
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             is PracticeDetailEffect.BookmarkChanged -> {
-                scope.launch { snackbarHostState.showBookmarkResult(effect.saved, resources, onOpenSavedPackages) }
+                onOpenSavedPackages?.let { openSaved ->
+                    scope.launch { snackbarHostState.showBookmarkResult(effect.saved, resources, openSaved) }
+                }
             }
         }
     }
@@ -68,6 +71,7 @@ fun PracticeDetailRoute(
         onBack = onBack,
         onStartExam = onStartExam,
         modifier = modifier,
+        showBookmark = onOpenSavedPackages != null,
     )
 }
 
@@ -83,6 +87,7 @@ fun PracticeDetailScreen(
     onBack: () -> Unit,
     onStartExam: (packageId: String) -> Unit,
     modifier: Modifier = Modifier,
+    showBookmark: Boolean = true,
 ) {
     Scaffold(
         modifier = modifier,
@@ -91,7 +96,7 @@ fun PracticeDetailScreen(
                 title = stringResource(R.string.studypackage_detail_title),
                 navigationIcon = { GotestBackButton(onClick = onBack) },
                 actions = {
-                    if (uiState is PracticeDetailUiState.Success) {
+                    if (showBookmark && uiState is PracticeDetailUiState.Success) {
                         BookmarkButton(
                             isSaved = uiState.isSaved,
                             onClick = { onEvent(PracticeDetailUiEvent.BookmarkClicked) },

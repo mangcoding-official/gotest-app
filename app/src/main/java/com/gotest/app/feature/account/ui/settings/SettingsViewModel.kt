@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.R
 import com.gotest.app.core.domain.repository.SubscriptionRepository
+import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.Subscription
+import com.gotest.app.core.model.UserProfile
 import com.gotest.app.feature.account.domain.AccountSettings
 import com.gotest.app.feature.account.domain.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,20 +36,23 @@ class SettingsViewModel
     constructor(
         private val settingsRepository: SettingsRepository,
         subscriptionRepository: SubscriptionRepository,
+        userRepository: UserRepository,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
 
         val uiState: StateFlow<SettingsUiState> =
             retryKey
                 .flatMapLatest {
-                    combine<AccountSettings, Subscription, SettingsUiState>(
+                    combine<AccountSettings, Subscription, UserProfile, SettingsUiState>(
                         settingsRepository.observeSettings(),
                         subscriptionRepository.observeSubscription(),
-                    ) { settings, subscription ->
+                        userRepository.observeProfile(),
+                    ) { settings, subscription, profile ->
                         SettingsUiState.Success(
                             settings = settings,
                             subscription = subscription,
                             isSubscriptionActive = !subscription.activeUntil.isBefore(LocalDate.now()),
+                            managedBy = profile.managedBy,
                         )
                     }.onStart { emit(SettingsUiState.Loading) }
                         .catch { emit(SettingsUiState.Error) }

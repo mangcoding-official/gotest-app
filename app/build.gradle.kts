@@ -24,9 +24,17 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Server address per build type (T-018): release talks to gotest.id.
+        buildConfigField("String", "API_BASE_URL", "\"https://gotest.id/\"")
     }
 
     buildTypes {
+        debug {
+            // A local server by default (the emulator reaches the host as 10.0.2.2); point at staging with
+            // `gotest.apiBaseUrl=https://…/` in ~/.gradle/gradle.properties or with -Pgotest.apiBaseUrl=….
+            val apiBaseUrl = providers.gradleProperty("gotest.apiBaseUrl").getOrElse("http://10.0.2.2:8000/")
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -43,12 +51,39 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     lint {
         // Indonesian has no grammatical plural; "%d dari %d" strings are already correct.
         disable += "PluralsCandidate"
     }
 }
+
+// T-018 review 1: the fake repositories accept any email, so a release must never ship them. While a Hilt
+// module in src/main still names a Fake* class, packaging a release APK or bundle fails. Debug builds,
+// unit tests, and lintDebug are not affected; the check passes on its own once the fakes move to src/debug
+// or are replaced by the API.
+val checkNoFakeData by tasks.registering {
+    val modules = fileTree("src/main/java") { include("**/di/*.kt") }
+    inputs.files(modules)
+    doLast {
+        val fake = Regex("""\bFake[A-Z]\w*""")
+        val bound =
+            modules.files
+                .filter { fake.containsMatchIn(it.readText()) }
+                .map { it.name }
+                .sorted()
+        if (bound.isNotEmpty()) {
+            throw GradleException(
+                "Release build refused: fake data is still bound in ${bound.joinToString()}. " +
+                    "Bind the API repositories, or move the fakes to src/debug, before releasing (T-018).",
+            )
+        }
+    }
+}
+tasks
+    .matching { it.name in setOf("assembleRelease", "bundleRelease", "packageRelease", "packageReleaseBundle") }
+    .configureEach { dependsOn(checkNoFakeData) }
 
 kotlin {
     compilerOptions {
@@ -86,6 +121,9 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.compose)
     implementation(libs.zxing.core)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization)
     ksp(libs.hilt.compiler)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
@@ -93,6 +131,8 @@ dependencies {
     detektPlugins(libs.compose.rules.detekt)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

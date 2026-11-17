@@ -44,7 +44,8 @@ import com.gotest.app.feature.account.ui.components.AccountPreviewData
 @Composable
 fun ProfileCard(
     profile: UserProfile,
-    onAvatarClick: () -> Unit,
+    /** Null for a child account, which does not change its photo (Aturan 11.30). */
+    onAvatarClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -68,7 +69,8 @@ fun ProfileCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = profile.email,
+                    // Email and number as on the web ("budi@contoh.id · 0812-3456-7890"); either may be missing.
+                    text = listOfNotNull(profile.email.takeIf { it.isNotBlank() }, profile.phone).joinToString(" · "),
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.textSecondary,
                     maxLines = 1,
@@ -94,17 +96,21 @@ fun ProfileCard(
     }
 }
 
-/** 64dp avatar with the camera badge from the "Foto Profil" frame; opens the photo sheet. */
+/** 64dp avatar with the camera badge from the "Foto Profil" frame; opens the photo sheet. Plain without [onClick]. */
 @Composable
 private fun ProfileAvatarButton(
     photo: String?,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val sizes = GotestTheme.sizes
     val colors = GotestTheme.colors
     val description = stringResource(R.string.account_profile_avatar_cd)
     Box(modifier = modifier.size(sizes.avatarLg)) {
+        if (onClick == null) {
+            GotestAvatar(model = photo, contentDescription = null, size = sizes.avatarLg)
+            return@Box
+        }
         Surface(
             onClick = onClick,
             modifier = Modifier.semantics { contentDescription = description },
@@ -181,14 +187,19 @@ private fun RowScope.StatTile(
 fun PlanBanner(
     subscription: Subscription,
     daysRemaining: Long,
-    onUpgrade: () -> Unit,
-    onOpenSubscription: () -> Unit,
+    onUpgrade: (() -> Unit)?,
+    onOpenSubscription: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val shape = GotestTheme.shapes.largeIncreased
     val color = GotestTheme.colors.bgBrandDark
-    if (subscription.isPremium) {
+    if (subscription.isPremium && onOpenSubscription != null) {
         Surface(onClick = onOpenSubscription, modifier = modifier.fillMaxWidth(), shape = shape, color = color) {
+            PlanBannerContent(subscription = subscription, daysRemaining = daysRemaining)
+        }
+    } else if (subscription.isPremium || onUpgrade == null) {
+        // Payments hidden (AppFeatures): the plan is shown without Upgrade or Langganan.
+        Surface(modifier = modifier.fillMaxWidth(), shape = shape, color = color) {
             PlanBannerContent(subscription = subscription, daysRemaining = daysRemaining)
         }
     } else {

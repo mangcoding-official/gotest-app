@@ -20,8 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
@@ -49,6 +51,7 @@ import com.gotest.app.feature.multiplayer.ui.components.MbBadgeTone
 import com.gotest.app.feature.multiplayer.ui.components.MbBottomBar
 import com.gotest.app.feature.multiplayer.ui.components.MbDialog
 import com.gotest.app.feature.multiplayer.ui.components.MbDialogContent
+import com.gotest.app.feature.multiplayer.ui.components.MbPremiumOnlyDialog
 import com.gotest.app.feature.multiplayer.ui.components.MbPreviewOverlay
 import com.gotest.app.feature.multiplayer.ui.components.MultiplayerPreviewData
 import kotlinx.coroutines.launch
@@ -69,7 +72,8 @@ fun WaitingRoomRoute(
     onGameStart: (code: String) -> Unit,
     onBackToHub: () -> Unit,
     onOpenWaitingRoom: (code: String) -> Unit,
-    onUpgrade: () -> Unit,
+    /** Null while paying in the app is hidden (AppFeatures). */
+    onUpgrade: (() -> Unit)?,
     modifier: Modifier = Modifier,
     viewModel: WaitingRoomViewModel = hiltViewModel(),
 ) {
@@ -81,12 +85,13 @@ fun WaitingRoomRoute(
     val failedMessage = stringResource(R.string.multiplayer_action_failed)
     val codeCopied = stringResource(R.string.multiplayer_code_copied)
     val linkCopied = stringResource(R.string.multiplayer_link_copied)
+    var premiumOnly by remember { mutableStateOf(false) }
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             is WaitingRoomEffect.GameStarted -> onGameStart(effect.code)
             WaitingRoomEffect.Left -> onBackToHub()
             is WaitingRoomEffect.Recreated -> onOpenWaitingRoom(effect.code)
-            WaitingRoomEffect.UpgradeRequired -> onUpgrade()
+            WaitingRoomEffect.UpgradeRequired -> if (onUpgrade != null) onUpgrade() else premiumOnly = true
             WaitingRoomEffect.ActionFailed -> scope.launch { snackbarHostState.showSnackbar(failedMessage) }
         }
     }
@@ -113,6 +118,7 @@ fun WaitingRoomRoute(
         modifier = modifier,
         snackbarHostState = snackbarHostState,
     )
+    if (premiumOnly) MbPremiumOnlyDialog(onDismissRequest = { premiumOnly = false })
 }
 
 /** Opens WhatsApp with the invite, or the system share sheet when WhatsApp is not installed. */

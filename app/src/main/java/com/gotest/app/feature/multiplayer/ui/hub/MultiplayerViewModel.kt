@@ -52,9 +52,20 @@ class MultiplayerViewModel
                     ).catch { emit(MultiplayerUiState.Error) }
                 }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), MultiplayerUiState.Loading)
 
-        private val openJoinSheet = savedStateHandle.toRoute<MultiplayerDestination>().openJoinSheet
+        private val route = savedStateHandle.toRoute<MultiplayerDestination>()
         private val _overlay =
-            MutableStateFlow(MultiplayerOverlayState(joinSheet = if (openJoinSheet) JoinSheetState() else null))
+            MutableStateFlow(
+                MultiplayerOverlayState(
+                    joinSheet =
+                        if (route.openJoinSheet ||
+                            route.joinCode != null
+                        ) {
+                            JoinSheetState(code = route.joinCode.orEmpty())
+                        } else {
+                            null
+                        },
+                ),
+            )
         val overlay: StateFlow<MultiplayerOverlayState> = _overlay.asStateFlow()
 
         private val _effects = Channel<MultiplayerEffect>(Channel.BUFFERED)

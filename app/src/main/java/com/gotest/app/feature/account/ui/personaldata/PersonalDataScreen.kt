@@ -158,7 +158,7 @@ private fun PersonalDataContent(
                 .padding(horizontal = spacing.screenHorizontal, vertical = spacing.sm),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        AccountInfoHeader(onEditProfile = onEditProfile)
+        AccountInfoHeader(onEditProfile = onEditProfile.takeIf { state.canEdit })
         AccountListCard {
             PersonalDataRow(R.string.account_personal_name, state.fullName)
             PersonalDataRow(R.string.account_personal_email, state.email)
@@ -181,7 +181,8 @@ private fun PersonalDataContent(
 /** "Informasi akun" heading with the "Ubah" link to Edit Informasi Akun. */
 @Composable
 private fun AccountInfoHeader(
-    onEditProfile: () -> Unit,
+    /** Null for a child account: no "Ubah" (T-018 review 2). */
+    onEditProfile: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -194,15 +195,17 @@ private fun AccountInfoHeader(
             subtitle = stringResource(R.string.account_personal_info_subtitle),
             modifier = Modifier.weight(1f),
         )
-        Text(
-            text = stringResource(R.string.account_personal_edit),
-            modifier =
-                Modifier
-                    .clip(MaterialTheme.shapes.extraSmall)
-                    .clickable(role = Role.Button, onClick = onEditProfile),
-            style = MaterialTheme.typography.labelLarge,
-            color = GotestTheme.colors.bgBrand,
-        )
+        if (onEditProfile != null) {
+            Text(
+                text = stringResource(R.string.account_personal_edit),
+                modifier =
+                    Modifier
+                        .clip(MaterialTheme.shapes.extraSmall)
+                        .clickable(role = Role.Button, onClick = onEditProfile),
+                style = MaterialTheme.typography.labelLarge,
+                color = GotestTheme.colors.bgBrand,
+            )
+        }
     }
 }
 

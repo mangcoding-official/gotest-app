@@ -136,6 +136,8 @@
     <string name="multiplayer_premium_dialog_title">Buat permainan khusus Premium</string>
     <string name="multiplayer_premium_dialog_message">Akun gratis tetap bisa ikut main bareng lewat kode dari temanmu. Tingkatkan akun untuk membuat permainan sendiri.</string>
     <string name="multiplayer_premium_dialog_upgrade">Tingkatkan Akun</string>
+    <!-- While paying in the app is hidden (T-018): the first sentence of the message above, without the upgrade. -->
+    <string name="multiplayer_premium_dialog_message_no_upgrade">Akun gratis tetap bisa ikut main bareng lewat kode dari temanmu.</string>
     <string name="multiplayer_in_game_title">Kamu sedang ikut permainan lain</string>
     <string name="multiplayer_in_game_create_message">Selesaikan atau keluar dari %1$s (kode %2$s) sebelum membuat permainan baru.</string>
     <string name="multiplayer_in_game_join_message">Selesaikan atau keluar dari %1$s (%2$s) dulu sebelum bergabung.</string>

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestDialog
 import com.gotest.app.core.designsystem.component.GotestDialogContent
 import com.gotest.app.core.designsystem.component.GotestErrorView
@@ -43,6 +44,7 @@ import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
+import com.gotest.app.core.model.UserProfile
 import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.account.ui.components.AccountListCard
 import com.gotest.app.feature.account.ui.components.AccountMenuRow
@@ -51,6 +53,7 @@ import com.gotest.app.feature.account.ui.components.AccountNotice
 import com.gotest.app.feature.account.ui.components.AccountNoticeEffect
 import com.gotest.app.feature.account.ui.components.AccountPreviewData
 import com.gotest.app.feature.account.ui.components.AccountSectionTitle
+import com.gotest.app.feature.account.ui.components.ManagedAccountNote
 import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
 import com.gotest.app.feature.account.ui.components.ProfilePhotoCaptureDialog
@@ -63,12 +66,15 @@ import kotlinx.coroutines.launch
 /** Navigation out of Profil, grouped so the screen signature stays readable. */
 data class ProfileNavigation(
     val onOpenSettings: () -> Unit,
-    val onUpgrade: () -> Unit,
-    val onOpenSubscription: () -> Unit,
+    /** Null while payments are hidden (AppFeatures): the plan banner only shows the plan. */
+    val onUpgrade: (() -> Unit)?,
+    val onOpenSubscription: (() -> Unit)?,
     val onEditProfile: () -> Unit,
     val onChangePassword: () -> Unit,
     val onOpenHelp: () -> Unit,
     val onDeleteAccount: () -> Unit,
+    val onOpenPhone: () -> Unit,
+    val onOpenSessions: () -> Unit,
 )
 
 @Composable
@@ -235,46 +241,43 @@ private fun ProfileContent(
                 ),
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
-        ProfileCard(profile = state.profile, onAvatarClick = { onEvent(ProfileUiEvent.AvatarClick) })
+        val profile = state.profile
+        ProfileCard(
+            profile = profile,
+            onAvatarClick = { onEvent(ProfileUiEvent.AvatarClick) }.takeUnless { profile.isChild },
+        )
+        profile.managedBy?.let { ManagedAccountNote(mitra = it) }
         PlanBanner(
             subscription = state.profile.subscription,
             daysRemaining = state.daysRemaining,
             onUpgrade = navigation.onUpgrade,
             onOpenSubscription = navigation.onOpenSubscription,
         )
-        ProfileMenu(navigation = navigation, onSignOut = { onEvent(ProfileUiEvent.SignOutClick) })
+        ProfileMenu(
+            profile = profile,
+            phoneSignIn = state.phoneSignIn,
+            navigation = navigation,
+            onSignOut = { onEvent(ProfileUiEvent.SignOutClick) },
+        )
     }
 }
 
-/** Akun, Lainnya and the red Keluar / Hapus Akun group. */
+/**
+ * Akun, Lainnya and the red Keluar / Hapus Akun group. A child account has no edit, number, password,
+ * Sesi Aktif, or delete rows; its parent or teacher keeps them (Aturan 11.30).
+ */
 @Composable
 private fun ProfileMenu(
+    profile: UserProfile,
+    phoneSignIn: Boolean,
     navigation: ProfileNavigation,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
+    val adult = !profile.isChild
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-        Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-            AccountSectionTitle(title = stringResource(R.string.account_profile_section_account), muted = true)
-            AccountListCard {
-                AccountMenuRow(
-                    label = stringResource(R.string.account_profile_edit),
-                    icon = GotestIcons.Linear.UserEdit,
-                    onClick = navigation.onEditProfile,
-                )
-                AccountMenuRow(
-                    label = stringResource(R.string.account_profile_change_password),
-                    icon = GotestIcons.Linear.Lock,
-                    onClick = navigation.onChangePassword,
-                )
-                AccountMenuRow(
-                    label = stringResource(R.string.account_profile_notifications),
-                    icon = GotestIcons.Linear.Notification,
-                    onClick = navigation.onOpenSettings,
-                )
-            }
-        }
+        AccountSection(profile = profile, phoneSignIn = phoneSignIn, navigation = navigation)
         Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
             AccountSectionTitle(title = stringResource(R.string.account_profile_section_other), muted = true)
             AccountListCard {
@@ -297,12 +300,78 @@ private fun ProfileMenu(
                 onClick = onSignOut,
                 tone = AccountMenuTone.Danger,
             )
-            AccountMenuRow(
-                label = stringResource(R.string.account_profile_delete),
-                icon = GotestIcons.Linear.UserMinus,
-                onClick = navigation.onDeleteAccount,
-                tone = AccountMenuTone.Danger,
-            )
+            if (adult) {
+                AccountMenuRow(
+                    label = stringResource(R.string.account_profile_delete),
+                    icon = GotestIcons.Linear.UserMinus,
+                    onClick = navigation.onDeleteAccount,
+                    tone = AccountMenuTone.Danger,
+                )
+            }
+        }
+    }
+}
+
+/** The Akun rows; [ProfileMenu] says which a child account leaves out. */
+@Composable
+private fun AccountSection(
+    profile: UserProfile,
+    phoneSignIn: Boolean,
+    navigation: ProfileNavigation,
+    modifier: Modifier = Modifier,
+) {
+    val adult = !profile.isChild
+    // A child account has none of these rows while Notifikasi is hidden, so the section goes too.
+    if (!adult && !AppFeatures.NOTIFICATION_SETTINGS) return
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
+        AccountSectionTitle(title = stringResource(R.string.account_profile_section_account), muted = true)
+        AccountListCard {
+            if (adult) {
+                AccountMenuRow(
+                    label = stringResource(R.string.account_profile_edit),
+                    icon = GotestIcons.Linear.UserEdit,
+                    onClick = navigation.onEditProfile,
+                )
+            }
+            // As on the web: the number row shows while codes are on, or while the account has a number.
+            if (adult && (phoneSignIn || profile.phone != null)) {
+                AccountMenuRow(
+                    label =
+                        stringResource(
+                            if (profile.phone !=
+                                null
+                            ) {
+                                R.string.account_profile_phone
+                            } else {
+                                R.string.account_profile_phone_add
+                            },
+                        ),
+                    icon = GotestIcons.Linear.Message,
+                    onClick = navigation.onOpenPhone,
+                )
+            }
+            // An account without an email signs in with a WhatsApp code; it has no password to change.
+            if (adult && profile.hasEmail) {
+                AccountMenuRow(
+                    label = stringResource(R.string.account_profile_change_password),
+                    icon = GotestIcons.Linear.Lock,
+                    onClick = navigation.onChangePassword,
+                )
+            }
+            if (adult) {
+                AccountMenuRow(
+                    label = stringResource(R.string.account_profile_sessions),
+                    icon = GotestIcons.Linear.MenuBoard,
+                    onClick = navigation.onOpenSessions,
+                )
+            }
+            if (AppFeatures.NOTIFICATION_SETTINGS) {
+                AccountMenuRow(
+                    label = stringResource(R.string.account_profile_notifications),
+                    icon = GotestIcons.Linear.Notification,
+                    onClick = navigation.onOpenSettings,
+                )
+            }
         }
     }
 }
@@ -363,6 +432,8 @@ private val previewNavigation =
         onChangePassword = {},
         onOpenHelp = {},
         onDeleteAccount = {},
+        onOpenPhone = {},
+        onOpenSessions = {},
     )
 
 @Composable
@@ -381,6 +452,40 @@ private fun ProfilePreviewScreen(uiState: ProfileUiState) {
 private fun ProfileScreenFreePreview() {
     GotestTheme {
         ProfilePreviewScreen(ProfileUiState.Success(profile = AccountPreviewData.profile, daysRemaining = 30))
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 1100)
+@Composable
+private fun ProfileScreenPhonePreview() {
+    GotestTheme {
+        ProfilePreviewScreen(
+            ProfileUiState.Success(
+                profile = AccountPreviewData.profile.copy(phone = "0812-3456-7890"),
+                phoneSignIn = true,
+                daysRemaining = 30,
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun ProfileScreenChildPreview() {
+    GotestTheme {
+        ProfilePreviewScreen(
+            ProfileUiState.Success(
+                profile =
+                    AccountPreviewData.profile.copy(
+                        fullName = "Raka",
+                        email = "",
+                        avatarUrl = null,
+                        managedBy = "Keluarga Pratama",
+                    ),
+                phoneSignIn = true,
+                daysRemaining = 30,
+            ),
+        )
     }
 }
 

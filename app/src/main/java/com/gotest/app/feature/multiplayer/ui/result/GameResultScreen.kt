@@ -16,8 +16,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,13 +39,15 @@ import com.gotest.app.feature.multiplayer.domain.DuelOutcome
 import com.gotest.app.feature.multiplayer.domain.GameType
 import com.gotest.app.feature.multiplayer.ui.components.MbBottomBar
 import com.gotest.app.feature.multiplayer.ui.components.MbDuelResultBanner
+import com.gotest.app.feature.multiplayer.ui.components.MbPremiumOnlyDialog
 import com.gotest.app.feature.multiplayer.ui.components.MultiplayerPreviewData
 import kotlinx.coroutines.launch
 
 @Composable
 fun GameResultRoute(
     onBackToHub: () -> Unit,
-    onUpgrade: () -> Unit,
+    /** Null while paying in the app is hidden (AppFeatures). */
+    onUpgrade: (() -> Unit)?,
     onReplay: (code: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GameResultViewModel = hiltViewModel(),
@@ -52,9 +56,10 @@ fun GameResultRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val failedMessage = stringResource(R.string.multiplayer_create_failed)
+    var premiumOnly by remember { mutableStateOf(false) }
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            GameResultEffect.UpgradeRequired -> onUpgrade()
+            GameResultEffect.UpgradeRequired -> if (onUpgrade != null) onUpgrade() else premiumOnly = true
             is GameResultEffect.Replayed -> onReplay(effect.code)
             GameResultEffect.Failed -> scope.launch { snackbarHostState.showSnackbar(failedMessage) }
         }
@@ -66,6 +71,7 @@ fun GameResultRoute(
         modifier = modifier,
         snackbarHostState = snackbarHostState,
     )
+    if (premiumOnly) MbPremiumOnlyDialog(onDismissRequest = { premiumOnly = false })
 }
 
 @Composable

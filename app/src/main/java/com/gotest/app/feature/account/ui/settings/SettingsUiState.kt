@@ -17,6 +17,8 @@ sealed interface SettingsUiState {
         val subscription: Subscription,
         /** False once [Subscription.activeUntil] has passed ("Berakhir" chip). */
         val isSubscriptionActive: Boolean,
+        /** The Mitra that keeps a child account; Pengaturan says so at the top (Aturan 11.30). */
+        val managedBy: String? = null,
     ) : SettingsUiState
 }
 

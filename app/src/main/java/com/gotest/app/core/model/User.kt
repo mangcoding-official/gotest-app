@@ -10,7 +10,16 @@ data class UserProfile(
     val avatarUrl: String?,
     val stats: UserStats,
     val subscription: Subscription,
+    /** The WhatsApp number in display form ("0812-3456-7890"), or null (DEC-123). */
+    val phone: String? = null,
+    /** The Mitra that keeps a child account (Aturan 11.30), or null for any other account. */
+    val managedBy: String? = null,
 ) {
+    val isChild: Boolean get() = managedBy != null
+
+    /** An account made with a phone number may have no email, and then no password either. */
+    val hasEmail: Boolean get() = email.isNotBlank()
+
     /** "Halo, Gilang" uses the first name only. */
     val firstName: String get() = fullName.substringBefore(' ')
 

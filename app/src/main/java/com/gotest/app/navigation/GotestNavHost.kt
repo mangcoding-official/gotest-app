@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.account.navigation.accountScreens
 import com.gotest.app.feature.assistant.navigation.assistantScreens
 import com.gotest.app.feature.auth.navigation.authScreens
@@ -19,11 +21,12 @@ import com.gotest.app.feature.upgrade.navigation.upgradeScreens
 @Composable
 fun GotestNavHost(
     navController: NavHostController,
+    startDestination: Any,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
         navController = navController,
-        startDestination = OnboardingDestination,
+        startDestination = startDestination,
         modifier = modifier,
     ) {
         authScreens(navController)
@@ -33,8 +36,9 @@ fun GotestNavHost(
         studyPackageScreens(navController)
         historyScreens(navController)
         leaderboardScreens(navController)
-        upgradeScreens(navController)
-        assistantScreens(navController)
+        // Hidden until the web has them (AppFeatures): not in the graph at all.
+        if (AppFeatures.PAYMENTS) upgradeScreens(navController)
+        if (AppFeatures.ASSISTANT) assistantScreens(navController)
         multiplayerScreens(navController)
     }
 }

@@ -43,6 +43,7 @@ class PersonalDataViewModel
                             fullName = profile.fullName,
                             email = profile.email,
                             details = details,
+                            canEdit = !profile.isChild,
                         )
                     }.onStart { emit(PersonalDataUiState.Loading) }
                         .catch { emit(PersonalDataUiState.Error) }

@@ -30,7 +30,7 @@ import com.gotest.app.core.model.UserStats
 @Composable
 fun HomeRoute(
     onSearch: () -> Unit,
-    onNotifications: () -> Unit,
+    onNotifications: (() -> Unit)?,
     onContinue: (packageId: String) -> Unit,
     onBrowsePackages: () -> Unit,
     onOpenPackage: (packageId: String, type: PackageType) -> Unit,
@@ -38,7 +38,7 @@ fun HomeRoute(
     onOpenResult: (attemptId: String) -> Unit,
     onJoinGame: () -> Unit,
     onCreateGame: () -> Unit,
-    onOpenPromo: (promoId: String) -> Unit,
+    onOpenPromo: ((promoId: String) -> Unit)?,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -67,7 +67,8 @@ fun HomeRoute(
 @Immutable
 data class HomeActions(
     val onSearch: () -> Unit,
-    val onNotifications: () -> Unit,
+    /** Null while the Notifikasi inbox is hidden (AppFeatures): no bell. */
+    val onNotifications: (() -> Unit)?,
     val onContinue: (packageId: String) -> Unit,
     val onBrowsePackages: () -> Unit,
     val onOpenPackage: (packageId: String, type: PackageType) -> Unit,
@@ -75,7 +76,8 @@ data class HomeActions(
     val onOpenResult: (attemptId: String) -> Unit,
     val onJoinGame: () -> Unit,
     val onCreateGame: () -> Unit,
-    val onOpenPromo: (promoId: String) -> Unit,
+    /** Null while payments are hidden (AppFeatures): no promo banner. */
+    val onOpenPromo: ((promoId: String) -> Unit)?,
 )
 
 @Composable
@@ -167,7 +169,9 @@ private fun HomeDashboard(
                 modifier = Modifier.padding(bottom = spacing.sm),
             )
         }
-        item(key = "promo") { HomePromoBanner(onClick = { actions.onOpenPromo(HOME_PROMO_ID) }) }
+        actions.onOpenPromo?.let { openPromo ->
+            item(key = "promo") { HomePromoBanner(onClick = { openPromo(HOME_PROMO_ID) }) }
+        }
         item(key = "stats") { HomeStatsRow(stats = stats) }
         item(key = "multiplayer") {
             HomeMultiplayerCard(onJoinGame = actions.onJoinGame, onCreateGame = actions.onCreateGame)

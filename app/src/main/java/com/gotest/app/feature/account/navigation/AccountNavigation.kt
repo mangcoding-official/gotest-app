@@ -7,8 +7,10 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.account.ui.changepassword.ChangePasswordRoute
 import com.gotest.app.feature.account.ui.components.AccountNotice
+import com.gotest.app.feature.account.ui.components.AdultOnly
 import com.gotest.app.feature.account.ui.deleteaccount.DeleteAccountRoute
 import com.gotest.app.feature.account.ui.downloaddata.DownloadDataRoute
 import com.gotest.app.feature.account.ui.editprofile.EditProfileRoute
@@ -16,12 +18,16 @@ import com.gotest.app.feature.account.ui.help.HelpRoute
 import com.gotest.app.feature.account.ui.helptopic.HelpTopicRoute
 import com.gotest.app.feature.account.ui.mainlevel.MainLevelRoute
 import com.gotest.app.feature.account.ui.personaldata.PersonalDataRoute
+import com.gotest.app.feature.account.ui.phone.AccountPhoneRoute
 import com.gotest.app.feature.account.ui.profile.ProfileNavigation
 import com.gotest.app.feature.account.ui.profile.ProfileRoute
+import com.gotest.app.feature.account.ui.sessions.ActiveSessionsRoute
 import com.gotest.app.feature.account.ui.settings.SettingsNavigation
 import com.gotest.app.feature.account.ui.settings.SettingsRoute
 import com.gotest.app.feature.account.ui.subscription.SubscriptionRoute
 import com.gotest.app.feature.auth.navigation.navigateToOnboardingClearingAll
+import com.gotest.app.navigation.AccountPhoneDestination
+import com.gotest.app.navigation.ActiveSessionsDestination
 import com.gotest.app.navigation.ChangePasswordDestination
 import com.gotest.app.navigation.DeleteAccountDestination
 import com.gotest.app.navigation.DownloadAccountDataDestination
@@ -49,42 +55,68 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             navigation =
                 ProfileNavigation(
                     onOpenSettings = { navController.navigate(SettingsDestination) },
-                    onUpgrade = { navController.navigate(UpgradePlanDestination) },
-                    onOpenSubscription = { navController.navigate(SubscriptionDestination) },
+                    onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
+                    onOpenSubscription =
+                        {
+                            navController.navigate(
+                                SubscriptionDestination,
+                            )
+                        }.takeIf { AppFeatures.PAYMENTS },
                     onEditProfile = { navController.navigate(EditProfileDestination) },
                     onChangePassword = { navController.navigate(ChangePasswordDestination) },
                     onOpenHelp = { navController.navigate(HelpDestination) },
                     onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+                    onOpenPhone = { navController.navigate(AccountPhoneDestination) },
+                    onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
                 ),
             notice = entry.accountNotice(),
             onNoticeConsume = entry::consumeAccountNotice,
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
         )
     }
+    // A child account may not open these screens, whatever leads there (Aturan 11.30, T-018 review 2).
     composable<EditProfileDestination> {
-        EditProfileRoute(
-            onBack = navController::navigateUp,
-            onSaveSuccess = { navController.navigateUpWithNotice(AccountNotice.ProfileSaved) },
-        )
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            EditProfileRoute(
+                onBack = navController::navigateUp,
+                onSaveSuccess = { navController.navigateUpWithNotice(AccountNotice.ProfileSaved) },
+            )
+        }
     }
     composable<ChangePasswordDestination> {
-        ChangePasswordRoute(
-            onBack = navController::navigateUp,
-            onChangeSuccess = { navController.navigateUpWithNotice(AccountNotice.PasswordChanged) },
-        )
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            ChangePasswordRoute(
+                onBack = navController::navigateUp,
+                onChangeSuccess = { navController.navigateUpWithNotice(AccountNotice.PasswordChanged) },
+            )
+        }
+    }
+    composable<AccountPhoneDestination> {
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            AccountPhoneRoute(onBack = navController::navigateUp)
+        }
+    }
+    composable<ActiveSessionsDestination> {
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            ActiveSessionsRoute(onBack = navController::navigateUp)
+        }
     }
     composable<DeleteAccountDestination> {
-        DeleteAccountRoute(
-            onBack = navController::navigateUp,
-            onDeleteSuccess = navController::navigateToOnboardingClearingAll,
-        )
+        AdultOnly(onChildAccount = navController::navigateUp) {
+            DeleteAccountRoute(
+                onBack = navController::navigateUp,
+                onDeleteSuccess = navController::navigateToOnboardingClearingAll,
+            )
+        }
     }
     settingsScreens(navController)
-    composable<SubscriptionDestination> {
-        SubscriptionRoute(
-            onBack = navController::navigateUp,
-            onUpgrade = { navController.navigate(UpgradePlanDestination) },
-        )
+    if (AppFeatures.PAYMENTS) {
+        composable<SubscriptionDestination> {
+            SubscriptionRoute(
+                onBack = navController::navigateUp,
+                onUpgrade = { navController.navigate(UpgradePlanDestination) },
+            )
+        }
     }
     composable<HelpDestination> {
         HelpRoute(
@@ -105,9 +137,17 @@ private fun NavGraphBuilder.settingsScreens(navController: NavController) {
             navigation =
                 SettingsNavigation(
                     onOpenMainLevel = { navController.navigate(MainLevelDestination) },
-                    onOpenSubscription = { navController.navigate(SubscriptionDestination) },
+                    onOpenSubscription =
+                        {
+                            navController.navigate(
+                                SubscriptionDestination,
+                            )
+                        }.takeIf { AppFeatures.PAYMENTS },
                     onOpenPersonalData = { navController.navigate(PersonalDataDestination) },
-                    onOpenDownloadData = { navController.navigate(DownloadAccountDataDestination) },
+                    onOpenDownloadData =
+                        {
+                            navController.navigate(DownloadAccountDataDestination)
+                        }.takeIf { AppFeatures.ACCOUNT_DATA_DOWNLOAD },
                 ),
             notice = entry.accountNotice(),
             onNoticeConsume = entry::consumeAccountNotice,
@@ -127,11 +167,13 @@ private fun NavGraphBuilder.settingsScreens(navController: NavController) {
             onNoticeConsume = entry::consumeAccountNotice,
         )
     }
-    composable<DownloadAccountDataDestination> {
-        DownloadDataRoute(
-            onBack = navController::navigateUp,
-            onRequestSuccess = { navController.navigateUpWithNotice(AccountNotice.DataCopyRequested) },
-        )
+    if (AppFeatures.ACCOUNT_DATA_DOWNLOAD) {
+        composable<DownloadAccountDataDestination> {
+            DownloadDataRoute(
+                onBack = navController::navigateUp,
+                onRequestSuccess = { navController.navigateUpWithNotice(AccountNotice.DataCopyRequested) },
+            )
+        }
     }
 }
 

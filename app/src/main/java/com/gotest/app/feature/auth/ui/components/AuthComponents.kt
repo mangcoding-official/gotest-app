@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.feature.auth.domain.CredentialError
+import java.time.Year
 
 /** Logo mark plus the "Gotest.id" wordmark. */
 @Composable
@@ -48,7 +49,8 @@ fun AuthLogo(modifier: Modifier = Modifier) {
 @Composable
 fun AuthCopyright(modifier: Modifier = Modifier) {
     Text(
-        text = stringResource(R.string.auth_copyright),
+        // As on the web (Components/Auth/AuthCopyright.tsx, T-018 D4): the current year.
+        text = stringResource(R.string.auth_copyright, Year.now().value),
         modifier = modifier.fillMaxWidth(),
         style = MaterialTheme.typography.labelSmall,
         color = GotestTheme.colors.textPlaceholder,
@@ -96,6 +98,9 @@ fun CredentialError.messageRes(): Int =
         CredentialError.InvalidEmail -> R.string.auth_error_email
         CredentialError.PasswordTooShort -> R.string.auth_error_password_length
         CredentialError.PasswordMismatch -> R.string.auth_error_password_mismatch
+        CredentialError.NewPasswordTooShort -> R.string.auth_error_new_password_length
+        CredentialError.PasswordNeedsLetter -> R.string.auth_error_password_letter
+        CredentialError.PasswordNeedsNumber -> R.string.auth_error_password_number
     }
 
 @Preview(showBackground = true)

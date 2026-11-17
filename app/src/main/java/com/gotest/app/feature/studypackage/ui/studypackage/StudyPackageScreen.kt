@@ -37,7 +37,7 @@ import com.gotest.app.feature.studypackage.ui.components.StudyPackagePreviewData
 @Composable
 fun StudyPackageRoute(
     onSearch: () -> Unit,
-    onSavedPackages: () -> Unit,
+    onSavedPackages: (() -> Unit)?,
     onCategoryClick: (categoryId: String) -> Unit,
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
@@ -58,15 +58,15 @@ fun StudyPackageRoute(
 }
 
 /**
- * Paket tab root. Latihan (frame 6284) keeps every block in one card; Tryout (frame 7315) splits
- * the controls from the list. Drawn under the floating bottom bar.
+ * Paket tab root (frames 6284 Latihan, 7315 Tryout): the switch and dropdown in one card, the
+ * category list below it. Drawn under the floating bottom bar.
  */
 @Composable
 fun StudyPackageScreen(
     uiState: StudyPackageUiState,
     onEvent: (StudyPackageUiEvent) -> Unit,
     onSearch: () -> Unit,
-    onSavedPackages: () -> Unit,
+    onSavedPackages: (() -> Unit)?,
     onCategoryClick: (categoryId: String) -> Unit,
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
@@ -87,11 +87,14 @@ fun StudyPackageScreen(
                 ),
             style = GotestTopAppBarStyle.Leading,
             actions = {
-                GotestIconButton(
-                    icon = GotestIcons.Linear.ArchiveTick,
-                    contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
-                    onClick = onSavedPackages,
-                )
+                // Paket Tersimpan is hidden until the web has it (AppFeatures).
+                if (onSavedPackages != null) {
+                    GotestIconButton(
+                        icon = GotestIcons.Linear.ArchiveTick,
+                        contentDescription = stringResource(R.string.studypackage_cd_saved_packages),
+                        onClick = onSavedPackages,
+                    )
+                }
                 GotestIconButton(
                     icon = GotestIcons.Linear.SearchNormal,
                     contentDescription = stringResource(R.string.studypackage_cd_search),
@@ -112,26 +115,18 @@ fun StudyPackageScreen(
                     ),
             verticalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            val body: @Composable () -> Unit = {
-                StudyPackageBody(
-                    uiState = uiState,
-                    onRetry = { onEvent(StudyPackageUiEvent.Retry) },
-                    onCategoryClick = onCategoryClick,
-                    onTryoutClick = onTryoutClick,
-                    onActivityClick = onActivityClick,
-                )
+            // The design wraps the list in another white card; on phones narrower than its 440dp
+            // frame that nests the category text three paddings deep, so the list sits on the page.
+            GotestCard(modifier = Modifier.fillMaxWidth()) {
+                StudyPackageControls(uiState = uiState, onEvent = onEvent)
             }
-            if (isPractice) {
-                GotestCard(modifier = Modifier.fillMaxWidth()) {
-                    StudyPackageControls(uiState = uiState, onEvent = onEvent)
-                    body()
-                }
-            } else {
-                GotestCard(modifier = Modifier.fillMaxWidth()) {
-                    StudyPackageControls(uiState = uiState, onEvent = onEvent)
-                }
-                GotestCard(modifier = Modifier.fillMaxWidth()) { body() }
-            }
+            StudyPackageBody(
+                uiState = uiState,
+                onRetry = { onEvent(StudyPackageUiEvent.Retry) },
+                onCategoryClick = onCategoryClick,
+                onTryoutClick = onTryoutClick,
+                onActivityClick = onActivityClick,
+            )
         }
     }
 }

@@ -2,7 +2,7 @@
 <resources>
     <!-- Logo and footer shared by the auth screens -->
     <string name="auth_logo_text">Gotest.id</string>
-    <string name="auth_copyright">© 2024 BankSoal Indonesia. Seluruh hak cipta dilindungi.</string>
+    <string name="auth_copyright">© %1$d Gotest.id. Seluruh hak cipta dilindungi.</string>
 
     <!-- Auth / Onboarding -->
     <string name="onboarding_headline">Persiapan belajar yang lebih terarah, mulai dari sini.</string>
@@ -57,4 +57,139 @@
     <string name="auth_error_password_mismatch">Kata sandi belum sama</string>
     <string name="auth_error_sign_in">Email atau password salah</string>
     <string name="forgot_sent">Link reset password sudah dikirim ke %1$s</string>
+
+    <!-- New password rule, as on the web (T-018) -->
+    <string name="auth_error_new_password_length">Kata sandi minimal 8 karakter.</string>
+    <string name="auth_error_password_letter">Kata sandi harus memuat minimal satu huruf.</string>
+    <string name="auth_error_password_number">Kata sandi harus memuat minimal satu angka.</string>
+    <string name="auth_processing">Memproses...</string>
+
+    <!-- Atur ulang kata sandi from the email link (web: Auth/ResetPassword.tsx) -->
+    <string name="reset_title">Buat kata sandi baru</string>
+    <string name="reset_subtitle">Setelah tersimpan, kamu bisa langsung masuk dengan kata sandi ini.</string>
+    <string name="reset_email_label">Alamat Email</string>
+    <string name="reset_password_label">Kata Sandi Baru</string>
+    <string name="reset_password_hint">Min. 8 karakter, huruf &amp; angka</string>
+    <string name="reset_confirm_label">Konfirmasi Kata Sandi</string>
+    <string name="reset_confirm_hint">Ulangi Kata Sandi</string>
+    <string name="reset_submit">Simpan Kata Sandi</string>
+    <string name="reset_back_to_login">Kembali ke halaman login</string>
+    <string name="reset_done">Kata sandi berhasil diatur ulang. Silakan masuk dengan kata sandi baru.</string>
+
+    <!-- Masuk Anak (web: Auth/ChildLogin.tsx) -->
+    <string name="child_login_link">Masuk dengan kode keluarga</string>
+    <string name="child_title">Masuk dengan kode keluarga</string>
+    <string name="child_subtitle_code">Minta kode keluarga ke orang tua atau gurumu.</string>
+    <string name="child_subtitle_name">Pilih namamu.</string>
+    <string name="child_subtitle_pin">Halo %1$s! Ketik PIN 4 angka-mu.</string>
+    <string name="child_code_label">Kode keluarga</string>
+    <string name="child_code_hint">6 huruf atau angka</string>
+    <string name="child_code_required">Tulis kode keluarga.</string>
+    <string name="child_next">Lanjut</string>
+    <string name="child_other_sign_in">Masuk dengan email atau nomor</string>
+    <string name="child_change_code">Ganti kode keluarga</string>
+    <string name="child_pin_label">PIN</string>
+    <string name="child_pin_hint">4 angka</string>
+    <string name="child_pin_required">Tulis PIN-mu.</string>
+    <string name="child_pin_length">PIN terdiri dari 4 angka.</string>
+    <string name="child_submit">Masuk</string>
+    <string name="child_not_me">Bukan %1$s?</string>
+
+    <!-- Masuk / daftar dengan nomor WhatsApp (web: Components/Auth/PhoneOtpForm.tsx, Auth/PhoneRegister.tsx) -->
+    <string name="auth_tab_phone">Nomor HP</string>
+    <string name="auth_tab_email">Email</string>
+    <string name="phone_label">Nomor WhatsApp</string>
+    <string name="phone_hint">0812 3456 7890</string>
+    <string name="phone_helper">Kami kirim kode 6 angka ke WhatsApp nomor ini. Nomor baru langsung didaftarkan.</string>
+    <string name="phone_send">Kirim kode lewat WhatsApp</string>
+    <string name="phone_invalid">Tulis nomor HP Indonesia yang aktif di WhatsApp, misalnya 0812 3456 7890.</string>
+    <string name="phone_code_sent">Kode dikirim ke WhatsApp %1$s. Kode berlaku 5 menit.</string>
+    <string name="phone_code_label">Kode dari WhatsApp</string>
+    <string name="code_hint">6 angka</string>
+    <string name="code_resend_in">Kirim ulang dalam %1$d detik</string>
+    <string name="code_resend">Kirim ulang kode</string>
+    <string name="phone_change">Ganti nomor</string>
+    <string name="phone_submit_login">Masuk</string>
+    <string name="phone_submit_register">Lanjut</string>
+    <string name="phone_register_title">Satu langkah lagi</string>
+    <string name="phone_register_subtitle">Nomor %1$s sudah terverifikasi. Lengkapi data berikut untuk menyelesaikan pendaftaran.</string>
+    <string name="phone_register_name_label">Nama Lengkap</string>
+    <string name="phone_register_name_hint">nama Pelajar</string>
+    <string name="phone_register_name_required">Nama wajib diisi.</string>
+    <string name="phone_register_submit">Selesai daftar</string>
+
+    <!-- Jenjang pendidikan (web: Components/Auth/EducationLevelFields.tsx, app/Support/EducationLevel.php) -->
+    <string name="education_label">Jenjang pendidikan</string>
+    <string name="education_required">Pilih jenjang pendidikanmu.</string>
+    <string name="education_sd">SD</string>
+    <string name="education_smp">SMP</string>
+    <string name="education_sma">SMA/SMK</string>
+    <string name="education_kuliah">Kuliah</string>
+    <string name="education_graduated">Sudah lulus / bekerja</string>
+
+    <!-- Pertanyaan usia dan kontak orang tua (web: Components/Auth/EducationLevelFields.tsx) -->
+    <string name="guardian_age_question">Usiamu sudah %1$d tahun?</string>
+    <string name="guardian_yes">Ya</string>
+    <string name="guardian_no">Belum</string>
+    <string name="guardian_answer_required">Pilih Ya atau Belum.</string>
+    <string name="guardian_channel_legend">Kirim tautan persetujuan ke</string>
+    <string name="guardian_channel_whatsapp">WhatsApp orang tua</string>
+    <string name="guardian_channel_email">Email orang tua</string>
+    <string name="guardian_phone_label">Nomor WhatsApp orang tua atau wali</string>
+    <string name="guardian_phone_hint">0812 3456 7890</string>
+    <string name="guardian_phone_helper">Kami kirim tautan persetujuan ke WhatsApp nomor ini. Akunmu bisa dipakai setelah orang tua atau wali menyetujui.</string>
+    <string name="guardian_phone_required">Tulis nomor WhatsApp orang tua atau wali.</string>
+    <string name="guardian_email_label">Email orang tua atau wali</string>
+    <string name="guardian_email_hint">nama@contoh.id</string>
+    <string name="guardian_email_helper">Kami kirim tautan persetujuan ke email ini. Akunmu bisa dipakai setelah orang tua atau wali menyetujui.</string>
+    <string name="guardian_email_required">Tulis email orang tua atau wali.</string>
+    <string name="guardian_email_invalid">Tulis email yang benar, misalnya nama@contoh.id.</string>
+
+    <!-- Daftar: kode email dan kode Mitra (web: Auth/Register.tsx, Components/Auth/EmailCodeForm.tsx) -->
+    <string name="register_email_code_note">Kami kirim kode 6 angka ke email ini sebelum akunmu dibuat.</string>
+    <string name="register_code_title">Cek email kamu</string>
+    <string name="register_code_subtitle">Masukkan kode dari email untuk membuat akunmu.</string>
+    <string name="register_code_sent">Kode 6 angka dikirim ke %1$s. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
+    <string name="register_code_label">Kode dari email</string>
+    <string name="register_code_change_email">Ganti email</string>
+    <string name="register_code_submit">Buat akun</string>
+    <string name="register_join_event">Kamu akan bergabung ke %1$s lewat kode %2$s.</string>
+    <string name="register_join_class">Kamu akan bergabung ke kelas %1$s di %2$s.</string>
+    <string name="register_join_drop">Bukan, daftar biasa</string>
+
+    <!-- Menunggu persetujuan orang tua (web: Auth/GuardianConsentWaiting.tsx) -->
+    <string name="consent_title_pending">Menunggu persetujuan orang tua</string>
+    <string name="consent_title_declined">Pendaftaran ditolak orang tua</string>
+    <string name="consent_title_revoked">Persetujuan ditarik</string>
+    <string name="consent_where_email">email %1$s</string>
+    <string name="consent_where_whatsapp">WhatsApp %1$s</string>
+    <string name="consent_guardian">orang tua atau wali</string>
+    <string name="consent_word_contact">kontak</string>
+    <string name="consent_word_number">nomor</string>
+    <string name="consent_word_email">email</string>
+    <string name="consent_queued">Tautan persetujuan sedang dikirim ke %1$s. Muat ulang halaman ini beberapa saat lagi.</string>
+    <string name="consent_sent">Tautan persetujuan sudah dikirim ke %1$s. Akunmu bisa dipakai setelah orang tua atau wali menyetujui. Tautan berlaku sampai %2$s.</string>
+    <string name="consent_limited">Tautan untuk %1$s belum bisa dikirim lagi hari ini. Coba besok, atau ganti %2$s orang tua.</string>
+    <string name="consent_failed">Tautan untuk %1$s belum terkirim. Kirim ulang tautan.</string>
+    <string name="consent_failed_email_closed">Tautan untuk %1$s belum terkirim. Ganti kontak orang tua ke nomor WhatsApp.</string>
+    <string name="consent_expired">Tautan untuk %1$s sudah kedaluwarsa. Kirim ulang tautan supaya orang tua atau wali bisa menyetujui.</string>
+    <string name="consent_declined">Orang tua atau wali di %1$s %2$s menolak pendaftaran ini, jadi akunmu tetap terkunci. Kamu bisa mengirim ulang tautan atau mengganti %3$s orang tua.</string>
+    <string name="consent_revoked">Orang tua atau wali di %1$s %2$s menarik persetujuannya, jadi akunmu terkunci lagi sampai mereka menyetujui kembali.</string>
+    <string name="consent_resend">Kirim ulang tautan</string>
+    <string name="consent_change_contact">Ganti kontak orang tua</string>
+    <string name="consent_change_number">Ganti nomor orang tua</string>
+    <string name="consent_cancel">Batal</string>
+    <string name="consent_send_email">Kirim ke email ini</string>
+    <string name="consent_send_number">Kirim ke nomor ini</string>
+    <string name="consent_sign_out">Keluar</string>
+    <string name="consent_delete_account">Hapus akun</string>
+
+    <!-- Masuk dengan kode email (web: Auth/Login.tsx, T-023) -->
+    <string name="login_email_code_link">Masuk dengan kode email</string>
+    <string name="login_password_link">Masuk dengan kata sandi</string>
+    <string name="login_code_email_label">Email</string>
+    <string name="login_code_email_hint">nama@email.com</string>
+    <string name="login_code_note">Kami kirim kode 6 angka ke email ini, jadi kamu bisa masuk tanpa kata sandi.</string>
+    <string name="login_code_send">Kirim kode ke email</string>
+    <string name="login_code_sent">Bila %1$s terdaftar di Gotest, kode 6 angka dikirim ke sana. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
 </resources>

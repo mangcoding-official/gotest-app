@@ -33,7 +33,8 @@ import com.gotest.app.core.designsystem.theme.GotestTheme
 fun AuthFormCard(
     title: String,
     subtitle: String,
-    onBack: () -> Unit,
+    /** Null on a page with nowhere to go back to, such as "Menunggu persetujuan orang tua". */
+    onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -57,7 +58,7 @@ fun AuthFormCard(
                 horizontalArrangement = Arrangement.spacedBy(spacing.lg),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                GotestBackButton(onClick = onBack)
+                if (onBack != null) GotestBackButton(onClick = onBack)
                 AuthHeading(title = title, subtitle = subtitle)
             }
             Column(

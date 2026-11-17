@@ -15,10 +15,10 @@ import com.gotest.app.core.model.QrisCode
 import com.gotest.app.core.model.Subscription
 import com.gotest.app.core.model.UserProfile
 import com.gotest.app.core.model.UserStats
+import com.gotest.app.core.session.SessionStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -72,7 +72,39 @@ class FakeAccountStore
                         ),
                 ),
             )
-        val signedIn = MutableStateFlow(false)
+
+        private val default = profile.value
+
+        /** An email or Google sign-in shows the default account again. */
+        fun useDefault() {
+            profile.value = default
+        }
+
+        /** A new account from Daftar with email. */
+        fun useNewEmailAccount(
+            fullName: String,
+            email: String,
+        ) {
+            profile.value = default.copy(id = "user_new", fullName = fullName, email = email, avatarUrl = null)
+        }
+
+        /** A sign-in or sign-up with a WhatsApp number; [email] is empty for a phone-only account. */
+        fun usePhone(
+            phone: String,
+            fullName: String = default.fullName,
+            email: String = default.email,
+        ) {
+            profile.value = default.copy(fullName = fullName, email = email, phone = phone)
+        }
+
+        /** A child account kept by a Mitra: no email, number, or photo of its own (Aturan 11.30). */
+        fun useChild(
+            name: String,
+            mitra: String,
+        ) {
+            profile.value =
+                default.copy(id = "child_$name", fullName = name, email = "", avatarUrl = null, managedBy = mitra)
+        }
     }
 
 @Singleton
@@ -80,8 +112,11 @@ class FakeAuthRepository
     @Inject
     constructor(
         private val store: FakeAccountStore,
+        private val session: SessionStore,
     ) : AuthRepository {
-        override val isSignedIn: StateFlow<Boolean> = store.signedIn.asStateFlow()
+        // The fake signs in with a dummy token, kept in the real session store, so closing the app
+        // keeps the user signed in (T-018).
+        override val isSignedIn: StateFlow<Boolean> = session.isSignedIn
 
         override suspend fun signIn(
             email: String,
@@ -92,13 +127,15 @@ class FakeAuthRepository
             if (!email.contains('@') || password.length < MIN_PASSWORD_LENGTH) {
                 return Result.failure(IllegalArgumentException("invalid credentials"))
             }
-            store.signedIn.value = true
+            store.useDefault()
+            session.save(FAKE_TOKEN)
             return Result.success(Unit)
         }
 
         override suspend fun signInWithGoogle(): Result<Unit> {
             simulateLatency()
-            store.signedIn.value = true
+            store.useDefault()
+            session.save(FAKE_TOKEN)
             return Result.success(Unit)
         }
 
@@ -109,7 +146,7 @@ class FakeAuthRepository
         ): Result<Unit> {
             simulateLatency()
             store.profile.update { it.copy(fullName = fullName, email = email) }
-            store.signedIn.value = true
+            session.save(FAKE_TOKEN)
             return Result.success(Unit)
         }
 
@@ -120,7 +157,7 @@ class FakeAuthRepository
 
         override suspend fun signOut() {
             simulateLatency()
-            store.signedIn.value = false
+            session.clear()
         }
     }
 
@@ -129,6 +166,7 @@ class FakeUserRepository
     @Inject
     constructor(
         private val store: FakeAccountStore,
+        private val session: SessionStore,
     ) : UserRepository {
         override fun observeProfile(): Flow<UserProfile> = store.profile.withFakeLatency()
 
@@ -161,7 +199,7 @@ class FakeUserRepository
 
         override suspend fun deleteAccount(): Result<Unit> {
             simulateLatency()
-            store.signedIn.value = false
+            session.clear()
             return Result.success(Unit)
         }
     }
@@ -365,3 +403,6 @@ private fun fakeQrisPayload(amountRupiah: Long): String {
     }
     return body + (crc and 0xFFFF).toString(HEX_RADIX).uppercase().padStart(4, '0')
 }
+
+/** What the fake sign-in stores as its token; a real token comes from the API. */
+private const val FAKE_TOKEN = "fake-token"

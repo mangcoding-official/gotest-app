@@ -1,7 +1,9 @@
 package com.gotest.app.core.ui
 
 import java.text.NumberFormat
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAccessor
 import java.util.Locale
@@ -14,6 +16,8 @@ object GotestFormat {
     private val shortDate = DateTimeFormatter.ofPattern("d MMM", indonesian)
     private val monthYear = DateTimeFormatter.ofPattern("MMMM yyyy", indonesian)
     private val time = DateTimeFormatter.ofPattern("HH:mm", indonesian)
+    private val windowInstant =
+        DateTimeFormatter.ofPattern("d MMM yyyy, HH.mm 'WIB'", indonesian).withZone(ZoneId.of("Asia/Jakarta"))
 
     private const val SECONDS_PER_MINUTE = 60
     private const val SECONDS_PER_HOUR = 3_600
@@ -32,6 +36,9 @@ object GotestFormat {
 
     /** "19:00" from a time or date-time. */
     fun time(value: TemporalAccessor): String = time.format(value)
+
+    /** "23 Nov 2026, 14.30 WIB": an instant in WIB, as the web's formatWindowInstant. */
+    fun windowInstant(instant: Instant): String = windowInstant.format(instant)
 
     /** "12.512". */
     fun number(value: Number): String = NumberFormat.getIntegerInstance(indonesian).format(value)

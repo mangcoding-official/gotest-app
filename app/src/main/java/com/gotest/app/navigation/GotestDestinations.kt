@@ -13,7 +13,25 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object ForgotPasswordDestination
 
+/** "Buat kata sandi baru" from the reset email link (T-018). */
+@Serializable data class ResetPasswordDestination(
+    val token: String,
+    val email: String? = null,
+)
+
+/** "Satu langkah lagi" for a new number after its WhatsApp code (T-018). */
+@Serializable data class PhoneRegisterDestination(
+    val phoneDisplay: String,
+)
+
+/** Masuk Anak: family code, name, PIN (T-018). */
+@Serializable data object ChildLoginDestination
+
+/** "Menunggu persetujuan orang tua" for an under-age account (Aturan 2.15). */
+@Serializable data object GuardianConsentDestination
+
 // Top-level tabs
+
 @Serializable data object HomeDestination
 
 @Serializable data object StudyPackageDestination
@@ -96,6 +114,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object DeleteAccountDestination
 
+/** "Nomor WhatsApp" on Profil (DEC-123). */
+@Serializable data object AccountPhoneDestination
+
+/** "Sesi Aktif" on Profil (DEC-102). */
+@Serializable data object ActiveSessionsDestination
+
 @Serializable data object SettingsDestination
 
 @Serializable data object MainLevelDestination
@@ -134,9 +158,13 @@ import kotlinx.serialization.Serializable
 
 // Main Bareng (multiplayer)
 
-/** [openJoinSheet] opens "Gabung dengan kode" straight away (Beranda's "Gabung dengan Kode"). */
+/**
+ * [openJoinSheet] opens "Gabung dengan kode" straight away (Beranda's "Gabung dengan Kode");
+ * [joinCode] fills it in, from a `gotest.id/main-bareng?kode=…` link (T-018).
+ */
 @Serializable data class MultiplayerDestination(
     val openJoinSheet: Boolean = false,
+    val joinCode: String? = null,
 )
 
 /** [copyFromGameCode] prefills the form with that game's settings ("Buat Ulang dengan Pengaturan Sama"). */

@@ -6,6 +6,7 @@ import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.UserProfile
+import com.gotest.app.feature.account.domain.AccountSecurityRepository
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -43,17 +45,24 @@ class ProfileViewModel
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
         private val photoEditor: ProfilePhotoEditor,
+        private val security: AccountSecurityRepository,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
         private val signOut = MutableStateFlow(SignOutState())
 
         private val content: Flow<ProfileUiState> =
             retryKey.flatMapLatest {
+                val phoneSignIn = flow { emit(security.isPhoneSignInAvailable()) }
                 userRepository
                     .observeProfile()
-                    .map<UserProfile, ProfileUiState> { profile ->
-                        ProfileUiState.Success(profile = profile, daysRemaining = daysUntil(profile))
-                    }.onStart { emit(ProfileUiState.Loading) }
+                    .combine(phoneSignIn) { profile, available ->
+                        ProfileUiState.Success(
+                            profile = profile,
+                            phoneSignIn = available,
+                            daysRemaining = daysUntil(profile),
+                        )
+                    }.map<ProfileUiState.Success, ProfileUiState> { it }
+                    .onStart { emit(ProfileUiState.Loading) }
                     .catch { emit(ProfileUiState.Error) }
             }
 

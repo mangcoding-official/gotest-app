@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestChip
 import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestErrorView
@@ -47,6 +48,7 @@ import com.gotest.app.feature.account.ui.components.AccountNoticeEffect
 import com.gotest.app.feature.account.ui.components.AccountPreviewData
 import com.gotest.app.feature.account.ui.components.AccountRowArrow
 import com.gotest.app.feature.account.ui.components.AccountSectionTitle
+import com.gotest.app.feature.account.ui.components.ManagedAccountNote
 import com.gotest.app.feature.account.ui.mainlevel.titleRes
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
@@ -55,9 +57,11 @@ import java.util.Locale
 /** Navigation out of Pengaturan, grouped so the screen signature stays readable. */
 data class SettingsNavigation(
     val onOpenMainLevel: () -> Unit,
-    val onOpenSubscription: () -> Unit,
+    /** Null while payments are hidden (AppFeatures): no Langganan section. */
+    val onOpenSubscription: (() -> Unit)?,
     val onOpenPersonalData: () -> Unit,
-    val onOpenDownloadData: () -> Unit,
+    /** Null while Unduh Data Akun is hidden (AppFeatures): no row. */
+    val onOpenDownloadData: (() -> Unit)?,
 )
 
 /** [notice] reports Jenjang Utama and Unduh Data Akun results. */
@@ -149,40 +153,50 @@ private fun SettingsContent(
                 .padding(start = spacing.screenHorizontal, end = spacing.screenHorizontal, bottom = spacing.xl),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        AccountSectionTitle(
-            title = stringResource(R.string.account_settings_notifications),
-            subtitle = stringResource(R.string.account_settings_notifications_subtitle),
-            modifier = Modifier.padding(top = spacing.sm),
-        )
-        AccountListCard {
-            notificationRows.forEach { row ->
-                SwitchSettingRow(
-                    title = stringResource(row.titleRes),
-                    subtitle = stringResource(row.subtitleRes),
-                    checked = settings.isOn(row.switch),
-                    onCheckedChange = { onSwitchChange(row.switch, it) },
-                )
+        state.managedBy?.let { ManagedAccountNote(mitra = it, modifier = Modifier.padding(top = spacing.sm)) }
+        // Hidden until the app sends notifications (AppFeatures, T-018 D1).
+        if (AppFeatures.NOTIFICATION_SETTINGS) {
+            AccountSectionTitle(
+                title = stringResource(R.string.account_settings_notifications),
+                subtitle = stringResource(R.string.account_settings_notifications_subtitle),
+                modifier = Modifier.padding(top = spacing.sm),
+            )
+            AccountListCard {
+                notificationRows.forEach { row ->
+                    SwitchSettingRow(
+                        title = stringResource(row.titleRes),
+                        subtitle = stringResource(row.subtitleRes),
+                        checked = settings.isOn(row.switch),
+                        onCheckedChange = { onSwitchChange(row.switch, it) },
+                    )
+                }
             }
         }
-        AccountSectionTitle(title = stringResource(R.string.account_settings_learning))
+        AccountSectionTitle(
+            title = stringResource(R.string.account_settings_learning),
+            modifier = if (AppFeatures.NOTIFICATION_SETTINGS) Modifier else Modifier.padding(top = spacing.sm),
+        )
         AccountListCard {
-            SwitchSettingRow(
-                title = stringResource(R.string.account_settings_reminder),
-                subtitle =
-                    stringResource(
-                        R.string.account_settings_reminder_schedule,
-                        GotestFormat.time(settings.reminderTime),
-                    ),
-                checked = settings.isOn(SettingSwitch.StudyReminder),
-                onCheckedChange = { onSwitchChange(SettingSwitch.StudyReminder, it) },
-            )
+            // Pengingat Belajar is hidden until the web has it (AppFeatures).
+            if (AppFeatures.STUDY_REMINDER) {
+                SwitchSettingRow(
+                    title = stringResource(R.string.account_settings_reminder),
+                    subtitle =
+                        stringResource(
+                            R.string.account_settings_reminder_schedule,
+                            GotestFormat.time(settings.reminderTime),
+                        ),
+                    checked = settings.isOn(SettingSwitch.StudyReminder),
+                    onCheckedChange = { onSwitchChange(SettingSwitch.StudyReminder, it) },
+                )
+            }
             ClickableSettingRow(
                 title = stringResource(R.string.account_settings_main_level),
                 subtitle = stringResource(settings.mainLevel.titleRes),
                 onClick = navigation.onOpenMainLevel,
             )
         }
-        SubscriptionSection(state = state, onOpenSubscription = navigation.onOpenSubscription)
+        navigation.onOpenSubscription?.let { SubscriptionSection(state = state, onOpenSubscription = it) }
         PrivacySection(
             promoEmails = settings.isOn(SettingSwitch.PromoEmails),
             onPromoEmailsChange = { onSwitchChange(SettingSwitch.PromoEmails, it) },
@@ -220,7 +234,7 @@ private fun PrivacySection(
     promoEmails: Boolean,
     onPromoEmailsChange: (Boolean) -> Unit,
     onOpenPersonalData: () -> Unit,
-    onOpenDownloadData: () -> Unit,
+    onOpenDownloadData: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
@@ -231,17 +245,22 @@ private fun PrivacySection(
                 subtitle = stringResource(R.string.account_settings_personal_data_subtitle),
                 onClick = onOpenPersonalData,
             )
-            SwitchSettingRow(
-                title = stringResource(R.string.account_settings_promo),
-                subtitle = stringResource(R.string.account_settings_promo_subtitle),
-                checked = promoEmails,
-                onCheckedChange = onPromoEmailsChange,
-            )
-            ClickableSettingRow(
-                title = stringResource(R.string.account_settings_download),
-                subtitle = stringResource(R.string.account_settings_download_subtitle),
-                onClick = onOpenDownloadData,
-            )
+            // The web has no promotional email setting (AppFeatures, T-018 D1).
+            if (AppFeatures.PROMO_EMAILS) {
+                SwitchSettingRow(
+                    title = stringResource(R.string.account_settings_promo),
+                    subtitle = stringResource(R.string.account_settings_promo_subtitle),
+                    checked = promoEmails,
+                    onCheckedChange = onPromoEmailsChange,
+                )
+            }
+            if (onOpenDownloadData != null) {
+                ClickableSettingRow(
+                    title = stringResource(R.string.account_settings_download),
+                    subtitle = stringResource(R.string.account_settings_download_subtitle),
+                    onClick = onOpenDownloadData,
+                )
+            }
         }
     }
 }

@@ -8,9 +8,29 @@ Backend belum ada, jadi semua data berasal dari Fake repository berisi data dumm
 
 - Butuh Android Studio versi stabil terbaru. Proyek ini memakai AGP 9.4.1; Android Studio 2024.3 tidak
   bisa membukanya. Butuh juga JDK 17+ dan Android SDK 37.
-- Build dan pemeriksaan: `./gradlew assembleDebug ktlintCheck detekt lintDebug`
+- Build dan pemeriksaan: `./gradlew assembleDebug ktlintCheck detekt lintDebug testDebugUnitTest`
+- **Alamat server:** build release memakai `https://gotest.id/`. Build debug memakai server lokal
+  `http://10.0.2.2:8000/` (alamat komputer dari emulator); ganti dengan
+  `gotest.apiBaseUrl=https://…/` di `~/.gradle/gradle.properties` atau `-Pgotest.apiBaseUrl=…`.
+- **Fitur yang disembunyikan** sampai ada di web (`core/config/AppFeatures.kt`, T-018): Asisten AI,
+  Upgrade/Langganan/promo/pembayaran, Notifikasi, Paket Tersimpan, Pengingat Belajar, Unduh Data Akun.
+  Rutenya tidak didaftarkan dan tidak ada tombol menuju ke sana; kodenya tetap ada.
 - **Login dummy:** email apa pun yang valid dengan password minimal 8 karakter, atau tombol
   "Masuk dengan Google".
+- **Masuk Anak dummy:** kode keluarga `KLG123` (Raka, Sinta), PIN `2468`. PIN salah 5 kali mengunci 15 menit.
+- **Atur ulang kata sandi dummy:** `adb shell am start -a android.intent.action.VIEW -d "https://gotest.id/reset-password/abc?email=budi@contoh.id" com.gotest.app`;
+  token `kedaluwarsa` menampilkan pesan tautan tidak berlaku.
+- **Masuk/daftar dengan WhatsApp dummy:** kode `123456`. Nomor `0812 3456 7890` sudah punya akun (langsung masuk);
+  nomor lain lanjut ke "Satu langkah lagi". Kirim ulang kode bisa setelah 60 detik.
+- **Daftar dengan email dummy:** kode email `123456`; `gilangpermana@mail.com` sudah terdaftar. Jenjang SD, SMP,
+  atau SMA/SMK dengan jawaban "Belum" (di bawah 18 tahun) membuka "Menunggu persetujuan orang tua"; tautan
+  persetujuan bisa dikirim 3 kali per jam. Status menunggu belum tersimpan setelah aplikasi ditutup (menunggu API).
+- **Masuk dengan kode email dummy:** tab Email lalu "Masuk dengan kode email"; kode `123456` untuk
+  `gilangpermana@mail.com`. Email lain mendapat jawaban yang sama tetapi kodenya tidak pernah cocok;
+  `admin@gotest.id` adalah akun tim yang tetap memakai kata sandi.
+- **Profil dummy:** nomor WhatsApp dengan kode `123456`; `0812 1111 2222` sudah dipakai akun lain. Sesi Aktif berisi
+  tiga perangkat; "Keluar dari perangkat lain" menerima password `rahasia123`. Masuk Anak membuka akun anak
+  "Keluarga Pratama" (tanpa ubah profil, nomor, password, Sesi Aktif, dan Hapus Akun).
 - **Kode Main Bareng dummy:**
 
   | Kode | Hasil |
@@ -70,13 +90,18 @@ Aturan layar:
 
 UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu diganti cukup binding Hilt:
 
+Selama modul Hilt di `src/main` masih memakai kelas `Fake…`, `assembleRelease` dan `bundleRelease` ditolak oleh
+tugas Gradle `checkNoFakeData` (`app/build.gradle.kts`), supaya data dummy tidak ikut rilis. Penjaga itu lepas sendiri
+setelah semua binding menunjuk ke repository API atau data dummy dipindah ke `src/debug`.
+
 1. Implementasikan `XxxRepository` versi remote (Retrofit/Ktor; library belum ditambahkan).
 2. Ganti `@Binds` di `core/data/di/DataModule.kt` (Auth, User, StudyPackage, Exam, Leaderboard,
    Subscription) dan di modul per fitur:
+   - `feature/auth/data/di` (AuthFlow, SignUp)
    - `feature/home/data/di` (Notification, Search)
    - `feature/studypackage/data/di` (SavedPackage)
    - `feature/history/data/di` (History, HistoryExporter)
-   - `feature/account/data/di` (Settings, Help, AccountData, ProfilePhotoProcessor)
+   - `feature/account/data/di` (Settings, Help, AccountData, ProfilePhotoProcessor, AccountSecurity)
    - `feature/upgrade/data/di` (Promo)
    - `feature/assistant/data/di` (Assistant, AttachmentReader)
    - `feature/multiplayer/data/di`
@@ -91,7 +116,7 @@ UI dan ViewModel hanya bergantung pada interface repository, jadi yang perlu dig
 - **Tipografi:** Inter (Regular/Medium/SemiBold) dan BBH Bogle, dipetakan ke role Material. Ada tambahan
   `displayExtraSmall`, `buttonLarge/Small`, `bodyExtraLarge`, dan `labelCompact`.
 - **Bentuk:** radius 4/8/12/16/20/24/full.
-- **Spacing:** 0/2/4/8/12/16/24/32/40, gutter layar 20.
+- **Spacing:** 0/2/4/8/12/16/24/32/40, gutter layar 16 (desain 20 di frame 440dp; dikecilkan karena HP umumnya lebih sempit).
 - **Ukuran komponen:** di `GotestSizes`.
 
 **Komponen reusable** (`core/designsystem/component`)
