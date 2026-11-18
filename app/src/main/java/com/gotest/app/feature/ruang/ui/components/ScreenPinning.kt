@@ -25,33 +25,20 @@ class ScreenPinning(
                 ?.let { it != ActivityManager.LOCK_TASK_MODE_NONE } ?: false
 
     /**
-     * Asks Android to pin the screen and waits for the student's answer: true once pinned, false when
-     * the confirmation was declined (the window got its focus back while still not pinned).
+     * Asks Android to pin the screen and waits up to a minute for the student to accept: true once
+     * pinned. Android's confirmation does not take the window focus and says nothing when declined, and
+     * on a phone where pinning is off in Settings no confirmation appears at all; so the screen keeps
+     * its guidance visible while this waits, and a declined request simply ends at the time limit.
      */
     suspend fun request(): Boolean {
         val target = activity ?: return false
-        var answer: Boolean? = if (isPinned) true else null
-        if (answer == null) target.startLockTask()
-        var lostFocus = false
+        if (!isPinned) target.startLockTask()
         var poll = 0
-        while (answer == null && poll < MAX_POLLS) {
+        while (!isPinned && poll < MAX_POLLS) {
             delay(POLL_MS)
-            if (!target.hasWindowFocus()) lostFocus = true
-            answer =
-                when {
-                    isPinned -> true
-
-                    // Android's confirmation closed without pinning: declined.
-                    lostFocus && target.hasWindowFocus() -> false
-
-                    // No confirmation appeared at all (pinning unavailable on this phone): not pinned.
-                    !lostFocus && poll >= NO_PROMPT_POLLS -> false
-
-                    else -> null
-                }
             poll++
         }
-        return answer ?: isPinned
+        return isPinned
     }
 
     /** After the Ujian is submitted or left: the phone works normally again. */
@@ -64,9 +51,6 @@ class ScreenPinning(
 
         /** About a minute for the student to read Android's confirmation. */
         const val MAX_POLLS = 240
-
-        /** Android's confirmation shows within a moment; without it after 3 seconds, there is none. */
-        const val NO_PROMPT_POLLS = 12
     }
 }
 

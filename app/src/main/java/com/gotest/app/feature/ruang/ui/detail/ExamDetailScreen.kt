@@ -77,7 +77,9 @@ fun ExamDetailRoute(
             confirmText = stringResource(R.string.exam_pin_confirm),
             onConfirm = {
                 askPin = false
-                scope.launch { if (pinning.request()) viewModel.start() else viewModel.onPinRefused() }
+                // The guidance stays while Android's confirmation is open; once pinned, the Ujian starts.
+                viewModel.onPinRefused()
+                scope.launch { if (pinning.request()) viewModel.start() }
             },
             onDismissRequest = { askPin = false },
             dismissText = stringResource(R.string.ruang_cancel),

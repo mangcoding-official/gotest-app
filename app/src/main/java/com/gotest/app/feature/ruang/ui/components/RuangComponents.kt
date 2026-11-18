@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -48,7 +49,8 @@ fun RuangScaffold(
         },
         bottomBar = bottomBar,
         containerColor = GotestTheme.colors.bgSubtle,
-        contentWindowInsets = WindowInsets(GotestTheme.spacing.none),
+        // The last button of a page stays above the gesture bar (the top bar handles the status bar).
+        contentWindowInsets = WindowInsets.navigationBars,
         content = content,
     )
 }
