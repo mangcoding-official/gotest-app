@@ -88,10 +88,21 @@ private fun BoardContent(
         if (page.top.isEmpty()) {
             item(key = "empty") { BoardEmpty(message = emptyMessage(page)) }
         } else {
-            item(key = "podium") { BoardPodium(top = page.top.map { it.toRow() }, showTime = !page.isPractice) }
+            item(key = "podium") {
+                BoardPodium(
+                    top = page.top.map { it.toRow() },
+                    showTime = !page.isPractice,
+                    pointsLabel = page.board.pointsLabel.takeIf { page.isPractice },
+                )
+            }
         }
         if (page.rows.isNotEmpty()) {
-            item(key = "table") { BoardTable(rows = page.rows.map { it.toRow() }) }
+            item(key = "table") {
+                BoardTable(
+                    rows = page.rows.map { it.toRow() },
+                    pointsLabel = page.board.pointsLabel.takeIf { page.isPractice },
+                )
+            }
         }
     }
 }

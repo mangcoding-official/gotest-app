@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditProfileRoute(
     onBack: () -> Unit,
-    onSaveSuccess: () -> Unit,
+    onSaveSuccess: (message: String?) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EditProfileViewModel = hiltViewModel(),
 ) {
@@ -69,8 +69,8 @@ fun EditProfileRoute(
     val resources = LocalResources.current
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            EditProfileEffect.Saved -> {
-                onSaveSuccess()
+            is EditProfileEffect.Saved -> {
+                onSaveSuccess(effect.message)
             }
 
             is EditProfileEffect.ShowMessage -> {

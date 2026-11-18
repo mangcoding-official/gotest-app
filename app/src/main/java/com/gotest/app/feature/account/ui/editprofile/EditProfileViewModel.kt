@@ -1,5 +1,6 @@
 package com.gotest.app.feature.account.ui.editprofile
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.R
@@ -54,9 +55,28 @@ class EditProfileViewModel
         private val userRepository: UserRepository,
         private val profilePages: ProfilePagesRepository,
         private val photoEditor: ProfilePhotoEditor,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
-        private val form = MutableStateFlow(EditProfileForm())
+
+        /**
+         * The code step survives the screen being recreated (A2e review): the code already went to the new
+         * email. "Kirim ulang kode" is open again at once; the server still allows one code a minute.
+         */
+        private val form =
+            MutableStateFlow(
+                EditProfileForm(
+                    codeStep =
+                        savedStateHandle.get<String>(KEY_CODE_EMAIL)?.let { email ->
+                            EmailCodeStep(
+                                email = email,
+                                sentTo = savedStateHandle[KEY_CODE_SENT_TO] ?: email,
+                                code = savedStateHandle[KEY_CODE_VALUE] ?: "",
+                                resendIn = 0,
+                            )
+                        },
+                ),
+            )
         private var countdown: Job? = null
 
         private val content: Flow<EditProfileUiState> =
@@ -96,6 +116,16 @@ class EditProfileViewModel
 
         private val _effects = Channel<EditProfileEffect>(Channel.BUFFERED)
         val effects: Flow<EditProfileEffect> = _effects.receiveAsFlow()
+
+        init {
+            viewModelScope.launch {
+                form.collect { input ->
+                    savedStateHandle[KEY_CODE_EMAIL] = input.codeStep?.email
+                    savedStateHandle[KEY_CODE_SENT_TO] = input.codeStep?.sentTo
+                    savedStateHandle[KEY_CODE_VALUE] = input.codeStep?.code
+                }
+            }
+        }
 
         fun onEvent(event: EditProfileUiEvent) {
             when (event) {
@@ -178,7 +208,8 @@ class EditProfileViewModel
                         val sentTo = reply.emailCodeSentTo
                         if (sentTo == null) {
                             form.update { it.copy(isSaving = false) }
-                            _effects.send(EditProfileEffect.Saved)
+                            // As on the web, saving the profile shows no message: the change is on screen (A2e-9).
+                            _effects.send(EditProfileEffect.Saved())
                         } else {
                             form.update {
                                 it.copy(
@@ -209,10 +240,10 @@ class EditProfileViewModel
             viewModelScope.launch {
                 profilePages
                     .saveEmail(step.email, step.code)
-                    .onSuccess {
+                    .onSuccess { reply ->
                         countdown?.cancel()
                         form.update { EditProfileForm() }
-                        _effects.send(EditProfileEffect.Saved)
+                        _effects.send(EditProfileEffect.Saved(reply.message))
                     }.onFailure { error ->
                         val message = error.fieldMessage(CODE)
                         updateCode { it.copy(isSaving = false, code = "", codeError = message) }
@@ -261,13 +292,10 @@ class EditProfileViewModel
 
         private fun savePhoto() {
             viewModelScope.launch {
-                val result = photoEditor.save() ?: return@launch
-                val effect =
-                    result.fold(
-                        { EditProfileEffect.ShowMessage(R.string.account_notice_photo_saved) },
-                        { EditProfileEffect.ShowText(it.fieldMessage(PHOTO), host = photoEditor.messageHost) },
-                    )
-                _effects.send(effect)
+                // A saved photo shows itself; only a refusal is told (A2e-9).
+                photoEditor.save()?.onFailure {
+                    _effects.send(EditProfileEffect.ShowText(it.fieldMessage(PHOTO), host = photoEditor.messageHost))
+                }
             }
         }
 
@@ -295,5 +323,8 @@ class EditProfileViewModel
             const val LEVEL = "education_level"
             const val CODE = "code"
             const val PHOTO = "photo"
+            const val KEY_CODE_EMAIL = "emailCode.email"
+            const val KEY_CODE_SENT_TO = "emailCode.sentTo"
+            const val KEY_CODE_VALUE = "emailCode.code"
         }
     }

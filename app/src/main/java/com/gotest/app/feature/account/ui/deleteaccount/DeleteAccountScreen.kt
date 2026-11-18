@@ -22,7 +22,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestCard
-import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTextField
 import com.gotest.app.core.designsystem.theme.GotestTheme
@@ -55,7 +54,7 @@ fun DeleteAccountRoute(
     }
     DeleteAccountScreen(
         uiState = uiState,
-        actions = DeleteAccountActions(onBack, viewModel::load, viewModel::onConfirmationChange, viewModel::delete),
+        actions = DeleteAccountActions(onBack, viewModel::onConfirmationChange, viewModel::delete),
         modifier = modifier,
         snackbarHostState = snackbarHostState,
     )
@@ -63,7 +62,6 @@ fun DeleteAccountRoute(
 
 data class DeleteAccountActions(
     val onBack: () -> Unit,
-    val onRetry: () -> Unit,
     val onConfirmationChange: (String) -> Unit,
     val onDelete: () -> Unit,
 )
@@ -75,7 +73,7 @@ fun DeleteAccountScreen(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
-    val ready = !uiState.isLoading && !uiState.loadFailed
+    val ready = !uiState.isLoading
     AccountDetailScaffold(
         title = stringResource(R.string.account_delete_title),
         onBack = actions.onBack,
@@ -97,22 +95,14 @@ fun DeleteAccountScreen(
             }
         },
     ) { padding ->
-        when {
-            uiState.loadFailed -> {
-                GotestErrorView(onRetry = actions.onRetry, modifier = Modifier.fillMaxSize().padding(padding))
-            }
-
-            uiState.isLoading -> {
-                GotestLoadingView(modifier = Modifier.padding(padding))
-            }
-
-            else -> {
-                DeleteForm(
-                    uiState = uiState,
-                    onConfirmationChange = actions.onConfirmationChange,
-                    modifier = Modifier.padding(padding),
-                )
-            }
+        if (uiState.isLoading) {
+            GotestLoadingView(modifier = Modifier.padding(padding))
+        } else {
+            DeleteForm(
+                uiState = uiState,
+                onConfirmationChange = actions.onConfirmationChange,
+                modifier = Modifier.padding(padding),
+            )
         }
     }
 }
@@ -162,7 +152,7 @@ private fun Paragraph(
     )
 }
 
-private val previewActions = DeleteAccountActions({}, {}, {}, {})
+private val previewActions = DeleteAccountActions({}, {}, {})
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 800)
 @Composable
@@ -176,17 +166,6 @@ private fun DeleteAccountScreenPreview() {
                     confirmation = "gotest",
                     error = "Ketik ulang gotest.id untuk menghapus akun.",
                 ),
-            actions = previewActions,
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 600)
-@Composable
-private fun DeleteAccountErrorPreview() {
-    GotestTheme {
-        DeleteAccountScreen(
-            uiState = DeleteAccountUiState(isLoading = false, loadFailed = true),
             actions = previewActions,
         )
     }

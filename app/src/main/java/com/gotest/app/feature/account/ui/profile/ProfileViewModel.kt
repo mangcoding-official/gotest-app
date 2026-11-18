@@ -56,13 +56,14 @@ class ProfileViewModel
         private val content: Flow<ProfileUiState> =
             retryKey.flatMapLatest {
                 // GET /profil: the number, whether numbers can be added, and the stats; the rest comes from /akun.
-                val page = flow { emit(profilePages.page().getOrThrow()) }
+                // Without /profil the page still shows, with Keluar (A2e review): those parts stay as /akun has them.
+                val page = flow { emit(profilePages.page().getOrNull()) }
                 userRepository
                     .observeProfile()
                     .combine(page) { profile, profilePage ->
                         ProfileUiState.Success(
-                            profile = profile.withPage(profilePage),
-                            phoneSignIn = profilePage.phoneSignIn,
+                            profile = profilePage?.let(profile::withPage) ?: profile,
+                            phoneSignIn = profilePage?.phoneSignIn ?: false,
                             daysRemaining = daysUntil(profile),
                         )
                     }.map<ProfileUiState.Success, ProfileUiState> { it }
@@ -104,13 +105,10 @@ class ProfileViewModel
 
         private fun savePhoto() {
             viewModelScope.launch {
-                val result = photoEditor.save() ?: return@launch
-                val effect =
-                    result.fold(
-                        { ProfileEffect.ShowMessage(R.string.account_notice_photo_saved) },
-                        { ProfileEffect.ShowText(it.fieldMessage("photo"), host = photoEditor.messageHost) },
-                    )
-                _effects.send(effect)
+                // A saved photo shows itself; only a refusal is told (A2e-9).
+                photoEditor.save()?.onFailure {
+                    _effects.send(ProfileEffect.ShowText(it.fieldMessage("photo"), host = photoEditor.messageHost))
+                }
             }
         }
 

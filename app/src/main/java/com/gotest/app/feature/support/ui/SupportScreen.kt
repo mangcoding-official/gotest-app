@@ -45,6 +45,7 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestBackButton
 import com.gotest.app.core.designsystem.component.GotestCard
 import com.gotest.app.core.designsystem.component.GotestErrorView
@@ -87,8 +88,8 @@ private val topicCards =
             R.string.support_topic_payment_title,
             R.string.support_topic_payment_body,
             GotestIcons.Linear.TickCircle,
-        ),
-    )
+        ).takeIf { AppFeatures.PAYMENTS },
+    ).filterNotNull() // Pembayaran waits for payments in the app (A2e-7, K-AN2).
 
 private val faqs =
     listOf(
@@ -96,9 +97,9 @@ private val faqs =
         R.string.support_faq_2_q to R.string.support_faq_2_a,
         R.string.support_faq_3_q to R.string.support_faq_3_a,
         R.string.support_faq_4_q to R.string.support_faq_4_a,
-        R.string.support_faq_5_q to R.string.support_faq_5_a,
+        (R.string.support_faq_5_q to R.string.support_faq_5_a).takeIf { AppFeatures.PAYMENTS },
         R.string.support_faq_6_q to R.string.support_faq_6_a,
-    )
+    ).filterNotNull() // FAQ 5 is about paying: hidden with payments (A2e-7).
 
 private const val SUPPORT_MAIL = "mailto:support@gotest.id"
 private const val SUPPORT_WHATSAPP = "https://wa.me/6231422453"

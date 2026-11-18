@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Bantuan (T-026 A2e). Texts are the web's: Pages/Support/*, Components/Student/Support/* (TopicCards, FaqAccordion,
-     TicketPanel, ContactCards) and Support/data.ts, which the web keeps in its page code, not in the API. -->
+     TicketPanel, ContactCards) and Support/data.ts, which the web keeps in its page code, not in the API. Tidied for
+     the app (A2e-7 = b): no "sidebar", typos fixed; the WhatsApp number stays the web's. -->
 <resources>
     <string name="support_title">Bantuan &amp; Support</string>
     <string name="support_lede">Temukan jawaban, panduan, atau hubungi tim kami untuk mendapatkan bantuan.</string>
@@ -16,7 +17,7 @@
     <!-- FAQ (data.ts) -->
     <string name="support_faq_title">FAQ</string>
     <string name="support_faq_lede">Pertanyaan yang sering diajukan</string>
-    <string name="support_faq_1_q">Bagaimana cara melihat report latihan ?</string>
+    <string name="support_faq_1_q">Bagaimana cara melihat report latihan?</string>
     <string name="support_faq_1_a">Untuk melihat report latihan, Anda dapat mengakses menu \"Paket Latihan\" di dashboard. Setelah itu, pilih latihan yang ingin Anda lihat laporannya. Di halaman tersebut, Anda akan menemukan ringkasan hasil, termasuk skor dan analisis performa Anda.</string>
     <string name="support_faq_2_q">Bagaimana cara mengikuti Try Out</string>
     <string name="support_faq_2_a">Buka menu \"Paket Try Out\", pilih paket yang tersedia, lalu tekan Mulai. Timer akan berjalan per subtes. Pastikan koneksi stabil sebelum memulai karena waktu tetap berjalan setelah Try Out dimulai.</string>
@@ -24,10 +25,10 @@
     <string name="support_faq_3_a">Setelah Try Out dikumpulkan, hasil muncul di halaman hasil paket tersebut. Kamu juga bisa membuka menu Riwayat untuk melihat skor, durasi, dan analisis percobaan sebelumnya.</string>
     <string name="support_faq_4_q">Bagaimana cara melihat pembahasan soal</string>
     <string name="support_faq_4_a">Buka hasil latihan yang sudah selesai, lalu pilih Pembahasan. Setiap soal menampilkan jawaban kamu, kunci, dan penjelasan. Try Out hanya menampilkan skor, hasil per subtes, dan peringkat, tanpa kunci dan pembahasan.</string>
-    <string name="support_faq_5_q">bagaimana cara upgade akun ke akun berbayar</string>
+    <string name="support_faq_5_q">Bagaimana cara upgrade akun ke akun berbayar?</string>
     <string name="support_faq_5_a">Hubungi tim support melalui email atau WhatsApp untuk upgrade paket. Tim akan membantu metode pembayaran dan mengaktifkan langganan di akun kamu.</string>
     <string name="support_faq_6_q">Bagaimana cara mengubah nama, email, atau foto profil?</string>
-    <string name="support_faq_6_a">Buka Pengaturan di sidebar, lalu pilih Edit Informasi Akun untuk nama dan email. Foto profil bisa diganti dari ikon kamera di foto akun, atau hapus foto jika ingin kembali ke inisial.</string>
+    <string name="support_faq_6_a">Buka Profil, lalu pilih Edit Informasi Akun untuk nama dan email. Foto profil bisa diganti dari ikon kamera di foto akun, atau hapus foto jika ingin kembali ke inisial.</string>
 
     <!-- Ticket form (TicketPanel.tsx) -->
     <string name="support_form_title">Hubungi Tim Gotest</string>

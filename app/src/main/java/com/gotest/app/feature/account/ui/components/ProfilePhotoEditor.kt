@@ -197,11 +197,12 @@ class ProfilePhotoEditor
             if (photoUri == null || current.isSaving) return null
             _sheet.value = current.copy(isSaving = true)
             // POST /profil/foto; the new photo is then read from /akun, here the account's own copy.
+            // fold, not mapCatching: a cancelled save stays cancelled instead of becoming a failure.
             val result =
                 photoProcessor
                     .uploadJpeg(photoUri)
-                    .mapCatching { jpeg -> profilePages.uploadPhoto(jpeg).getOrThrow() }
-                    .mapCatching { userRepository.updateAvatar(photoUri).getOrThrow() }
+                    .fold({ jpeg -> profilePages.uploadPhoto(jpeg) }, { Result.failure(it) })
+                    .fold({ userRepository.updateAvatar(photoUri) }, { Result.failure(it) })
             _sheet.update { open -> if (open == null || result.isSuccess) null else open.copy(isSaving = false) }
             return result
         }

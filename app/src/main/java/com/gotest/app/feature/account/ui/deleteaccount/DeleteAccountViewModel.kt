@@ -21,7 +21,6 @@ import javax.inject.Inject
 @Immutable
 data class DeleteAccountUiState(
     val isLoading: Boolean = true,
-    val loadFailed: Boolean = false,
     /** Active Mitra where this account is the only manager (`soleManagerOf` of GET /profil). */
     val soleManagerOf: List<String> = emptyList(),
     val confirmation: String = "",
@@ -38,7 +37,9 @@ sealed interface DeleteAccountEffect {
 
 /**
  * "Hapus Akun" (web: Components/Student/Profile/DeleteAccountModal.tsx). The server checks the typed
- * "gotest.id"; once deleted every token is gone, so the app forgets its own.
+ * "gotest.id"; once deleted every token is gone, so the app forgets its own. GET /profil only adds the
+ * sole-manager paragraph: an account waiting for, refused, or withdrawn parental approval reaches only
+ * DELETE /profil (API-K6 = B), so the form shows whether or not /profil answered (A2e review 1).
  */
 @HiltViewModel
 class DeleteAccountViewModel
@@ -57,14 +58,15 @@ class DeleteAccountViewModel
             load()
         }
 
-        fun load() {
-            _uiState.update { it.copy(isLoading = true, loadFailed = false) }
+        private fun load() {
             viewModelScope.launch {
-                profilePages
-                    .page()
-                    .onSuccess { page ->
-                        _uiState.update { it.copy(isLoading = false, soleManagerOf = page.soleManagerOf) }
-                    }.onFailure { _uiState.update { it.copy(isLoading = false, loadFailed = true) } }
+                val soleManagerOf =
+                    profilePages
+                        .page()
+                        .getOrNull()
+                        ?.soleManagerOf
+                        .orEmpty()
+                _uiState.update { it.copy(isLoading = false, soleManagerOf = soleManagerOf) }
             }
         }
 

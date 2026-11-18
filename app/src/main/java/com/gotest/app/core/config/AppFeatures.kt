@@ -21,6 +21,12 @@ object AppFeatures {
     /** "Pengingat Belajar" in Pengaturan. */
     const val STUDY_REMINDER: Boolean = false
 
+    /**
+     * Pengaturan, with Jenjang Utama and Data Pribadi, which the web does not have (A2e-8 = b): the gear on
+     * Profil and the Pengaturan row are hidden, the screens stay.
+     */
+    const val ACCOUNT_SETTINGS: Boolean = false
+
     /** "Unduh Data Akun" in Pengaturan. */
     const val ACCOUNT_DATA_DOWNLOAD: Boolean = false
 

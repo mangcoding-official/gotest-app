@@ -17,6 +17,11 @@ import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Where "Export data" puts the CSV; an interface so Riwayat runs in unit tests. */
+interface HistoryCsvStore {
+    suspend fun save(csv: InputStream): Result<Uri>
+}
+
 /**
  * Saves `riwayat-pengerjaan.csv` to Downloads (API-K10 A: "unduhan disimpan ke folder Unduhan dengan
  * pilihan Bagikan"). Android 10 and later: the shared Downloads through MediaStore, no permission.
@@ -27,8 +32,8 @@ class HistoryCsvSaver
     @Inject
     constructor(
         @param:ApplicationContext private val context: Context,
-    ) {
-        suspend fun save(csv: InputStream): Result<Uri> =
+    ) : HistoryCsvStore {
+        override suspend fun save(csv: InputStream): Result<Uri> =
             withContext(Dispatchers.IO) {
                 try {
                     csv.use { input ->
@@ -60,7 +65,12 @@ class HistoryCsvSaver
                 }
             val uri =
                 resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: throw IOException("No Downloads")
-            resolver.openOutputStream(uri)?.use { input.copyTo(it) } ?: throw IOException("No output for $uri")
+            // A half-written, still pending file must not stay in Downloads (A2e review).
+            val written = runCatching { resolver.openOutputStream(uri)?.use { input.copyTo(it) } }.getOrNull()
+            if (written == null) {
+                resolver.delete(uri, null, null)
+                throw IOException("Could not write $uri")
+            }
             values.clear()
             values.put(MediaStore.Downloads.IS_PENDING, 0)
             resolver.update(uri, values, null, null)

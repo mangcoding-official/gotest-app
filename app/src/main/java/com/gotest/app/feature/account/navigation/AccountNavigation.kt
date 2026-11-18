@@ -44,42 +44,22 @@ import com.gotest.app.navigation.UpgradePlanDestination
 /** SavedStateHandle key on the previous back-stack entry carrying an [AccountNotice] name. */
 private const val ACCOUNT_NOTICE_KEY = "account_notice"
 
+/** The same, carrying a server's own message. */
+private const val ACCOUNT_TEXT_KEY = "account_notice_text"
+
 /**
  * Profil (tab root) plus Edit Informasi Akun, Ganti Password, Hapus Akun, Pengaturan (with
  * Jenjang Utama, Data Pribadi and Unduh Data Akun), Langganan, Bantuan & Support and
  * Bantuan / Detail Topik.
  */
 fun NavGraphBuilder.accountScreens(navController: NavController) {
-    composable<ProfileDestination> { entry ->
-        ProfileRoute(
-            navigation =
-                ProfileNavigation(
-                    onOpenSettings = { navController.navigate(SettingsDestination) },
-                    onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
-                    onOpenSubscription =
-                        {
-                            navController.navigate(
-                                SubscriptionDestination,
-                            )
-                        }.takeIf { AppFeatures.PAYMENTS },
-                    onEditProfile = { navController.navigate(EditProfileDestination) },
-                    onChangePassword = { navController.navigate(ChangePasswordDestination) },
-                    onOpenHelp = { navController.navigate(HelpDestination) },
-                    onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
-                    onOpenPhone = { navController.navigate(AccountPhoneDestination) },
-                    onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
-                ),
-            notice = entry.accountNotice(),
-            onNoticeConsume = entry::consumeAccountNotice,
-            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
-        )
-    }
+    profileScreen(navController)
     // A child account may not open these screens, whatever leads there (Aturan 11.30, T-018 review 2).
     composable<EditProfileDestination> {
         AdultOnly(onChildAccount = navController::navigateUp) {
             EditProfileRoute(
                 onBack = navController::navigateUp,
-                onSaveSuccess = { navController.navigateUpWithNotice(AccountNotice.ProfileSaved) },
+                onSaveSuccess = navController::navigateUpWithText,
             )
         }
     }
@@ -109,7 +89,7 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             )
         }
     }
-    settingsScreens(navController)
+    if (AppFeatures.ACCOUNT_SETTINGS) settingsScreens(navController)
     if (AppFeatures.PAYMENTS) {
         composable<SubscriptionDestination> {
             SubscriptionRoute(
@@ -126,6 +106,39 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
     }
     composable<HelpTopicDestination> {
         SupportTopicRoute(onBack = navController::navigateUp)
+    }
+}
+
+private fun NavGraphBuilder.profileScreen(navController: NavController) {
+    composable<ProfileDestination> { entry ->
+        ProfileRoute(
+            navigation =
+                ProfileNavigation(
+                    onOpenSettings =
+                        {
+                            navController.navigate(
+                                SettingsDestination,
+                            )
+                        }.takeIf { AppFeatures.ACCOUNT_SETTINGS },
+                    onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
+                    onOpenSubscription =
+                        {
+                            navController.navigate(
+                                SubscriptionDestination,
+                            )
+                        }.takeIf { AppFeatures.PAYMENTS },
+                    onEditProfile = { navController.navigate(EditProfileDestination) },
+                    onChangePassword = { navController.navigate(ChangePasswordDestination) },
+                    onOpenHelp = { navController.navigate(HelpDestination) },
+                    onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+                    onOpenPhone = { navController.navigate(AccountPhoneDestination) },
+                    onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
+                ),
+            notice = entry.accountNotice(),
+            onNoticeConsume = entry::consumeAccountNotice,
+            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
+            noticeText = entry.accountText(),
+        )
     }
 }
 
@@ -183,6 +196,18 @@ private fun NavController.navigateUpWithNotice(notice: AccountNotice) {
     navigateUp()
 }
 
+/** Closes the current screen; a server's [message], if any, shows as a snackbar on the previous entry. */
+private fun NavController.navigateUpWithText(message: String?) {
+    message?.let { previousBackStackEntry?.savedStateHandle?.set(ACCOUNT_TEXT_KEY, it) }
+    navigateUp()
+}
+
+@Composable
+private fun NavBackStackEntry.accountText(): String? {
+    val text by savedStateHandle.getStateFlow<String?>(ACCOUNT_TEXT_KEY, null).collectAsStateWithLifecycle()
+    return text
+}
+
 /** The notice a closed screen left for this entry, if any. */
 @Composable
 private fun NavBackStackEntry.accountNotice(): AccountNotice? {
@@ -192,4 +217,5 @@ private fun NavBackStackEntry.accountNotice(): AccountNotice? {
 
 private fun NavBackStackEntry.consumeAccountNotice() {
     savedStateHandle[ACCOUNT_NOTICE_KEY] = null
+    savedStateHandle[ACCOUNT_TEXT_KEY] = null
 }

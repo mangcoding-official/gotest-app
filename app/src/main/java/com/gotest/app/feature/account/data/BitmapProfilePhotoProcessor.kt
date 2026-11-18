@@ -74,7 +74,8 @@ class BitmapProfilePhotoProcessor
         }
 
         override suspend fun uploadJpeg(photoUri: String): Result<ByteArray> {
-            rejection(photoUri)?.let { return Result.failure(PhotoRejected(it)) }
+            // The type and size are read from the ContentResolver, off the main thread.
+            withContext(Dispatchers.IO) { rejection(photoUri) }?.let { return Result.failure(PhotoRejected(it)) }
             val source = decode(photoUri)
             return withContext(Dispatchers.IO) {
                 runCatching {

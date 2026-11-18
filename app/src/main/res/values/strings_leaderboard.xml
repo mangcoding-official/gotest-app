@@ -34,6 +34,8 @@
     <!-- Podium and table (PodiumCard.tsx, RankTable.tsx) -->
     <string name="leaderboard_podium_none">Belum ada</string>
     <string name="leaderboard_points">%1$s pt</string>
+    <!-- A Latihan package board: the score with the server's pointsLabel ("Nilai", "Skor Latihan"), A2e-6. -->
+    <string name="leaderboard_points_labelled">%1$s %2$s</string>
     <string name="leaderboard_time_points">%1$s • %2$s pt</string>
     <string name="leaderboard_col_rank">#</string>
     <string name="leaderboard_col_name">Nama</string>

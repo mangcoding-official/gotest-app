@@ -1,6 +1,7 @@
 package com.gotest.app.feature.account.ui.phone
 
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.core.domain.repository.UserRepository
@@ -91,8 +92,20 @@ class AccountPhoneViewModel
     constructor(
         private val userRepository: UserRepository,
         private val profilePages: ProfilePagesRepository,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(AccountPhoneUiState())
+        /** The code step survives the screen being recreated (A2e review): the code already went out. */
+        private var restoredStep: PhoneStep? =
+            savedStateHandle.get<String>(KEY_STEP)?.let { name -> PhoneStep.entries.firstOrNull { it.name == name } }
+
+        private val _uiState =
+            MutableStateFlow(
+                AccountPhoneUiState(
+                    phone = savedStateHandle[KEY_PHONE] ?: "",
+                    sentTo = savedStateHandle[KEY_SENT_TO] ?: "",
+                    code = savedStateHandle[KEY_CODE] ?: "",
+                ),
+            )
         val uiState: StateFlow<AccountPhoneUiState> = _uiState.asStateFlow()
 
         private val _effects = Channel<AccountPhoneEffect>(Channel.BUFFERED)
@@ -101,6 +114,14 @@ class AccountPhoneViewModel
         private var loading: Job? = null
 
         init {
+            viewModelScope.launch {
+                _uiState.collect { state ->
+                    savedStateHandle[KEY_STEP] = state.step.name.takeUnless { state.isLoading }
+                    savedStateHandle[KEY_PHONE] = state.phone
+                    savedStateHandle[KEY_SENT_TO] = state.sentTo
+                    savedStateHandle[KEY_CODE] = state.code
+                }
+            }
             load()
         }
 
@@ -175,18 +196,19 @@ class AccountPhoneViewModel
                                     current = profile.phone,
                                     canAdd = canAdd,
                                     canRemove = profile.hasEmail,
-                                    // The first load opens on the saved number, or on adding one.
+                                    // The first load opens where the screen was, else on the number or adding one.
                                     step =
                                         if (it.isLoading) {
-                                            (
-                                                if (profile.phone !=
-                                                    null
-                                                ) {
-                                                    PhoneStep.View
-                                                } else {
-                                                    PhoneStep.Phone
-                                                }
-                                            )
+                                            restoredStep?.also { restoredStep = null }
+                                                ?: (
+                                                    if (profile.phone !=
+                                                        null
+                                                    ) {
+                                                        PhoneStep.View
+                                                    } else {
+                                                        PhoneStep.Phone
+                                                    }
+                                                )
                                         } else {
                                             it.step
                                         },
@@ -264,5 +286,9 @@ class AccountPhoneViewModel
         private companion object {
             const val PHONE = "phone"
             const val CODE = "code"
+            const val KEY_STEP = "phone.step"
+            const val KEY_PHONE = "phone.number"
+            const val KEY_SENT_TO = "phone.sentTo"
+            const val KEY_CODE = "phone.code"
         }
     }

@@ -18,26 +18,30 @@ import kotlinx.coroutines.launch
 enum class AccountNotice(
     @param:StringRes val messageRes: Int,
 ) {
-    ProfileSaved(R.string.account_notice_profile_saved),
     PasswordChanged(R.string.account_notice_password_changed),
     MainLevelSaved(R.string.account_notice_main_level_saved),
     DataCopyRequested(R.string.account_notice_data_copy_requested),
 }
 
-/** Shows [notice] in [snackbarHostState] once, then [onConsume]s it so it does not repeat. */
+/**
+ * Shows [notice], or [text] (a server's message handed back, such as "Email baru tersimpan."), in
+ * [snackbarHostState] once, then [onConsume]s it so it does not repeat.
+ */
 @Composable
 fun AccountNoticeEffect(
     notice: AccountNotice?,
     onConsume: () -> Unit,
     snackbarHostState: SnackbarHostState,
+    text: String? = null,
 ) {
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
     val currentOnConsume by rememberUpdatedState(onConsume)
-    LaunchedEffect(notice) {
-        if (notice != null) {
+    LaunchedEffect(notice, text) {
+        val message = notice?.let { resources.getString(it.messageRes) } ?: text
+        if (message != null) {
             // Launched outside this effect: consuming the notice restarts it.
-            scope.launch { snackbarHostState.showSnackbar(resources.getString(notice.messageRes)) }
+            scope.launch { snackbarHostState.showSnackbar(message) }
             currentOnConsume()
         }
     }

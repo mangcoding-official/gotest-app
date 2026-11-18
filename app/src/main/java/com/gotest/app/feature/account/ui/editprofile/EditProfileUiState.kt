@@ -98,7 +98,10 @@ sealed interface EditProfileUiEvent {
 }
 
 sealed interface EditProfileEffect {
-    data object Saved : EditProfileEffect
+    /** Closes the screen; [message] is the server's (a new email: "Email baru tersimpan."), else none (A2e-9). */
+    data class Saved(
+        val message: String? = null,
+    ) : EditProfileEffect
 
     data class ShowMessage(
         @param:StringRes val messageRes: Int,

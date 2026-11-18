@@ -246,13 +246,15 @@ private fun changeIcon(change: Int): Int =
 
 /**
  * The top three in 2-1-3 order; a missing place says "Belum ada" with 0 points, as on the web.
- * [showTime] adds the time used (Try Out package boards).
+ * [showTime] adds the time used (Try Out package boards). [pointsLabel] is the server's word for the score
+ * of a Latihan package board ("Nilai" or "Skor Latihan"), used in place of "pt" (A2e-6 = b).
  */
 @Composable
 fun BoardPodium(
     top: List<BoardRow>,
     showTime: Boolean,
     modifier: Modifier = Modifier,
+    pointsLabel: String? = null,
 ) {
     val byRank = top.associateBy(BoardRow::rank)
     GotestCard(modifier = modifier.fillMaxWidth(), verticalSpacing = GotestTheme.spacing.none) {
@@ -262,7 +264,13 @@ fun BoardPodium(
             verticalAlignment = Alignment.Bottom,
         ) {
             listOf(2, 1, PODIUM_SIZE).forEach { rank ->
-                PodiumColumn(row = byRank[rank], rank = rank, showTime = showTime, modifier = Modifier.weight(1f))
+                PodiumColumn(
+                    row = byRank[rank],
+                    rank = rank,
+                    showTime = showTime,
+                    pointsLabel = pointsLabel,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -273,15 +281,24 @@ private fun PodiumColumn(
     row: BoardRow?,
     rank: Int,
     showTime: Boolean,
+    pointsLabel: String?,
     modifier: Modifier = Modifier,
 ) {
     val colors = GotestTheme.colors
     val points = GotestFormat.number(row?.points ?: 0)
     val caption =
-        if (showTime) {
-            stringResource(R.string.leaderboard_time_points, LeaderboardRules.clock(row?.durationUsed), points)
-        } else {
-            stringResource(R.string.leaderboard_points, points)
+        when {
+            showTime -> {
+                stringResource(R.string.leaderboard_time_points, LeaderboardRules.clock(row?.durationUsed), points)
+            }
+
+            pointsLabel != null -> {
+                stringResource(R.string.leaderboard_points_labelled, points, pointsLabel)
+            }
+
+            else -> {
+                stringResource(R.string.leaderboard_points, points)
+            }
         }
     val (laurel, block, number) =
         when (rank) {
@@ -369,6 +386,8 @@ fun BoardEmpty(
 fun BoardTable(
     rows: List<BoardRow>,
     modifier: Modifier = Modifier,
+    /** The server's word for the score of a Latihan package board, in place of "Point" (A2e-6 = b). */
+    pointsLabel: String? = null,
 ) {
     val colors = GotestTheme.colors
     GotestCard(
@@ -386,7 +405,7 @@ fun BoardTable(
             name = { Text(stringResource(R.string.leaderboard_col_name), style = MaterialTheme.typography.titleSmall) },
             points = {
                 Text(
-                    stringResource(R.string.leaderboard_col_points),
+                    pointsLabel ?: stringResource(R.string.leaderboard_col_points),
                     style = MaterialTheme.typography.labelMedium,
                 )
             },

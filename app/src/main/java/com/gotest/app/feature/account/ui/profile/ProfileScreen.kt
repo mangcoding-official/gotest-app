@@ -65,7 +65,8 @@ import kotlinx.coroutines.launch
 
 /** Navigation out of Profil, grouped so the screen signature stays readable. */
 data class ProfileNavigation(
-    val onOpenSettings: () -> Unit,
+    /** Null while Pengaturan is hidden (AppFeatures.ACCOUNT_SETTINGS). */
+    val onOpenSettings: (() -> Unit)?,
     /** Null while payments are hidden (AppFeatures): the plan banner only shows the plan. */
     val onUpgrade: (() -> Unit)?,
     val onOpenSubscription: (() -> Unit)?,
@@ -84,6 +85,7 @@ fun ProfileRoute(
     onNoticeConsume: () -> Unit,
     onSignOutSuccess: () -> Unit,
     modifier: Modifier = Modifier,
+    noticeText: String? = null,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -93,7 +95,12 @@ fun ProfileRoute(
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
 
-    AccountNoticeEffect(notice = notice, onConsume = onNoticeConsume, snackbarHostState = snackbarHostState)
+    AccountNoticeEffect(
+        notice = notice,
+        onConsume = onNoticeConsume,
+        snackbarHostState = snackbarHostState,
+        text = noticeText,
+    )
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             ProfileEffect.SignedOut -> {
@@ -198,10 +205,10 @@ fun ProfileScreen(
     }
 }
 
-/** "header": large left-aligned title plus the settings button. */
+/** "header": large left-aligned title plus the settings button while Pengaturan is shown. */
 @Composable
 private fun ProfileHeader(
-    onOpenSettings: () -> Unit,
+    onOpenSettings: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -221,11 +228,13 @@ private fun ProfileHeader(
             style = MaterialTheme.typography.headlineMedium,
             color = GotestTheme.colors.textPrimary,
         )
-        GotestIconButton(
-            icon = GotestIcons.Linear.Setting,
-            contentDescription = stringResource(R.string.account_profile_settings_cd),
-            onClick = onOpenSettings,
-        )
+        onOpenSettings?.let { onClick ->
+            GotestIconButton(
+                icon = GotestIcons.Linear.Setting,
+                contentDescription = stringResource(R.string.account_profile_settings_cd),
+                onClick = onClick,
+            )
+        }
     }
 }
 
@@ -296,11 +305,13 @@ private fun ProfileMenu(
                     icon = GotestIcons.Linear.MessageQuestion,
                     onClick = navigation.onOpenHelp,
                 )
-                AccountMenuRow(
-                    label = stringResource(R.string.account_profile_settings),
-                    icon = GotestIcons.Linear.Setting,
-                    onClick = navigation.onOpenSettings,
-                )
+                navigation.onOpenSettings?.let { onClick ->
+                    AccountMenuRow(
+                        label = stringResource(R.string.account_profile_settings),
+                        icon = GotestIcons.Linear.Setting,
+                        onClick = onClick,
+                    )
+                }
             }
         }
         AccountListCard {
@@ -379,7 +390,7 @@ private fun AccountSection(
                 AccountMenuRow(
                     label = stringResource(R.string.account_profile_notifications),
                     icon = GotestIcons.Linear.Notification,
-                    onClick = navigation.onOpenSettings,
+                    onClick = navigation.onOpenSettings ?: {},
                 )
             }
         }
