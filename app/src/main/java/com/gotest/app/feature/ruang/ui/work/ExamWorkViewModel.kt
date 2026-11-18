@@ -156,7 +156,7 @@ class ExamWorkViewModel
         /** Reports kept on the phone go to the server one by one (A2b-4). */
         private suspend fun sendViolations() {
             when (val sent = reporter?.send() ?: return) {
-                ViolationSend.Nothing -> {}
+                ViolationSend.Nothing, ViolationSend.Later -> {}
 
                 ViolationSend.Offline -> {
                     _uiState.update { it.copy(connectionLost = true) }
@@ -183,7 +183,8 @@ class ExamWorkViewModel
 
         private fun load() {
             loops?.cancel()
-            _uiState.update { ExamWorkUiState(blockIndex = it.blockIndex) }
+            // Pinning is the phone's, not the page's: Android tells only changes, so it is kept (A2b review ulang 1).
+            _uiState.update { ExamWorkUiState(blockIndex = it.blockIndex, pinned = it.pinned) }
             viewModelScope.launch {
                 repository
                     .work(code, attemptId, local.deviceToken(attemptId))
@@ -442,13 +443,19 @@ class ExamWorkViewModel
             }
         }
 
-        /** "Keluar ke Daftar Ujian": the queue is sent once, then the screen closes even if that failed. */
+        /**
+         * "Keluar ke Daftar Ujian": the queue is sent once, then the screen closes even if that failed. As on
+         * the web, pressing Keluar is not a violation (DEC-148), but time away before it still is: that report
+         * is kept and sent first (A2b review ulang 2); what does not go now goes when the paper opens again.
+         */
         private fun exit() {
             _uiState.update { it.copy(showExit = false) }
-            // As on the web, leaving through Keluar is not a violation; the time keeps running.
+            val now = clock?.now(elapsed.elapsedMs())
+            if (guarded() && now != null) reporter?.comeBack(now) else reporter?.cancelLeave()
             exiting = true
-            reporter?.cancelLeave()
             viewModelScope.launch {
+                if (reporter?.hasPending == true) sendViolations()
+                if (finished) return@launch
                 flush(wait = true)
                 _effects.send(ExamWorkEffect.Leave)
             }

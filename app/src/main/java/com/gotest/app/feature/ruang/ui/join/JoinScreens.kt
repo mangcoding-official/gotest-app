@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -152,7 +154,8 @@ fun JoinCodeRoute(
     viewModel: JoinCodeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var staffJoin by remember { mutableStateOf<JoinedMitra?>(null) }
+    // Kept when the screen turns, so the joined dialog does not vanish (A2b review ulang).
+    var staffJoin by rememberSaveable(stateSaver = JoinedMitraSaver) { mutableStateOf<JoinedMitra?>(null) }
     ObserveAsEvents(viewModel.joined) { joined ->
         if (joined.role == STUDENT) onJoinSuccess(joined) else staffJoin = joined
     }
@@ -385,6 +388,15 @@ internal fun SubmitButton(
         enabled = enabled && !busy,
     )
 }
+
+/** The joined Mitra as plain text, so it survives the screen being recreated. */
+internal val JoinedMitraSaver: Saver<JoinedMitra?, Any> =
+    Saver(
+        save = { joined -> joined?.let { arrayListOf(it.code, it.role, it.className) } },
+        restore = { saved ->
+            (saved as? List<*>)?.let { JoinedMitra(it[0] as String, it[1] as String, it[2] as String?) }
+        },
+    )
 
 /**
  * An event code of the account's own Mitra joins it as staff, whose portal the app does not have yet

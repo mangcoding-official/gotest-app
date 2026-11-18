@@ -146,4 +146,58 @@ class ExamWorkViewModelTest {
             assertEquals(null, local.awaySince(9))
             vm.viewModelScope.cancel()
         }
+
+    @Test
+    fun pinningIsKeptWhenThePaperIsLoadedAgain() =
+        runTest {
+            val vm = viewModel()
+            vm.onPinnedChange(true)
+            runCurrent()
+            assertTrue(vm.uiState.value.loadProblem != null)
+
+            repository.workPage = Result.success(page(secondsLeft = 3_600))
+            vm.onEvent(ExamWorkEvent.Retry)
+            runCurrent()
+            assertFalse(vm.uiState.value.awaitingPin)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun timeAwayBeforeKeluarIsStillReported() =
+        runTest {
+            repository.workPage = Result.success(page(secondsLeft = 3_600))
+            val vm = viewModel()
+            val effects = mutableListOf<ExamWorkEffect>()
+            backgroundScope.launch { vm.effects.collect { effects += it } }
+            runCurrent()
+            vm.onPinnedChange(true)
+            // Pinning let go, five minutes in another app, back on the covered paper (no return is heard
+            // while unpinned), then Keluar.
+            vm.onPinnedChange(false)
+            vm.onLeave()
+            advanceTimeBy(300_000)
+            repository.violationReplies += Result.success(ExamViolationResult(1, 3, "in_progress"))
+            vm.onEvent(ExamWorkEvent.ConfirmExit)
+            runCurrent()
+            assertEquals(300_000L, repository.reportedViolations.single().awayMs)
+            assertTrue(local.pendingViolations(9).isEmpty())
+            assertEquals(listOf(ExamWorkEffect.Leave), effects)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun timeAwayBeforeKeluarWithoutConnectionStaysOnThePhone() =
+        runTest {
+            repository.workPage = Result.success(page(secondsLeft = 3_600))
+            val vm = viewModel()
+            runCurrent()
+            vm.onPinnedChange(true)
+            vm.onLeave()
+            advanceTimeBy(60_000)
+            vm.onEvent(ExamWorkEvent.ConfirmExit)
+            runCurrent()
+            assertEquals(60_000L, local.pendingViolations(9).single().awayMs)
+            assertEquals(null, local.awaySince(9))
+            vm.viewModelScope.cancel()
+        }
 }

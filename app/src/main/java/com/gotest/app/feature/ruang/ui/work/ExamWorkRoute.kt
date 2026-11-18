@@ -69,7 +69,7 @@ fun ExamWorkRoute(
         pinGate = {
             PinGate(
                 state = pinRequest,
-                onPin = { pinRequest.request {} },
+                onPin = { pinRequest.request { viewModel.onPinnedChange(true) } },
                 onExit = { viewModel.onEvent(ExamWorkEvent.OpenExit) },
             )
         },
@@ -184,7 +184,8 @@ private fun PinGate(
             onClick = onPin,
             modifier = Modifier.fillMaxWidth(),
         )
-        PinGuidance(state = state)
+        // The Ujian already runs here (after Keluar and Lanjutkan): its time goes on (A2b review ulang 4).
+        PinGuidance(state = state, refusal = stringResource(R.string.exam_pin_again))
         GotestButton(
             text = stringResource(R.string.work_exit),
             onClick = onExit,

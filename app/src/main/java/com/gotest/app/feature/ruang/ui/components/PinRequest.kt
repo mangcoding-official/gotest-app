@@ -78,16 +78,20 @@ fun rememberPinRequest(pinning: ScreenPinning): PinRequestState {
     return remember(pinning, scope) { PinRequestState(pinning, scope) }
 }
 
-/** "Ujian belum dimulai…" and how to turn pinning on, with a way to Settings > Security. */
+/**
+ * Why the paper waits ("Ujian belum dimulai…" before Mulai, [refusal] once the Ujian runs) and how to turn
+ * pinning on, with a way to Settings > Security.
+ */
 @Composable
 fun PinGuidance(
     state: PinRequestState,
     modifier: Modifier = Modifier,
+    refusal: String = stringResource(R.string.exam_pin_refused),
 ) {
     if (!state.slow) return
     val context = LocalContext.current
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
-        NoticeBox(text = stringResource(R.string.exam_pin_refused), tone = NoticeTone.Danger)
+        NoticeBox(text = refusal, tone = NoticeTone.Danger)
         NoticeBox(text = stringResource(R.string.exam_pin_guidance))
         GotestButton(
             text = stringResource(R.string.exam_pin_settings),

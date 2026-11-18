@@ -26,6 +26,10 @@ sealed interface ViolationSend {
     /** No connection: the reports stay on the phone and go with the next try. */
     data object Offline : ViolationSend
 
+    /** The server could not take it now (5xx, 429, 401): the reports stay on the phone for the next try. */
+    data object Later : ViolationSend
+
+    /** Refused for good (422 or a refusal with a code): that report is dropped. */
     data class Refused(
         val error: ApiError,
     ) : ViolationSend
@@ -69,31 +73,44 @@ class ViolationReporter(
     /** Leaving no longer counts (the Ujian was submitted or locked): forget the open leave. */
     fun cancelLeave() = local.saveAwaySince(attemptId, null)
 
-    /** Sends the waiting reports one by one, oldest first. */
+    /**
+     * Sends the waiting reports one by one, oldest first. The list is read again from the phone each time
+     * and only the report that was taken or refused for good is removed, so a report added meanwhile stays
+     * (A2b review ulang 3).
+     */
     suspend fun send(): ViolationSend =
         mutex.withLock {
             var outcome: ViolationSend = ViolationSend.Nothing
-            var waiting = local.pendingViolations(attemptId)
-            while (waiting.isNotEmpty() && outcome !is ViolationSend.Offline && outcome !is ViolationSend.Refused) {
-                val result = repository.reportViolation(attemptId, deviceToken(), waiting.first())
-                val error = result.exceptionOrNull()
-                outcome =
-                    when {
-                        result.isSuccess -> ViolationSend.Reported(result.getOrThrow())
-                        error is ApiError -> ViolationSend.Refused(error)
-                        else -> ViolationSend.Offline
-                    }
-                // Taken, or refused for good: either way this report is done.
-                if (outcome !is ViolationSend.Offline) waiting = waiting.drop(1)
-                local.savePendingViolations(attemptId, waiting)
-                if ((outcome as? ViolationSend.Reported)?.result?.status == SUBMITTED) waiting = emptyList()
+            var report = local.pendingViolations(attemptId).firstOrNull()
+            while (report != null) {
+                outcome = outcomeOf(repository.reportViolation(attemptId, deviceToken(), report))
+                if (outcome is ViolationSend.Reported || outcome is ViolationSend.Refused) remove(report)
+                val goOn = outcome is ViolationSend.Reported && outcome.result.status != SUBMITTED
+                report = if (goOn) local.pendingViolations(attemptId).firstOrNull() else null
             }
             outcome
         }
+
+    private fun outcomeOf(result: Result<ExamViolationResult>): ViolationSend {
+        val error = result.exceptionOrNull()
+        return when {
+            error == null -> ViolationSend.Reported(result.getOrThrow())
+            error is ApiError && (error.status == UNPROCESSABLE || error.code != null) -> ViolationSend.Refused(error)
+            error is ApiError -> ViolationSend.Later
+            else -> ViolationSend.Offline
+        }
+    }
+
+    private fun remove(report: ExamViolationRequest) {
+        val waiting = local.pendingViolations(attemptId)
+        val index = waiting.indexOf(report)
+        if (index >= 0) local.savePendingViolations(attemptId, waiting.filterIndexed { i, _ -> i != index })
+    }
 
     private companion object {
         const val KIND = "page_left"
         const val MIN_AWAY_MS = 2_000L
         const val SUBMITTED = "submitted"
+        const val UNPROCESSABLE = 422
     }
 }

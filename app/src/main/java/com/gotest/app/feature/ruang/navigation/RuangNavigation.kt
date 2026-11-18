@@ -112,8 +112,8 @@ private fun NavGraphBuilder.joinScreens(navController: NavController) {
 
 /**
  * After joining: a student opens the Mitra space, as the web does. A staff role (an event code of the
- * account's own Mitra) would open the portal, which the app does not have yet (A4): back to Beranda
- * until Ardy decides T-026 A2b-2.
+ * account's own Mitra) would open the portal, which the app does not have yet (A4): the joined dialog
+ * points to gotest.id, then back to Beranda (A2b-2 = a).
  */
 private fun NavController.openJoined(joined: JoinedMitra) {
     // The join screens leave the back stack: Back from the space returns to where joining started.

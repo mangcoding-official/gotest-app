@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -52,7 +53,8 @@ fun InvitationRoute(
     viewModel: InvitationViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var staffJoin by remember { mutableStateOf<JoinedMitra?>(null) }
+    // Kept when the screen turns, so the joined dialog does not vanish (A2b review ulang).
+    var staffJoin by rememberSaveable(stateSaver = JoinedMitraSaver) { mutableStateOf<JoinedMitra?>(null) }
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             is InvitationEffect.Joined -> {

@@ -69,6 +69,9 @@ internal class ScriptedExamRepository : ExamRepository {
     val reportedViolations = mutableListOf<ExamViolationRequest>()
     var submitCalls = 0
 
+    /** Runs while a report is on its way, before the reply. */
+    var whileReporting: (() -> Unit)? = null
+
     override suspend fun schedules(code: String): Result<ExamListPage> = offline
 
     override suspend fun detail(
@@ -102,6 +105,7 @@ internal class ScriptedExamRepository : ExamRepository {
         violation: ExamViolationRequest,
     ): Result<ExamViolationResult> {
         reportedViolations += violation
+        whileReporting?.invoke()
         return violationReplies.removeFirstOrNull() ?: offline
     }
 

@@ -1,5 +1,6 @@
 package com.gotest.app.feature.ruang
 
+import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.ruang.data.ViolationReporter
 import com.gotest.app.feature.ruang.data.ViolationSend
 import com.gotest.app.feature.ruang.domain.ExamViolationResult
@@ -86,6 +87,48 @@ class ViolationReporterTest {
             repository.violationReplies += refused(409, "other_device")
             assertTrue(reporter.send() is ViolationSend.Refused)
             assertFalse(reporter.hasPending)
+        }
+
+    @Test
+    fun aServerErrorKeepsTheReport() =
+        runTest {
+            val reporter = reporter()
+            reporter.leave(left)
+            reporter.comeBack(left.plusSeconds(5))
+            listOf(500, 429, 401).forEach { status ->
+                repository.violationReplies += Result.failure(ApiError(status, "Server", null))
+                assertEquals(ViolationSend.Later, reporter.send())
+                assertTrue(reporter.hasPending)
+            }
+        }
+
+    @Test
+    fun anUnprocessableReportIsDropped() =
+        runTest {
+            val reporter = reporter()
+            reporter.leave(left)
+            reporter.comeBack(left.plusSeconds(5))
+            repository.violationReplies += Result.failure(ApiError(422, "Data tidak valid.", null))
+            assertTrue(reporter.send() is ViolationSend.Refused)
+            assertFalse(reporter.hasPending)
+        }
+
+    @Test
+    fun aReportAddedWhileSendingStays() =
+        runTest {
+            val reporter = reporter()
+            reporter.leave(left)
+            reporter.comeBack(left.plusSeconds(5))
+            val later = left.plusSeconds(120)
+            repository.whileReporting = {
+                repository.whileReporting = null
+                reporter.leave(later)
+                reporter.comeBack(later.plusSeconds(10))
+            }
+            repository.violationReplies += Result.success(ExamViolationResult(1, 3, "in_progress"))
+            // The first is taken; the new one meets no connection and stays.
+            assertEquals(ViolationSend.Offline, reporter.send())
+            assertEquals(later.toString(), local.pendingViolations(9).single().occurredAt)
         }
 
     @Test

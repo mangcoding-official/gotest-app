@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.ruang.data.ExamLocalStore
 import com.gotest.app.feature.ruang.domain.ExamRepository
 import com.gotest.app.feature.ruang.domain.ExamResultPage
 import com.gotest.app.navigation.UjianResultDestination
@@ -32,6 +33,7 @@ class ExamResultViewModel
     constructor(
         savedStateHandle: SavedStateHandle,
         private val exams: ExamRepository,
+        private val local: ExamLocalStore,
     ) : ViewModel() {
         private val route = savedStateHandle.toRoute<UjianResultDestination>()
         val code: String = route.code
@@ -48,8 +50,12 @@ class ExamResultViewModel
             viewModelScope.launch {
                 exams
                     .result(code, route.attemptId)
-                    .onSuccess { page -> _uiState.update { ExamResultUiState(isLoading = false, page = page) } }
-                    .onFailure { error ->
+                    .onSuccess { page ->
+                        // A result means the attempt is over, also when it ended away from the work screen
+                        // (time up while the app was closed): nothing of it stays on the phone.
+                        local.forget(route.attemptId)
+                        _uiState.update { ExamResultUiState(isLoading = false, page = page) }
+                    }.onFailure { error ->
                         _uiState.update {
                             ExamResultUiState(
                                 isLoading = false,

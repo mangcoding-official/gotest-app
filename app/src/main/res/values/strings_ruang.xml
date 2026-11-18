@@ -59,6 +59,7 @@
     <string name="exam_pin_message">Selama layar disematkan, aplikasi lain tidak bisa dibuka. Melepas sematan dihitung pelanggaran.</string>
     <string name="exam_pin_confirm">Lanjut</string>
     <string name="exam_pin_refused">Ujian belum dimulai. Sematkan layar untuk mengerjakan Ujian di aplikasi, atau kerjakan lewat gotest.id.</string>
+    <string name="exam_pin_again">Sematkan layar lagi untuk melanjutkan Ujian. Waktu terus berjalan.</string>
     <string name="exam_pin_guidance">Bila tidak muncul pertanyaan untuk menyematkan, nyalakan Sematkan aplikasi di Pengaturan &gt; Keamanan, lalu coba lagi.</string>
     <string name="exam_pin_settings">Buka Pengaturan Keamanan</string>
 
