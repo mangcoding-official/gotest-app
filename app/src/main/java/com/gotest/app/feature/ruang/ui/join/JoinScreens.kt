@@ -14,6 +14,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -24,6 +27,7 @@ import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestButtonVariant
 import com.gotest.app.core.designsystem.component.GotestCard
+import com.gotest.app.core.designsystem.component.GotestDialog
 import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTextField
@@ -148,7 +152,13 @@ fun JoinCodeRoute(
     viewModel: JoinCodeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ObserveAsEvents(viewModel.joined, onJoinSuccess)
+    var staffJoin by remember { mutableStateOf<JoinedMitra?>(null) }
+    ObserveAsEvents(viewModel.joined) { joined ->
+        if (joined.role == STUDENT) onJoinSuccess(joined) else staffJoin = joined
+    }
+    staffJoin?.let { joined ->
+        StaffJoinedDialog(mitraName = uiState.page?.organizationName.orEmpty(), onClose = { onJoinSuccess(joined) })
+    }
     JoinCodeScreen(
         uiState = uiState,
         actions =
@@ -375,6 +385,26 @@ internal fun SubmitButton(
         enabled = enabled && !busy,
     )
 }
+
+/**
+ * An event code of the account's own Mitra joins it as staff, whose portal the app does not have yet
+ * (A4): the web's portal is pointed to instead (T-026 A2b-2, decided by Ardy).
+ */
+@Composable
+internal fun StaffJoinedDialog(
+    mitraName: String,
+    onClose: () -> Unit,
+) {
+    GotestDialog(
+        title = stringResource(R.string.join_staff_title),
+        message = stringResource(R.string.join_staff_message, mitraName),
+        confirmText = stringResource(R.string.join_staff_close),
+        onConfirm = onClose,
+        onDismissRequest = onClose,
+    )
+}
+
+internal const val STUDENT = "siswa"
 
 private val previewActions = JoinCodeActions({}, {}, {}, {})
 

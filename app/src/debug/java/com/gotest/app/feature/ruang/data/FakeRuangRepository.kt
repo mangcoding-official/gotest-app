@@ -37,6 +37,15 @@ class FakeRuangRepository
             return Result.success(members.toList())
         }
 
+        /** The default remembered sign-in: 90 days from now (API-K4). */
+        override suspend fun signInEndsAt(): Result<String?> =
+            Result.success(
+                java.time.Instant
+                    .now()
+                    .plus(SIGN_IN_DAYS, java.time.temporal.ChronoUnit.DAYS)
+                    .toString(),
+            )
+
         override suspend fun ruang(code: String): Result<RuangPage> {
             simulateLatency()
             val member = members.firstOrNull { it.code == code } ?: return notFound()
@@ -184,6 +193,7 @@ class FakeRuangRepository
             private const val KELAS_MITRA = "SMP2CMH"
             private const val EMAIL_CODE = "123456"
             private const val MAX_CODE_TRIES = 5
+            private const val SIGN_IN_DAYS = 90L
             private const val UNPROCESSABLE = 422
             private const val NOT_FOUND = 404
             private val CODES = setOf("KELAS8A", "PENUH01", "EVENT01")

@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,11 +52,20 @@ fun InvitationRoute(
     viewModel: InvitationViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var staffJoin by remember { mutableStateOf<JoinedMitra?>(null) }
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            is InvitationEffect.Joined -> onJoinSuccess(effect.joined)
-            InvitationEffect.SignedOut -> onSignOutSuccess()
+            is InvitationEffect.Joined -> {
+                if (effect.joined.role == STUDENT) onJoinSuccess(effect.joined) else staffJoin = effect.joined
+            }
+
+            InvitationEffect.SignedOut -> {
+                onSignOutSuccess()
+            }
         }
+    }
+    staffJoin?.let { joined ->
+        StaffJoinedDialog(mitraName = uiState.page?.organizationName.orEmpty(), onClose = { onJoinSuccess(joined) })
     }
     InvitationScreen(
         uiState = uiState,

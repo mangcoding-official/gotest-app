@@ -116,6 +116,8 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
+    // Question and passage images from the server (`/storage/...`, T-026 A2b review 5).
+    implementation(libs.coil.network.okhttp)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)

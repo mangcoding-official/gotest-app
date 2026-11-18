@@ -31,6 +31,14 @@ import retrofit2.http.Path
 @Serializable
 data class AccountOrganizations(
     @SerialName("organizations") val organizations: List<MitraMembership> = emptyList(),
+    @SerialName("token") val token: AccountToken? = null,
+)
+
+/** This phone's token; [expiresAt] is when this sign-in ends (API-K4). */
+@Serializable
+data class AccountToken(
+    @SerialName("name") val name: String? = null,
+    @SerialName("expires_at") val expiresAt: String? = null,
 )
 
 @Serializable

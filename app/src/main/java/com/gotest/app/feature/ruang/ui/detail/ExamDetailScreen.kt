@@ -12,10 +12,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,10 +40,15 @@ import com.gotest.app.feature.ruang.domain.ScheduleState
 import com.gotest.app.feature.ruang.ui.components.ExamStatusChips
 import com.gotest.app.feature.ruang.ui.components.NoticeBox
 import com.gotest.app.feature.ruang.ui.components.NoticeTone
+import com.gotest.app.feature.ruang.ui.components.PinGuidance
 import com.gotest.app.feature.ruang.ui.components.RuangScaffold
+import com.gotest.app.feature.ruang.ui.components.rememberPinRequest
 import com.gotest.app.feature.ruang.ui.components.rememberScreenPinning
 import com.gotest.app.feature.ruang.ui.components.serverWindow
-import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun ExamDetailRoute(
@@ -55,13 +60,20 @@ fun ExamDetailRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pinning = rememberScreenPinning()
-    val scope = rememberCoroutineScope()
+    val pinRequest = rememberPinRequest(pinning)
     var askPin by remember { mutableStateOf(false) }
+    // Pinned for nothing: Mulai failed, or the student left this page other than to work (review 4).
+    var toWork by remember { mutableStateOf(false) }
     LifecycleResumeEffect(viewModel) {
         viewModel.load()
         onPauseOrDispose { }
     }
-    ObserveAsEvents(viewModel.openWork) { attemptId -> onOpenWork(viewModel.code, attemptId) }
+    DisposableEffect(pinning) { onDispose { if (!toWork) pinning.release() } }
+    ObserveAsEvents(viewModel.openWork) { attemptId ->
+        toWork = true
+        onOpenWork(viewModel.code, attemptId)
+    }
+    ObserveAsEvents(viewModel.startFailed) { pinning.release() }
     ExamDetailScreen(
         uiState = uiState,
         onRetry = viewModel::load,
@@ -69,6 +81,7 @@ fun ExamDetailRoute(
         onStart = { if (pinning.isPinned) viewModel.start() else askPin = true },
         onOpenResult = { attemptId -> onOpenResult(viewModel.code, attemptId) },
         modifier = modifier,
+        pinGuidance = { PinGuidance(state = pinRequest) },
     )
     if (askPin) {
         GotestDialog(
@@ -77,9 +90,8 @@ fun ExamDetailRoute(
             confirmText = stringResource(R.string.exam_pin_confirm),
             onConfirm = {
                 askPin = false
-                // The guidance stays while Android's confirmation is open; once pinned, the Ujian starts.
-                viewModel.onPinRefused()
-                scope.launch { if (pinning.request()) viewModel.start() }
+                // Once pinned, the Ujian starts; one request at a time (review 3).
+                pinRequest.request(viewModel::start)
             },
             onDismissRequest = { askPin = false },
             dismissText = stringResource(R.string.ruang_cancel),
@@ -95,6 +107,7 @@ fun ExamDetailScreen(
     onStart: () -> Unit,
     onOpenResult: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    pinGuidance: @Composable () -> Unit = {},
 ) {
     val detail = uiState.detail
     RuangScaffold(
@@ -120,6 +133,7 @@ fun ExamDetailScreen(
                     onStart = onStart,
                     onOpenResult = onOpenResult,
                     modifier = Modifier.padding(padding),
+                    pinGuidance = pinGuidance,
                 )
             }
         }
@@ -134,6 +148,7 @@ private fun ExamDetailContent(
     onStart: () -> Unit,
     onOpenResult: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    pinGuidance: @Composable () -> Unit = {},
 ) {
     val spacing = GotestTheme.spacing
     Column(
@@ -159,6 +174,7 @@ private fun ExamDetailContent(
         }
         ExamRules(detail.rules)
         ExamDetailNotices(uiState = uiState, detail = detail)
+        pinGuidance()
         ExamDetailActions(
             uiState = uiState,
             detail = detail,
@@ -228,11 +244,13 @@ private fun ExamDetailNotices(
         NoticeBox(text = stringResource(R.string.exam_detail_stay), tone = NoticeTone.Info)
     }
     detail.timeNotice?.let { NoticeBox(text = it) }
+    uiState.signInEndsSoon?.let { endsAt ->
+        NoticeBox(text = stringResource(R.string.exam_login_expiry, dateAtTime(endsAt)))
+    }
     val problem =
         when (val current = uiState.problem) {
             is StartProblem.Server -> current.message
             StartProblem.Offline -> stringResource(R.string.state_error_message)
-            StartProblem.NotPinned -> stringResource(R.string.exam_pin_refused)
             null -> detail.blockedReason
         }
     problem?.let { NoticeBox(text = it, tone = NoticeTone.Danger) }
@@ -285,6 +303,15 @@ private fun ExamDetailActions(
         )
     }
 }
+
+/** "18 November 2026 pukul 10.00 WIB", the web's date and time (A2b-7). */
+@Composable
+private fun dateAtTime(instant: Instant): String =
+    stringResource(R.string.result_at, dateWib.format(instant), timeWib.format(instant))
+
+private val jakarta = ZoneId.of("Asia/Jakarta")
+private val dateWib = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id-ID")).withZone(jakarta)
+private val timeWib = DateTimeFormatter.ofPattern("HH.mm 'WIB'", Locale.forLanguageTag("id-ID")).withZone(jakarta)
 
 private val previewDetail =
     ExamDetail(

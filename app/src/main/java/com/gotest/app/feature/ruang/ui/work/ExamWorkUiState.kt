@@ -72,7 +72,12 @@ data class ExamWorkUiState(
     val takeOverFailed: Boolean = false,
     val submit: SubmitDialogState? = null,
     val showExit: Boolean = false,
+    /** Android screen pinning is on (API-K8 A). */
+    val pinned: Boolean = false,
 ) {
+    /** An Ujian waits for the pinned screen: the paper is covered and answers are refused. */
+    val awaitingPin: Boolean
+        get() = page?.isQuiz == false && !pinned && !otherDevice && stopped == null && !timeUp
     val blocks: List<ExamBlock> get() = page?.blocks.orEmpty()
     val currentBlock: ExamBlock? get() = blocks.getOrNull(blockIndex)
     val isLastBlock: Boolean get() = blockIndex >= blocks.lastIndex

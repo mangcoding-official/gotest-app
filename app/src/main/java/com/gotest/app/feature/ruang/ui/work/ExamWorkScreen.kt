@@ -1,6 +1,7 @@
 package com.gotest.app.feature.ruang.ui.work
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -39,12 +40,13 @@ fun ExamWorkScreen(
     uiState: ExamWorkUiState,
     onEvent: (ExamWorkEvent) -> Unit,
     modifier: Modifier = Modifier,
+    pinGate: @Composable () -> Unit = {},
 ) {
     val page = uiState.page
     Scaffold(
         modifier = modifier,
         topBar = { WorkHeader(page = page, uiState = uiState, onExit = { onEvent(ExamWorkEvent.OpenExit) }) },
-        bottomBar = { if (page != null) WorkFooter(uiState = uiState, onEvent = onEvent) },
+        bottomBar = { if (page != null && !uiState.awaitingPin) WorkFooter(uiState = uiState, onEvent = onEvent) },
         containerColor = GotestTheme.colors.bgSubtle,
         contentWindowInsets = WindowInsets(GotestTheme.spacing.none),
     ) { padding ->
@@ -61,6 +63,23 @@ fun ExamWorkScreen(
                         (uiState.loadProblem as? WorkLoadProblem.Server)?.message
                             ?: stringResource(R.string.state_error_message),
                 )
+            }
+
+            // The paper stays covered until the screen is pinned (API-K8 A, T-026 A2b review 1).
+            uiState.awaitingPin -> {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .verticalScroll(rememberScrollState())
+                            .padding(
+                                horizontal = GotestTheme.spacing.screenHorizontal,
+                                vertical = GotestTheme.spacing.lg,
+                            ),
+                ) {
+                    pinGate()
+                }
             }
 
             else -> {

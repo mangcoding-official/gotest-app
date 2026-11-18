@@ -54,11 +54,16 @@
     <string name="exam_detail_continue">Lanjutkan Ujian</string>
     <string name="exam_detail_back_to_list">Kembali</string>
 
-    <!-- Screen pinning (API-K8 A). Not on the web: wording proposed in T-026 A2b-3, waiting for Ardy. -->
+    <!-- Screen pinning (API-K8 A): wording decided by Ardy, T-026 A2b-3 and A2b-6 (18 November 2026). -->
     <string name="exam_pin_title">Sematkan layar</string>
-    <string name="exam_pin_message">Ujian di aplikasi dikerjakan dengan layar disematkan. Selama Ujian kamu tidak bisa membuka aplikasi lain sampai Ujian dikumpulkan.</string>
+    <string name="exam_pin_message">Selama layar disematkan, aplikasi lain tidak bisa dibuka. Melepas sematan dihitung pelanggaran.</string>
     <string name="exam_pin_confirm">Lanjut</string>
     <string name="exam_pin_refused">Ujian belum dimulai. Sematkan layar untuk mengerjakan Ujian di aplikasi, atau kerjakan lewat gotest.id.</string>
+    <string name="exam_pin_guidance">Bila tidak muncul pertanyaan untuk menyematkan, nyalakan Sematkan aplikasi di Pengaturan &gt; Keamanan, lalu coba lagi.</string>
+    <string name="exam_pin_settings">Buka Pengaturan Keamanan</string>
+
+    <!-- Sign-in ending soon (API-K4), wording decided by Ardy, T-026 A2b-7. -->
+    <string name="exam_login_expiry">Masa masukmu di HP ini berakhir %1$s. Keluar lalu masuk lagi sebelum Ujian supaya tidak terputus di tengah Ujian.</string>
 
     <!-- Shared -->
     <string name="ruang_cancel">Batal</string>
@@ -182,6 +187,10 @@
     <string name="join_event_guest">Masuk lalu tekan Daftar di halaman ini, atau buat akun Gotest untuk langsung bergabung.</string>
     <string name="join_event_ready">Kamu akan bergabung ke ruang %1$s.</string>
     <string name="join_event_submit">Daftar</string>
+    <!-- An event code of the account's own Mitra (staff role): T-026 A2b-2, decided by Ardy. -->
+    <string name="join_staff_title">Berhasil bergabung</string>
+    <string name="join_staff_message">Buka portal %1$s di gotest.id lewat komputer atau peramban HP.</string>
+    <string name="join_staff_close">Tutup</string>
     <string name="join_sign_in">Masuk</string>
     <string name="join_register">Daftar</string>
 

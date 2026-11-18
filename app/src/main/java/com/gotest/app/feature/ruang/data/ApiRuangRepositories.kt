@@ -36,6 +36,8 @@ class ApiRuangRepository
         override suspend fun memberships(): Result<List<MitraMembership>> =
             apiCall(json) { api.account().organizations }
 
+        override suspend fun signInEndsAt(): Result<String?> = apiCall(json) { api.account().token?.expiresAt }
+
         override suspend fun ruang(code: String): Result<RuangPage> = apiCall(json) { api.ruang(code) }
 
         override suspend fun lookupCode(typed: String): Result<String> =

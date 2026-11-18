@@ -9,6 +9,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 
+/** Whether the screen is pinned; replaceable in tests. */
+interface PinState {
+    val isPinned: Boolean
+}
+
 /**
  * Screen pinning for Ujian (API-K8 A): the app asks to pin the screen before an Ujian starts, and
  * leaving the pinned screen counts as leaving the page (Aturan 12.13). Android shows its own
@@ -16,8 +21,8 @@ import kotlinx.coroutines.delay
  */
 class ScreenPinning(
     private val activity: Activity?,
-) {
-    val isPinned: Boolean
+) : PinState {
+    override val isPinned: Boolean
         get() =
             activity
                 ?.getSystemService(ActivityManager::class.java)

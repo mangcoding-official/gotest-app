@@ -1,21 +1,20 @@
 package com.gotest.app.feature.ruang.ui.work
 
-import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
 import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.ruang.data.ElapsedClock
 import com.gotest.app.feature.ruang.data.ExamAnswerQueue
 import com.gotest.app.feature.ruang.data.ExamClock
 import com.gotest.app.feature.ruang.data.ExamLocalStore
+import com.gotest.app.feature.ruang.data.ViolationReporter
+import com.gotest.app.feature.ruang.data.ViolationSend
 import com.gotest.app.feature.ruang.data.listNumbers
 import com.gotest.app.feature.ruang.domain.ExamAnswer
 import com.gotest.app.feature.ruang.domain.ExamContent
 import com.gotest.app.feature.ruang.domain.ExamRepository
-import com.gotest.app.feature.ruang.domain.ExamViolationRequest
 import com.gotest.app.feature.ruang.domain.ExamWorkPage
-import com.gotest.app.navigation.UjianWorkDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -75,25 +74,28 @@ sealed interface ExamWorkEvent {
 class ExamWorkViewModel
     @Inject
     constructor(
-        savedStateHandle: SavedStateHandle,
+        private val savedStateHandle: SavedStateHandle,
         private val repository: ExamRepository,
         private val local: ExamLocalStore,
+        private val elapsed: ElapsedClock,
     ) : ViewModel() {
-        private val route = savedStateHandle.toRoute<UjianWorkDestination>()
-        val code: String = route.code
-        val attemptId: Long = route.attemptId
+        // Read by name (the UjianWorkDestination fields), so the view model also runs in unit tests.
+        val code: String = checkNotNull(savedStateHandle[ARG_CODE])
+        val attemptId: Long = checkNotNull(savedStateHandle[ARG_ATTEMPT])
 
-        private val _uiState = MutableStateFlow(ExamWorkUiState())
+        private val _uiState = MutableStateFlow(ExamWorkUiState(blockIndex = savedStateHandle[KEY_BLOCK] ?: 0))
         val uiState: StateFlow<ExamWorkUiState> = _uiState.asStateFlow()
 
         private val _effects = Channel<ExamWorkEffect>(Channel.BUFFERED)
         val effects: Flow<ExamWorkEffect> = _effects.receiveAsFlow()
 
         private var saver: WorkSaver? = null
+        private var reporter: ViolationReporter? = null
         private var queue: ExamAnswerQueue? = null
         private var clock: ExamClock? = null
         private var loops: Job? = null
         private var finishing = false
+        private var finished = false
 
         init {
             load()
@@ -117,43 +119,62 @@ class ExamWorkViewModel
             }
         }
 
+        /** Android pinning changed; the paper stays covered and answers are refused until pinned. */
+        fun onPinnedChange(pinned: Boolean) {
+            _uiState.update { it.copy(pinned = pinned) }
+        }
+
         /**
-         * The student came back after [awayMs] (screen left, phone locked, or the pinned screen left).
-         * Two seconds or more is a violation (Aturan 12.13); a quiz counts none.
+         * The student left the Ujian: the app went to the background (another app, home, screen off) or
+         * the pinned screen was left. The moment is kept on the phone (T-026 A2b review 2).
          */
-        fun onReturned(
-            awayMs: Long,
-            leftAtElapsed: Long,
-        ) {
-            if (!countsAsViolation(awayMs)) return
-            val occurredAt = clock?.now(leftAtElapsed)?.toString() ?: return
-            viewModelScope.launch {
-                repository
-                    .reportViolation(
-                        attemptId,
-                        local.deviceToken(attemptId),
-                        ExamViolationRequest(VIOLATION_KIND, occurredAt, awayMs),
-                    ).onSuccess { result ->
-                        if (result.status == SUBMITTED) {
-                            finish()
-                        } else {
-                            _uiState.update {
-                                it.copy(
-                                    violations = result.violations,
-                                    violationWarning = result.violations,
-                                )
-                            }
-                        }
-                    }.onFailure { error ->
-                        // As on the web, a report that could not be sent is not repeated (T-026 A2b-4).
-                        if (error is ApiError) {
-                            handleRefusal(
-                                error,
+        fun onLeave() {
+            if (!guarded()) return
+            clock?.now(elapsed.elapsedMs())?.let { reporter?.leave(it) }
+        }
+
+        /** The student is back: two seconds away or more is reported (Aturan 12.13); a quiz counts none. */
+        fun onReturn() {
+            val current = reporter
+            val now = clock?.now(elapsed.elapsedMs())
+            when {
+                current == null || now == null -> Unit
+                !guarded() -> current.cancelLeave()
+                current.comeBack(now) -> viewModelScope.launch { sendViolations() }
+            }
+        }
+
+        private fun guarded(): Boolean {
+            val state = _uiState.value
+            return state.page?.isQuiz == false && !state.otherDevice && state.stopped == null && !state.timeUp &&
+                !finished
+        }
+
+        /** Reports kept on the phone go to the server one by one (A2b-4). */
+        private suspend fun sendViolations() {
+            when (val sent = reporter?.send() ?: return) {
+                ViolationSend.Nothing -> {}
+
+                ViolationSend.Offline -> {
+                    _uiState.update { it.copy(connectionLost = true) }
+                }
+
+                is ViolationSend.Refused -> {
+                    handleRefusal(sent.error)
+                }
+
+                is ViolationSend.Reported -> {
+                    if (sent.result.status == SUBMITTED) {
+                        finish()
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                violations = sent.result.violations,
+                                violationWarning = sent.result.violations,
                             )
-                        } else {
-                            _uiState.update { it.copy(connectionLost = true) }
                         }
                     }
+                }
             }
         }
 
@@ -180,7 +201,8 @@ class ExamWorkViewModel
             val numbers = items.mapValues { it.value.item.number }
             queue = answerQueue
             saver = WorkSaver(attemptId, repository, answerQueue, { local.deviceToken(attemptId) }, numbers::get)
-            clock = ExamClock.of(page.attempt.deadlineAt, page.attempt.serverNow, SystemClock.elapsedRealtime())
+            reporter = ViolationReporter(attemptId, repository, local) { local.deviceToken(attemptId) }
+            clock = ExamClock.of(page.attempt.deadlineAt, page.attempt.serverNow, elapsed.elapsedMs())
             // Answers kept on this phone replace what the server has (they are newer).
             val saved =
                 page.answers.mapNotNull { (id, json) ->
@@ -205,6 +227,9 @@ class ExamWorkViewModel
                 )
             }
             startLoops()
+            // Time away while the app was closed counts too, and reports not sent yet go now.
+            onReturn()
+            if (reporter?.hasPending == true && guarded()) viewModelScope.launch { sendViolations() }
         }
 
         /** The 1-second clock and the 5-second save, as on the web. */
@@ -220,13 +245,14 @@ class ExamWorkViewModel
                     while (isActive) {
                         delay(SAVE_EVERY_MS)
                         if (!_uiState.value.timeUp) flush(wait = false)
+                        if (reporter?.hasPending == true && guarded()) sendViolations()
                     }
                 }
         }
 
         private fun tick() {
             val current = clock ?: return
-            val left = current.millisLeft(SystemClock.elapsedRealtime())
+            val left = current.millisLeft(elapsed.elapsedMs())
             val seconds = maxOf(0L, (left + MS_PER_SECOND - 1) / MS_PER_SECOND)
             _uiState.update { it.copy(secondsLeft = seconds, timeUp = left <= 0) }
             if (left <= 0 && !finishing) finishAfterTimeUp()
@@ -236,8 +262,8 @@ class ExamWorkViewModel
         private fun finishAfterTimeUp() {
             finishing = true
             viewModelScope.launch {
-                val until = SystemClock.elapsedRealtime() + GRACE_MS
-                while (saver?.isEmpty == false && SystemClock.elapsedRealtime() < until) {
+                val until = elapsed.elapsedMs() + GRACE_MS
+                while (saver?.isEmpty == false && elapsed.elapsedMs() < until) {
                     flush(wait = true)
                     if (saver?.isEmpty == false) delay(TIME_UP_RETRY_MS)
                 }
@@ -250,9 +276,9 @@ class ExamWorkViewModel
             value: ExamAnswer?,
         ) {
             val state = _uiState.value
-            if (state.locked) return
+            if (state.locked || state.awaitingPin) return
             val clean = ExamAnswer.clean(value)
-            val now = clock?.now(SystemClock.elapsedRealtime()) ?: return
+            val now = clock?.now(elapsed.elapsedMs()) ?: return
             // The screen keeps text as typed (spaces too); the queue gets the clean answer, as on the web.
             val shown = (value as? ExamAnswer.Text)?.takeIf { it.text.isNotEmpty() } ?: clean
             _uiState.update {
@@ -263,15 +289,22 @@ class ExamWorkViewModel
         }
 
         private fun moveBlock(step: Int) {
-            _uiState.update { it.copy(blockIndex = (it.blockIndex + step).coerceIn(0, maxOf(it.blocks.lastIndex, 0))) }
+            showBlock(_uiState.value.blockIndex + step)
             viewModelScope.launch { flush(wait = false) }
         }
 
         private fun goToItem(itemId: Long) {
             if (_uiState.value.otherDevice) return
             val index = _uiState.value.blocks.indexOfFirst { itemId in it.itemIds }
-            if (index >= 0) _uiState.update { it.copy(blockIndex = index) }
+            if (index >= 0) showBlock(index)
             viewModelScope.launch { flush(wait = false) }
+        }
+
+        /** The block on screen survives the screen being recreated (T-026 A2b review). */
+        private fun showBlock(index: Int) {
+            val block = index.coerceIn(0, maxOf(_uiState.value.blocks.lastIndex, 0))
+            savedStateHandle[KEY_BLOCK] = block
+            _uiState.update { it.copy(blockIndex = block) }
         }
 
         /** Sends what waits; true when nothing is left. */
@@ -289,16 +322,9 @@ class ExamWorkViewModel
             return result != FlushResult.Busy && current.isEmpty
         }
 
-        /** Two seconds away or more, in an Ujian (a quiz counts none) that can still be worked on. */
-        private fun countsAsViolation(awayMs: Long): Boolean {
-            val state = _uiState.value
-            val exam = state.page?.isQuiz == false
-            return exam && !state.locked && awayMs >= MIN_AWAY_MS
-        }
-
         private fun applySent(result: FlushResult.Sent) {
             val reply = result.reply ?: return
-            clock = ExamClock.of(reply.deadlineAt, reply.serverNow, SystemClock.elapsedRealtime())
+            clock = ExamClock.of(reply.deadlineAt, reply.serverNow, elapsed.elapsedMs())
             val outcome = result.outcome
             val notice =
                 when {
@@ -423,6 +449,8 @@ class ExamWorkViewModel
         }
 
         private fun finish() {
+            if (finished) return
+            finished = true
             loops?.cancel()
             local.forget(attemptId)
             _effects.trySend(ExamWorkEffect.OpenResult)
@@ -434,8 +462,9 @@ class ExamWorkViewModel
             const val MS_PER_SECOND = 1_000L
             const val GRACE_MS = 120_000L
             const val TIME_UP_RETRY_MS = 3_000L
-            const val MIN_AWAY_MS = 2_000L
             const val SUBMITTED = "submitted"
-            const val VIOLATION_KIND = "page_left"
+            const val ARG_CODE = "code"
+            const val ARG_ATTEMPT = "attemptId"
+            const val KEY_BLOCK = "blockIndex"
         }
     }

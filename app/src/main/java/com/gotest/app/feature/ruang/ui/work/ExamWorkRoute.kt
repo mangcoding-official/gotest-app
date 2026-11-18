@@ -1,17 +1,16 @@
 package com.gotest.app.feature.ruang.ui.work
 
-import android.os.SystemClock
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -21,12 +20,17 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
-import com.gotest.app.core.designsystem.component.GotestDialog
+import com.gotest.app.core.designsystem.component.GotestButton
+import com.gotest.app.core.designsystem.component.GotestButtonVariant
+import com.gotest.app.core.designsystem.component.GotestCard
+import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.ObserveAsEvents
-import com.gotest.app.feature.ruang.ui.components.ScreenPinning
+import com.gotest.app.feature.ruang.ui.components.PinGuidance
+import com.gotest.app.feature.ruang.ui.components.PinRequestState
+import com.gotest.app.feature.ruang.ui.components.PinState
+import com.gotest.app.feature.ruang.ui.components.rememberPinRequest
 import com.gotest.app.feature.ruang.ui.components.rememberScreenPinning
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun ExamWorkRoute(
@@ -37,6 +41,7 @@ fun ExamWorkRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pinning = rememberScreenPinning()
+    val pinRequest = rememberPinRequest(pinning)
     val guarded = uiState.page?.isQuiz == false && !uiState.locked
     ObserveAsEvents(viewModel.effects) { effect ->
         pinning.release()
@@ -47,75 +52,91 @@ fun ExamWorkRoute(
     }
     KeepScreenOn(enabled = uiState.page?.isQuiz == false)
     BackHandler { viewModel.onEvent(ExamWorkEvent.OpenExit) }
-    val tracker = rememberLeaveTracker(pinning = pinning, active = guarded, onReturn = viewModel::onReturned)
-    ExamWorkScreen(uiState = uiState, onEvent = viewModel::onEvent, modifier = modifier)
-    if (tracker.needsPin && !uiState.showExit) {
-        PinPrompt(pinning = pinning, onExit = { viewModel.onEvent(ExamWorkEvent.OpenExit) })
-    }
+    rememberLeaveTracker(
+        pinning = pinning,
+        active = guarded,
+        listener =
+            LeaveListener(
+                onLeave = viewModel::onLeave,
+                onReturn = viewModel::onReturn,
+                onPinnedChange = viewModel::onPinnedChange,
+            ),
+    )
+    ExamWorkScreen(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        modifier = modifier,
+        pinGate = {
+            PinGate(
+                state = pinRequest,
+                onPin = { pinRequest.request {} },
+                onExit = { viewModel.onEvent(ExamWorkEvent.OpenExit) },
+            )
+        },
+    )
 }
+
+/** What the screen hears about leaving and pinning. */
+data class LeaveListener(
+    val onLeave: () -> Unit,
+    val onReturn: () -> Unit,
+    val onPinnedChange: (Boolean) -> Unit,
+)
 
 /**
  * Leaving the Ujian (Aturan 12.13, API-K8 A): the app is no longer in front (another app, home, the
- * screen turned off) or the pinned screen was left. When the student is back with the screen pinned,
- * the time away goes to [onReturn], which reports two seconds or more.
+ * screen turned off), or the pinned screen was left. It counts from the moment the paper was first
+ * shown, which needs the screen pinned; before that the paper is covered, so a trip to Settings to
+ * turn pinning on is not a violation. The moment itself is kept by the view model (T-026 A2b review).
  */
 @Stable
 class LeaveTracker(
-    private val pinning: ScreenPinning,
+    private val pinning: PinState,
 ) {
-    /** Counted only while an Ujian can be worked on (not a quiz, not locked). */
+    /** An Ujian that can still be worked on (not a quiz, not locked). */
     var active: Boolean = false
-    var onReturn: (awayMs: Long, leftAtElapsed: Long) -> Unit = { _, _ -> }
+    var listener: LeaveListener = LeaveListener({}, {}, {})
 
-    private var pinnedOnce by mutableStateOf(pinning.isPinned)
-    private var awaySince by mutableStateOf<Long?>(null)
+    private var paperShown = pinning.isPinned
     private var inFront = true
-
-    /** The screen must be pinned before work starts, and again after the pinned screen was left. */
-    val needsPin: Boolean get() = active && !pinning.isPinned && (awaySince != null || !pinnedOnce)
+    private var lastPinned: Boolean? = null
 
     fun onStop() {
         inFront = false
-        leave()
+        if (active && paperShown) listener.onLeave()
     }
 
     fun onStart() {
         inFront = true
-        comeBack()
+        if (pinning.isPinned || !paperShown) listener.onReturn()
     }
 
     /** Called every half second: pinning has no listener on Android. */
     fun poll() {
-        if (pinning.isPinned) {
-            pinnedOnce = true
-            comeBack()
-        } else {
-            leave()
+        val pinned = pinning.isPinned
+        if (pinned != lastPinned) {
+            lastPinned = pinned
+            listener.onPinnedChange(pinned)
+            if (pinned) {
+                paperShown = true
+                if (inFront) listener.onReturn()
+            } else if (active && paperShown) {
+                listener.onLeave()
+            }
         }
-    }
-
-    private fun leave() {
-        if (active && pinnedOnce && awaySince == null) awaySince = SystemClock.elapsedRealtime()
-    }
-
-    private fun comeBack() {
-        val since = awaySince ?: return
-        if (!inFront || !pinning.isPinned) return
-        awaySince = null
-        onReturn(SystemClock.elapsedRealtime() - since, since)
     }
 }
 
 @Composable
 private fun rememberLeaveTracker(
-    pinning: ScreenPinning,
+    pinning: PinState,
     active: Boolean,
-    onReturn: (awayMs: Long, leftAtElapsed: Long) -> Unit,
+    listener: LeaveListener,
 ): LeaveTracker {
     val tracker = remember(pinning) { LeaveTracker(pinning) }
     SideEffect {
         tracker.active = active
-        tracker.onReturn = onReturn
+        tracker.listener = listener
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, tracker) {
@@ -136,30 +157,42 @@ private fun rememberLeaveTracker(
     return tracker
 }
 
-/** Android's screen pinning, asked before work starts and again after the pinned screen was left. */
+/**
+ * Covers the paper until the screen is pinned (T-026 A2b review 1): before work starts, and again after
+ * the pinned screen was left. Nothing of the Ujian shows here.
+ */
 @Composable
-private fun PinPrompt(
-    pinning: ScreenPinning,
+private fun PinGate(
+    state: PinRequestState,
+    onPin: () -> Unit,
     onExit: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
-    var asking by remember { mutableStateOf(false) }
-    if (asking) return
-    GotestDialog(
-        title = stringResource(R.string.exam_pin_title),
-        message = stringResource(R.string.exam_pin_message),
-        confirmText = stringResource(R.string.exam_pin_confirm),
-        onConfirm = {
-            asking = true
-            scope.launch {
-                pinning.request()
-                asking = false
-            }
-        },
-        onDismissRequest = {},
-        dismissText = stringResource(R.string.work_exit),
-        onDismiss = onExit,
-    )
+    GotestCard(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.exam_pin_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = GotestTheme.colors.textPrimary,
+        )
+        Text(
+            text = stringResource(R.string.exam_pin_message),
+            style = MaterialTheme.typography.bodySmall,
+            color = GotestTheme.colors.textSecondary,
+        )
+        GotestButton(
+            text = stringResource(R.string.exam_pin_confirm),
+            onClick = onPin,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.isWaiting,
+        )
+        PinGuidance(state = state)
+        GotestButton(
+            text = stringResource(R.string.work_exit),
+            onClick = onExit,
+            modifier = Modifier.fillMaxWidth(),
+            variant = GotestButtonVariant.Plain,
+        )
+    }
 }
 
 /** The web keeps the screen awake with Wake Lock during an Ujian; here the window flag does it. */

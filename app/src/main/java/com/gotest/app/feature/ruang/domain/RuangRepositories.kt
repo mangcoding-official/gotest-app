@@ -11,6 +11,9 @@ interface RuangRepository {
     /** The account's Mitra, in the server's order (`organizations` in `GET /akun`). */
     suspend fun memberships(): Result<List<MitraMembership>>
 
+    /** When this phone's sign-in ends (`token.expires_at` in `GET /akun`), or null without a limit. */
+    suspend fun signInEndsAt(): Result<String?>
+
     suspend fun ruang(code: String): Result<RuangPage>
 
     /** The typed code, cleaned by the server; 422 with the web's message when there is no such code. */
