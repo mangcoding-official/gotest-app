@@ -101,10 +101,8 @@ import kotlinx.serialization.Serializable
 // Leaderboard
 @Serializable data class PackageLeaderboardDestination(
     val packageId: String,
-)
-
-@Serializable data class PackageLeaderboardSearchDestination(
-    val packageId: String,
+    /** A Latihan package's board (`GET /leaderboard/latihan/{id}`); otherwise a Try Out's. */
+    val practice: Boolean = false,
 )
 
 // Account

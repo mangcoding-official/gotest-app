@@ -1,73 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Leaderboard (T-026 A2e). Texts are the web's: Pages/Leaderboard/Index.tsx, Pages/Leaderboard/Package.tsx,
+     Components/Student/Leaderboard/*. -->
 <resources>
-    <!-- Peringkat -->
     <string name="leaderboard_title">Leaderboard</string>
-    <string name="leaderboard_subtitle">Bersaing dan jadi yang terbaik!</string>
-    <string name="leaderboard_cd_info">Tentang leaderboard</string>
-    <string name="leaderboard_tab_global">Global</string>
-    <string name="leaderboard_tab_package">Per Paket</string>
+    <string name="leaderboard_lede">Lihat Peringkat Pengguna Dengan Performa Terbaik</string>
+    <string name="leaderboard_tab_global">Peringkat Global</string>
+    <string name="leaderboard_tab_package">Peringkat Per Paket</string>
+    <string name="leaderboard_tab_practice">Peringkat Latihan</string>
 
-    <!-- Peringkat / Global -->
-    <string name="leaderboard_my_rank_label">Peringkatmu saat ini</string>
-    <string name="leaderboard_rank_value">#%1$s</string>
-    <string name="leaderboard_total_users">dari %1$s pengguna</string>
+    <!-- Hero (LeaderboardHero.tsx) -->
+    <string name="leaderboard_hero_kicker">Peringkat</string>
+    <string name="leaderboard_hero_title">Bersaing dan jadi yang terbaik !</string>
+    <string name="leaderboard_hero_body">Lihat peringkatmu secara global dan dapatkan motivasi untuk terus belajar.</string>
+    <string name="leaderboard_hero_my_rank">Peringkatmu Saat Ini</string>
+    <string name="leaderboard_hero_no_rank">—</string>
+    <string name="leaderboard_hero_total">Dari %1$s Pengguna</string>
+    <string name="leaderboard_hero_footer">Terus tingkatkan performamu untuk naik ke peringkat selanjutnya!</string>
+
+    <!-- Global (GlobalBoard.tsx) -->
+    <string name="leaderboard_category_all">Semua Jenjang</string>
+    <string name="leaderboard_subject_all">Semua Mata pelajaran</string>
+    <string name="leaderboard_period_all">Semua Waktu</string>
+    <string name="leaderboard_period_week">7 hari terakhir</string>
+    <string name="leaderboard_period_month">30 hari terakhir</string>
+    <string name="leaderboard_period_year">Tahun ini</string>
+    <string name="leaderboard_filter">Filter</string>
+    <string name="leaderboard_updated">Terakhir diperbarui %1$s</string>
+    <string name="leaderboard_scale">Poin dari skor Try Out terbaik, dalam skala 0–1.000</string>
+    <string name="leaderboard_more">Muat Lebih Banyak</string>
+    <string name="leaderboard_empty_title">Belum ada data Leaderboard</string>
+    <string name="leaderboard_empty_global">Kerjakan Try Out untuk melihat peringkat di sini. Peringkat latihan ada di tab Peringkat Latihan.</string>
+
+    <!-- Podium and table (PodiumCard.tsx, RankTable.tsx) -->
+    <string name="leaderboard_podium_none">Belum ada</string>
     <string name="leaderboard_points">%1$s pt</string>
-    <string name="leaderboard_points_time">%1$s pt • %2$s</string>
-    <string name="leaderboard_attempts">%1$sx attempt</string>
+    <string name="leaderboard_time_points">%1$s • %2$s pt</string>
+    <string name="leaderboard_col_rank">#</string>
+    <string name="leaderboard_col_name">Nama</string>
+    <string name="leaderboard_col_points">Point</string>
+    <string name="leaderboard_col_change">Perubahan</string>
     <string name="leaderboard_you">%1$s (Kamu)</string>
+    <string name="leaderboard_change_none">-</string>
     <string name="leaderboard_cd_change_up">Naik %1$d peringkat</string>
     <string name="leaderboard_cd_change_down">Turun %1$d peringkat</string>
     <string name="leaderboard_cd_change_none">Peringkat tetap</string>
     <string name="leaderboard_cd_podium_rank">Peringkat %1$d</string>
-    <string name="leaderboard_global_empty_title">Leaderboard masih kosong</string>
-    <string name="leaderboard_global_empty_message">Kerjakan latihan atau tryout untuk mulai mengumpulkan poin.</string>
 
-    <!-- Peringkat / Tentang Leaderboard (Sheet) -->
-    <string name="leaderboard_info_title">Tentang Leaderboard</string>
-    <string name="leaderboard_info_subtitle">Begini cara peringkatmu dihitung.</string>
-    <string name="leaderboard_info_points_title">Poin dari jawaban benar</string>
-    <string name="leaderboard_info_points_body">Setiap jawaban benar menambah poin sesuai bobot soal. Jawaban salah atau kosong tidak mengurangi poin.</string>
-    <string name="leaderboard_info_time_title">Waktu sebagai penentu</string>
-    <string name="leaderboard_info_time_body">Jika poin sama, peserta yang selesai lebih cepat berada di atas.</string>
-    <string name="leaderboard_info_scope_title">Global vs Per Paket</string>
-    <string name="leaderboard_info_scope_body">Global menjumlahkan poin semua tryout. Per Paket hanya membandingkan peserta di paket yang sama.</string>
-    <string name="leaderboard_info_schedule_title">Diperbarui berkala</string>
-    <string name="leaderboard_info_schedule_body">Peringkat dihitung ulang setiap hari pukul 15.30 WIB. Hanya attempt pertama tiap paket yang dihitung.</string>
-    <string name="leaderboard_info_confirm">Mengerti</string>
+    <!-- Package cards (PackageCardGrid.tsx) -->
+    <string name="leaderboard_packages_title">Semua Paket Try Out</string>
+    <string name="leaderboard_packages_lede">Lihat leaderboard dari paket yang sudah kamu selesaikan</string>
+    <string name="leaderboard_practice_title">Semua Paket Latihan</string>
+    <string name="leaderboard_practice_lede">Peringkat dari pengerjaan pertama setiap paket latihan</string>
+    <string name="leaderboard_card_meta">%1$d Soal • %2$s</string>
+    <string name="leaderboard_minutes">%1$d Menit</string>
+    <string name="leaderboard_card_rank">#%1$s</string>
+    <string name="leaderboard_card_none">-</string>
+    <string name="leaderboard_card_of">dari %1$s</string>
+    <string name="leaderboard_card_points">Poin</string>
+    <string name="leaderboard_card_accuracy">Akurasi</string>
+    <string name="leaderboard_card_percent">%1$d%%</string>
+    <string name="leaderboard_card_change">%1$d Posisi</string>
+    <string name="leaderboard_card_open">Lihat Leaderboard</string>
+    <string name="leaderboard_packages_empty_title">Belum ada paket Try Out</string>
+    <string name="leaderboard_packages_empty_body">Paket Try Out yang sudah dipublikasikan akan muncul di sini.</string>
+    <string name="leaderboard_practice_empty_title">Belum ada paket latihan</string>
+    <string name="leaderboard_practice_empty_body">Paket latihan yang sudah dipublikasikan akan muncul di sini.</string>
 
-    <!-- Peringkat / Per Paket -->
-    <string name="leaderboard_packages_title">Semua Paket Tryout</string>
-    <string name="leaderboard_packages_subtitle">Leaderboard dari paket yang sudah kamu selesaikan • Diperbarui %1$s</string>
-    <!-- "21 Okt 2026, 15:30" -->
-    <string name="leaderboard_updated_at">%1$s, %2$s</string>
-    <string name="leaderboard_package_meta">%1$d Soal • %2$d Menit</string>
-    <string name="leaderboard_package_participants">dari %1$s</string>
-    <string name="leaderboard_package_points">Poin</string>
-    <string name="leaderboard_package_accuracy">Akurasi</string>
-    <string name="leaderboard_movement_up">Naik %1$d posisi</string>
-    <string name="leaderboard_movement_down">Turun %1$d posisi</string>
-    <string name="leaderboard_movement_none">Posisi tetap</string>
-    <string name="leaderboard_view_leaderboard">Lihat Leaderboard</string>
-    <string name="leaderboard_packages_empty_title">Belum ada leaderboard paket</string>
-    <string name="leaderboard_packages_empty_message">Selesaikan tryout untuk melihat peringkatmu di setiap paket.</string>
-
-    <!-- Peringkat / Detail Paket -->
-    <string name="leaderboard_package_title">Leaderboard Paket</string>
-    <string name="leaderboard_cd_search">Cari peserta</string>
-    <string name="leaderboard_question_count">%1$d Soal</string>
-    <string name="leaderboard_duration_minutes">%1$d Menit</string>
-    <string name="leaderboard_table_rank">Peringkat</string>
-    <string name="leaderboard_table_time_points">Waktu • Poin</string>
-    <string name="leaderboard_finished_in">Selesai dalam %1$s</string>
-    <string name="leaderboard_package_empty_title">Belum ada peserta</string>
-    <string name="leaderboard_package_empty_message">Leaderboard paket ini muncul setelah ada peserta yang menyelesaikannya.</string>
-
-    <!-- Peringkat / Detail Paket – Cari Peserta -->
-    <string name="leaderboard_search_placeholder">Cari nama peserta…</string>
-    <string name="leaderboard_search_cd_clear">Hapus pencarian</string>
-    <!-- "3 peserta ditemukan di Tryout UTBK-SNBT 2026 (Sesi 1)" -->
-    <string name="leaderboard_search_count">%1$s peserta ditemukan di %2$s</string>
-    <string name="leaderboard_search_note">Cari berdasarkan nama peserta. Hasil hanya menampilkan peserta yang sudah menyelesaikan paket ini.</string>
-    <string name="leaderboard_search_idle_title">Cari peserta</string>
-    <string name="leaderboard_search_no_results_title">Peserta tidak ditemukan</string>
+    <!-- One package (Package.tsx) -->
+    <string name="leaderboard_package_title">Leaderboard %1$s</string>
+    <string name="leaderboard_package_meta">%1$d Soal · %2$s</string>
+    <string name="leaderboard_package_empty_practice">Kerjakan latihan ini untuk melihat peringkat paket. Hanya pengerjaan pertama yang dihitung.</string>
+    <string name="leaderboard_package_empty_tryout">Kerjakan Try Out ini untuk melihat peringkat paket.</string>
+    <string name="leaderboard_package_opens">Peringkat dibuka %1$s.</string>
 </resources>
