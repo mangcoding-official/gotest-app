@@ -14,8 +14,6 @@ import com.gotest.app.feature.account.ui.components.AdultOnly
 import com.gotest.app.feature.account.ui.deleteaccount.DeleteAccountRoute
 import com.gotest.app.feature.account.ui.downloaddata.DownloadDataRoute
 import com.gotest.app.feature.account.ui.editprofile.EditProfileRoute
-import com.gotest.app.feature.account.ui.help.HelpRoute
-import com.gotest.app.feature.account.ui.helptopic.HelpTopicRoute
 import com.gotest.app.feature.account.ui.mainlevel.MainLevelRoute
 import com.gotest.app.feature.account.ui.personaldata.PersonalDataRoute
 import com.gotest.app.feature.account.ui.phone.AccountPhoneRoute
@@ -26,6 +24,8 @@ import com.gotest.app.feature.account.ui.settings.SettingsNavigation
 import com.gotest.app.feature.account.ui.settings.SettingsRoute
 import com.gotest.app.feature.account.ui.subscription.SubscriptionRoute
 import com.gotest.app.feature.auth.navigation.navigateToOnboardingClearingAll
+import com.gotest.app.feature.support.ui.SupportRoute
+import com.gotest.app.feature.support.ui.SupportTopicRoute
 import com.gotest.app.navigation.AccountPhoneDestination
 import com.gotest.app.navigation.ActiveSessionsDestination
 import com.gotest.app.navigation.ChangePasswordDestination
@@ -119,13 +119,13 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
         }
     }
     composable<HelpDestination> {
-        HelpRoute(
+        SupportRoute(
             onBack = navController::navigateUp,
             onOpenTopic = { topicId -> navController.navigate(HelpTopicDestination(topicId)) },
         )
     }
     composable<HelpTopicDestination> {
-        HelpTopicRoute(onBack = navController::navigateUp)
+        SupportTopicRoute(onBack = navController::navigateUp)
     }
 }
 

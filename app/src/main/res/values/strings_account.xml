@@ -232,25 +232,8 @@
     <string name="account_subscription_history_empty_message">Riwayat pembayaranmu akan muncul di sini setelah kamu berlangganan.</string>
 
     <!-- Bantuan & Support (frame 11057) -->
-    <string name="account_help_title">Bantuan &amp; Support</string>
-    <string name="account_help_description">Temukan jawaban, panduan, atau hubungi tim kami untuk mendapatkan bantuan.</string>
-    <string name="account_help_search_hint">Cari pertanyaan atau topik…</string>
-    <string name="account_help_categories">Kategori</string>
-    <string name="account_help_faq">FAQ</string>
-    <string name="account_help_contact">Hubungi Kami</string>
-    <string name="account_help_contact_email">Email</string>
-    <string name="account_help_contact_whatsapp">WhatsApp</string>
-    <string name="account_help_search_empty_title">Pertanyaan tidak ditemukan</string>
-    <string name="account_help_search_empty_message">Tidak ada FAQ untuk “%1$s”. Coba kata kunci lain atau hubungi kami.</string>
-    <string name="account_help_no_app">Tidak ada aplikasi untuk membuka kontak ini.</string>
 
     <!-- Bantuan / Detail Topik (frame 11252) -->
-    <string name="account_help_topic_fallback_title">Topik Bantuan</string>
-    <string name="account_help_topic_need_help">Masih butuh bantuan?</string>
-    <string name="account_help_topic_need_help_message">Tim support kami siap membantu kamu di jam operasional.</string>
-    <string name="account_help_topic_contact">Hubungi Kami</string>
-    <string name="account_help_topic_empty_title">Belum ada artikel</string>
-    <string name="account_help_topic_empty_message">Artikel untuk topik ini sedang kami siapkan. Hubungi kami jika butuh bantuan.</string>
 
     <!-- Nomor WhatsApp (web: Components/Student/Profile/PhoneModal.tsx) -->
     <string name="account_phone_title">Nomor WhatsApp</string>

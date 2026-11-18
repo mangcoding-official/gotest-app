@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bantuan (T-026 A2e). Texts are the web's: Pages/Support/*, Components/Student/Support/* (TopicCards, FaqAccordion,
+     TicketPanel, ContactCards) and Support/data.ts, which the web keeps in its page code, not in the API. -->
+<resources>
+    <string name="support_title">Bantuan &amp; Support</string>
+    <string name="support_lede">Temukan jawaban, panduan, atau hubungi tim kami untuk mendapatkan bantuan.</string>
+
+    <!-- Topic cards (data.ts) -->
+    <string name="support_topic_account_title">Akun &amp; Profil</string>
+    <string name="support_topic_account_body">Kelola Akun, profile, dan keamanan</string>
+    <string name="support_topic_practice_title">Paket Latihan &amp; Try Out</string>
+    <string name="support_topic_practice_body">mengerjakan, report latihan, dan Try Out</string>
+    <string name="support_topic_payment_title">Pembayaran &amp; Berlangganan</string>
+    <string name="support_topic_payment_body">Upgrade akun, metode pembayaran, dan invoice</string>
+
+    <!-- FAQ (data.ts) -->
+    <string name="support_faq_title">FAQ</string>
+    <string name="support_faq_lede">Pertanyaan yang sering diajukan</string>
+    <string name="support_faq_1_q">Bagaimana cara melihat report latihan ?</string>
+    <string name="support_faq_1_a">Untuk melihat report latihan, Anda dapat mengakses menu \"Paket Latihan\" di dashboard. Setelah itu, pilih latihan yang ingin Anda lihat laporannya. Di halaman tersebut, Anda akan menemukan ringkasan hasil, termasuk skor dan analisis performa Anda.</string>
+    <string name="support_faq_2_q">Bagaimana cara mengikuti Try Out</string>
+    <string name="support_faq_2_a">Buka menu \"Paket Try Out\", pilih paket yang tersedia, lalu tekan Mulai. Timer akan berjalan per subtes. Pastikan koneksi stabil sebelum memulai karena waktu tetap berjalan setelah Try Out dimulai.</string>
+    <string name="support_faq_3_q">Di mana saya bisa melihat hasil Try Out</string>
+    <string name="support_faq_3_a">Setelah Try Out dikumpulkan, hasil muncul di halaman hasil paket tersebut. Kamu juga bisa membuka menu Riwayat untuk melihat skor, durasi, dan analisis percobaan sebelumnya.</string>
+    <string name="support_faq_4_q">Bagaimana cara melihat pembahasan soal</string>
+    <string name="support_faq_4_a">Buka hasil latihan yang sudah selesai, lalu pilih Pembahasan. Setiap soal menampilkan jawaban kamu, kunci, dan penjelasan. Try Out hanya menampilkan skor, hasil per subtes, dan peringkat, tanpa kunci dan pembahasan.</string>
+    <string name="support_faq_5_q">bagaimana cara upgade akun ke akun berbayar</string>
+    <string name="support_faq_5_a">Hubungi tim support melalui email atau WhatsApp untuk upgrade paket. Tim akan membantu metode pembayaran dan mengaktifkan langganan di akun kamu.</string>
+    <string name="support_faq_6_q">Bagaimana cara mengubah nama, email, atau foto profil?</string>
+    <string name="support_faq_6_a">Buka Pengaturan di sidebar, lalu pilih Edit Informasi Akun untuk nama dan email. Foto profil bisa diganti dari ikon kamera di foto akun, atau hapus foto jika ingin kembali ke inisial.</string>
+
+    <!-- Ticket form (TicketPanel.tsx) -->
+    <string name="support_form_title">Hubungi Tim Gotest</string>
+    <string name="support_form_lede">Ceritakan kendalamu. Balasan tim tampil di halaman ini, di bagian Tiket Saya.</string>
+    <string name="support_form_subject">Judul</string>
+    <string name="support_form_subject_hint">Misalnya: Tidak bisa membuka hasil Try Out</string>
+    <string name="support_form_category">Jenis kendala</string>
+    <string name="support_form_category_hint">Pilih jenis kendala</string>
+    <string name="support_form_message">Pesan</string>
+    <string name="support_form_message_hint">Tulis apa yang terjadi, di halaman mana, dan sejak kapan.</string>
+    <string name="support_form_send">Kirim Tiket</string>
+    <string name="support_sending">Mengirim...</string>
+
+    <!-- My tickets -->
+    <string name="support_tickets_title">Tiket Saya</string>
+    <string name="support_tickets_lede">Tiket yang kamu kirim dan balasan tim Gotest.</string>
+    <string name="support_ticket_meta">%1$s · %2$s</string>
+    <string name="support_reply_hint_resolved">Masih ada kendala? Tulis di sini, tiket dibuka lagi.</string>
+    <string name="support_reply_hint">Tambahkan keterangan</string>
+    <string name="support_reply_send">Kirim</string>
+
+    <!-- Contacts (data.ts) -->
+    <string name="support_contact_email_title">Kirim Email</string>
+    <string name="support_contact_email_value">Support@gotest.id</string>
+    <string name="support_contact_whatsapp_title">WhatsApp</string>
+    <string name="support_contact_whatsapp_value">+62 3142 2453</string>
+    <string name="support_contact_hours_title">Jam Operasional</string>
+    <string name="support_contact_hours_value">Senin - jumat, 08:00 - 17:00 kecuali hari libur nasional</string>
+
+    <!-- Topic (Support/Topic.tsx, ArticleLayout.tsx) -->
+    <string name="support_topic_sections">Topik</string>
+</resources>
