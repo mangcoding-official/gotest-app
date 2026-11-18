@@ -4,6 +4,7 @@ import com.gotest.app.feature.ruang.domain.ExamAnswerUpload
 import com.gotest.app.feature.ruang.domain.ExamAnswersSaved
 import kotlinx.serialization.json.JsonElement
 import java.time.Instant
+import java.time.OffsetDateTime
 
 /**
  * The Ujian clock is the server's (DEC-148): the deadline minus the server time, counted down with
@@ -25,7 +26,7 @@ data class ExamClock(
             deadlineAt: String,
             serverNow: String,
             anchorElapsedMs: Long,
-        ) = ExamClock(Instant.parse(deadlineAt), Instant.parse(serverNow), anchorElapsedMs)
+        ) = ExamClock(parseServerTime(deadlineAt), parseServerTime(serverNow), anchorElapsedMs)
     }
 }
 
@@ -113,6 +114,12 @@ class ExamAnswerQueue(
         const val STATUS_SUBMITTED = "submitted"
     }
 }
+
+/**
+ * A server time (`2026-12-01T02:30:00+00:00`, ISO 8601 with an offset). Not `Instant.parse`: on Android
+ * (java.time through desugaring, Java 8 rules) it only accepts a `Z` ending.
+ */
+fun parseServerTime(value: String): Instant = OffsetDateTime.parse(value).toInstant()
 
 /** "1", "1 dan 2", "1, 2 dan 3" (the web's `listNumbers`). */
 fun listNumbers(numbers: List<Int>): String =

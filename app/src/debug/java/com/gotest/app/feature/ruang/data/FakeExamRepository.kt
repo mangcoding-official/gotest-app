@@ -143,7 +143,7 @@ class FakeExamRepository
                         }
 
                         now.isAfter(current.deadline.plusSeconds(GRACE_SECONDS)) ||
-                            Instant.parse(item.answeredAt).isAfter(current.deadline) -> {
+                            parseServerTime(item.answeredAt).isAfter(current.deadline) -> {
                             rejected += item.itemId
                         }
 

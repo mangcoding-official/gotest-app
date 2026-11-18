@@ -9,6 +9,7 @@ import com.gotest.app.core.model.UserProfile
 import com.gotest.app.feature.account.domain.AccountSecurityRepository
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
+import com.gotest.app.feature.ruang.domain.RuangRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -46,6 +47,7 @@ class ProfileViewModel
         private val authRepository: AuthRepository,
         private val photoEditor: ProfilePhotoEditor,
         private val security: AccountSecurityRepository,
+        private val ruang: RuangRepository,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
         private val signOut = MutableStateFlow(SignOutState())
@@ -53,15 +55,16 @@ class ProfileViewModel
         private val content: Flow<ProfileUiState> =
             retryKey.flatMapLatest {
                 val phoneSignIn = flow { emit(security.isPhoneSignInAvailable()) }
-                userRepository
-                    .observeProfile()
-                    .combine(phoneSignIn) { profile, available ->
-                        ProfileUiState.Success(
-                            profile = profile,
-                            phoneSignIn = available,
-                            daysRemaining = daysUntil(profile),
-                        )
-                    }.map<ProfileUiState.Success, ProfileUiState> { it }
+                // The Mitra portal is not in the app yet (A4), so only student spaces are listed.
+                val spaces = flow { emit(ruang.memberships().getOrDefault(emptyList()).filterNot { it.opensPortal }) }
+                combine(userRepository.observeProfile(), phoneSignIn, spaces) { profile, available, studentSpaces ->
+                    ProfileUiState.Success(
+                        profile = profile,
+                        phoneSignIn = available,
+                        spaces = studentSpaces,
+                        daysRemaining = daysUntil(profile),
+                    )
+                }.map<ProfileUiState.Success, ProfileUiState> { it }
                     .onStart { emit(ProfileUiState.Loading) }
                     .catch { emit(ProfileUiState.Error) }
             }

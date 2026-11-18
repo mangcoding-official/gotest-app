@@ -52,6 +52,7 @@
                 <data android:host="gotest.id" />
                 <data android:pathPrefix="/reset-password/" />
                 <data android:pathPrefix="/gabung/" />
+                <data android:pathPrefix="/undangan/" />
                 <data android:path="/main-bareng" />
             </intent-filter>
         </activity>

@@ -14,6 +14,7 @@ import com.gotest.app.feature.history.navigation.historyScreens
 import com.gotest.app.feature.home.navigation.homeScreens
 import com.gotest.app.feature.leaderboard.navigation.leaderboardScreens
 import com.gotest.app.feature.multiplayer.navigation.multiplayerScreens
+import com.gotest.app.feature.ruang.navigation.ruangScreens
 import com.gotest.app.feature.studypackage.navigation.studyPackageScreens
 import com.gotest.app.feature.upgrade.navigation.upgradeScreens
 
@@ -40,5 +41,6 @@ fun GotestNavHost(
         if (AppFeatures.PAYMENTS) upgradeScreens(navController)
         if (AppFeatures.ASSISTANT) assistantScreens(navController)
         multiplayerScreens(navController)
+        ruangScreens(navController)
     }
 }

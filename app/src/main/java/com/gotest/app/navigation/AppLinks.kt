@@ -17,6 +17,11 @@ sealed interface AppLink {
         val code: String,
     ) : AppLink
 
+    /** `https://gotest.id/undangan/{token}`: a Mitra invitation (T-026 A2b). */
+    data class Invitation(
+        val token: String,
+    ) : AppLink
+
     /** `https://gotest.id/main-bareng?kode=XXXXXX`: a Main Bareng game code. */
     data class MainBarengCode(
         val code: String,
@@ -56,6 +61,10 @@ object AppLinks {
 
             segments.size == 2 && segments[0] == "gabung" && segments[1].isNotBlank() -> {
                 AppLink.JoinCode(segments[1].trim().uppercase())
+            }
+
+            segments.size == 2 && segments[0] == "undangan" && segments[1].isNotBlank() -> {
+                AppLink.Invitation(segments[1])
             }
 
             segments == listOf("main-bareng") -> {
