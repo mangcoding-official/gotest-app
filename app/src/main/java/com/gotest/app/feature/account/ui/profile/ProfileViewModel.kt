@@ -6,9 +6,12 @@ import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.UserProfile
-import com.gotest.app.feature.account.domain.AccountSecurityRepository
+import com.gotest.app.core.model.UserStats
+import com.gotest.app.feature.account.domain.ProfilePage
+import com.gotest.app.feature.account.domain.ProfilePagesRepository
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
+import com.gotest.app.feature.account.ui.components.fieldMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -45,20 +48,21 @@ class ProfileViewModel
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
         private val photoEditor: ProfilePhotoEditor,
-        private val security: AccountSecurityRepository,
+        private val profilePages: ProfilePagesRepository,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
         private val signOut = MutableStateFlow(SignOutState())
 
         private val content: Flow<ProfileUiState> =
             retryKey.flatMapLatest {
-                val phoneSignIn = flow { emit(security.isPhoneSignInAvailable()) }
+                // GET /profil: the number, whether numbers can be added, and the stats; the rest comes from /akun.
+                val page = flow { emit(profilePages.page().getOrThrow()) }
                 userRepository
                     .observeProfile()
-                    .combine(phoneSignIn) { profile, available ->
+                    .combine(page) { profile, profilePage ->
                         ProfileUiState.Success(
-                            profile = profile,
-                            phoneSignIn = available,
+                            profile = profile.withPage(profilePage),
+                            phoneSignIn = profilePage.phoneSignIn,
                             daysRemaining = daysUntil(profile),
                         )
                     }.map<ProfileUiState.Success, ProfileUiState> { it }
@@ -90,6 +94,7 @@ class ProfileViewModel
                 is ProfileUiEvent.PhotoCapture -> onCaptureEvent(event.event)
                 is ProfileUiEvent.PhotoPick -> photoEditor.select(event.photoUri)
                 ProfileUiEvent.SavePhoto -> savePhoto()
+                ProfileUiEvent.DeletePhoto -> deletePhoto()
                 ProfileUiEvent.DismissPhotoSheet -> photoEditor.dismiss()
                 ProfileUiEvent.SignOutClick -> signOut.update { it.copy(showDialog = true) }
                 ProfileUiEvent.DismissSignOut -> signOut.update { it.copy(showDialog = false) }
@@ -101,12 +106,19 @@ class ProfileViewModel
             viewModelScope.launch {
                 val result = photoEditor.save() ?: return@launch
                 val effect =
-                    if (result.isSuccess) {
-                        ProfileEffect.ShowMessage(R.string.account_notice_photo_saved)
-                    } else {
-                        ProfileEffect.ShowMessage(R.string.account_error_save, host = photoEditor.messageHost)
-                    }
+                    result.fold(
+                        { ProfileEffect.ShowMessage(R.string.account_notice_photo_saved) },
+                        { ProfileEffect.ShowText(it.fieldMessage("photo"), host = photoEditor.messageHost) },
+                    )
                 _effects.send(effect)
+            }
+        }
+
+        private fun deletePhoto() {
+            viewModelScope.launch {
+                photoEditor.delete()?.onFailure {
+                    _effects.send(ProfileEffect.ShowText(it.fieldMessage("photo"), host = photoEditor.messageHost))
+                }
             }
         }
 
@@ -132,3 +144,20 @@ class ProfileViewModel
         private fun daysUntil(profile: UserProfile): Long =
             ChronoUnit.DAYS.between(LocalDate.now(), profile.subscription.activeUntil)
     }
+
+/** Profil's own numbers (web StudentStatCards from /profil); a change the server leaves out shows as none. */
+private fun UserProfile.withPage(page: ProfilePage): UserProfile {
+    val stats = page.stats ?: return copy(phone = page.phone)
+    return copy(
+        phone = page.phone,
+        stats =
+            UserStats(
+                questionsAnswered = stats.questionsDone,
+                accuracyPercent = stats.accuracy,
+                packagesCompleted = stats.packagesDone,
+                questionsTrendPercent = stats.questionsDoneChange ?: 0,
+                accuracyTrendPercent = stats.accuracyChange ?: 0,
+                packagesTrendPercent = stats.packagesDoneChange ?: 0,
+            ),
+    )
+}

@@ -1,5 +1,6 @@
 package com.gotest.app.feature.account.domain
 
+import com.gotest.app.core.model.EducationLevel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -152,3 +153,14 @@ interface ProfilePagesRepository {
 
     suspend fun deleteAccount(confirmation: String): Result<ProfileWriteReply>
 }
+
+/** The level's code in the API (`app/Support/EducationLevel.php`). */
+val EducationLevel.apiCode: String
+    get() =
+        when (this) {
+            EducationLevel.Sd -> "sd"
+            EducationLevel.Smp -> "smp"
+            EducationLevel.SmaSmk -> "sma"
+            EducationLevel.Kuliah -> "kuliah"
+            EducationLevel.Graduated -> "umum"
+        }

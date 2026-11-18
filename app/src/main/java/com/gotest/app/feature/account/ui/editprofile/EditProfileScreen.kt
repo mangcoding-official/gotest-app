@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -41,10 +40,10 @@ import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTextField
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
+import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.feature.account.ui.components.AccountBottomActions
 import com.gotest.app.feature.account.ui.components.AccountDetailScaffold
-import com.gotest.app.feature.account.ui.components.AccountNote
 import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
 import com.gotest.app.feature.account.ui.components.ProfilePhotoCaptureDialog
@@ -52,6 +51,7 @@ import com.gotest.app.feature.account.ui.components.ProfilePhotoSheet
 import com.gotest.app.feature.account.ui.components.ProfilePhotoSheetContent
 import com.gotest.app.feature.account.ui.components.rememberGalleryPhotoPicker
 import com.gotest.app.feature.account.ui.components.rememberTakePhotoAction
+import com.gotest.app.feature.auth.ui.components.EducationLevelPicker
 import kotlinx.coroutines.launch
 
 @Composable
@@ -81,6 +81,16 @@ fun EditProfileRoute(
                         PhotoMessageHost.Capture -> captureSnackbarHostState
                     }
                 scope.launch { host.showSnackbar(resources.getString(effect.messageRes)) }
+            }
+
+            is EditProfileEffect.ShowText -> {
+                val host =
+                    when (effect.host) {
+                        PhotoMessageHost.Screen -> snackbarHostState
+                        PhotoMessageHost.Sheet -> sheetSnackbarHostState
+                        PhotoMessageHost.Capture -> captureSnackbarHostState
+                    }
+                scope.launch { host.showSnackbar(effect.message ?: resources.getString(R.string.state_error_message)) }
             }
         }
     }
@@ -119,12 +129,22 @@ fun EditProfileScreen(
         bottomBar = {
             if (uiState is EditProfileUiState.Success) {
                 AccountBottomActions {
-                    GotestButton(
-                        text = stringResource(R.string.account_edit_submit),
-                        onClick = { onEvent(EditProfileUiEvent.Submit) },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isSaving,
-                    )
+                    val step = uiState.codeStep
+                    if (step == null) {
+                        GotestButton(
+                            text = stringResource(R.string.account_edit_submit),
+                            onClick = { onEvent(EditProfileUiEvent.Submit) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !uiState.isSaving,
+                        )
+                    } else {
+                        GotestButton(
+                            text = stringResource(R.string.account_email_code_save),
+                            onClick = { onEvent(EditProfileUiEvent.SaveEmail) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !step.isSaving,
+                        )
+                    }
                 }
             }
         },
@@ -142,7 +162,12 @@ fun EditProfileScreen(
             }
 
             is EditProfileUiState.Success -> {
-                EditProfileForm(state = uiState, onEvent = onEvent, contentPadding = padding)
+                val step = uiState.codeStep
+                if (step == null) {
+                    EditProfileForm(state = uiState, onEvent = onEvent, contentPadding = padding)
+                } else {
+                    EmailCodeForm(step = step, onEvent = onEvent, contentPadding = padding)
+                }
                 uiState.photoSheet?.let { sheet ->
                     ProfilePhotoSheet(
                         currentPhoto = uiState.avatarUrl,
@@ -152,6 +177,7 @@ fun EditProfileScreen(
                         onPickFromGallery = onPickPhoto,
                         onSave = { onEvent(EditProfileUiEvent.SavePhoto) },
                         onDismiss = { onEvent(EditProfileUiEvent.DismissPhotoSheet) },
+                        onDelete = { onEvent(EditProfileUiEvent.DeletePhoto) },
                     )
                     sheet.capture?.let { capture ->
                         ProfilePhotoCaptureDialog(
@@ -199,10 +225,9 @@ private fun EditProfileForm(
                     value = state.name,
                     onValueChange = { onEvent(EditProfileUiEvent.NameChange(it)) },
                     label = stringResource(R.string.account_edit_name_label),
-                    placeholder = stringResource(R.string.account_edit_name_hint),
                     leadingIcon = GotestIcons.Linear.User,
-                    supportingText = state.nameError?.let { stringResource(it) },
-                    isError = state.nameError != null,
+                    supportingText = state.errors["name"],
+                    isError = "name" in state.errors,
                     keyboardOptions =
                         KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
                 )
@@ -210,21 +235,19 @@ private fun EditProfileForm(
                     value = state.email,
                     onValueChange = { onEvent(EditProfileUiEvent.EmailChange(it)) },
                     label = stringResource(R.string.account_edit_email_label),
-                    placeholder = stringResource(R.string.account_edit_email_hint),
                     leadingIcon = GotestIcons.Linear.Directbox,
-                    supportingText = state.emailError?.let { stringResource(it) },
-                    isError = state.emailError != null,
+                    // Web: the note under Email shows only while a new email needs a code.
+                    supportingText =
+                        state.errors["email"] ?: stringResource(R.string.account_edit_info).takeIf { state.emailCode },
+                    isError = "email" in state.errors,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { onEvent(EditProfileUiEvent.Submit) }),
+                )
+                EducationLevelPicker(
+                    selected = state.educationLevel,
+                    onSelect = { onEvent(EditProfileUiEvent.LevelChange(it)) },
+                    error = state.errors["education_level"],
                 )
             }
-            AccountNote(
-                text = stringResource(R.string.account_edit_info),
-                icon = GotestIcons.Linear.InfoCircle,
-                containerColor = GotestTheme.colors.bgBlueSoft,
-                iconColor = GotestTheme.colors.bgBlue,
-                textColor = GotestTheme.colors.bgBlueDark,
-            )
         }
     }
 }
@@ -255,7 +278,13 @@ private fun ChangePhotoButton(
 }
 
 private val previewSuccess =
-    EditProfileUiState.Success(avatarUrl = null, name = "Gilang Permana", email = "gilangpermana@mail.com")
+    EditProfileUiState.Success(
+        avatarUrl = null,
+        name = "Gilang Permana",
+        email = "gilangpermana@mail.com",
+        educationLevel = EducationLevel.SmaSmk,
+        emailCode = true,
+    )
 
 @Composable
 private fun EditProfilePreviewScreen(uiState: EditProfileUiState) {
@@ -276,8 +305,25 @@ private fun EditProfileScreenValidationPreview() {
             previewSuccess.copy(
                 name = "",
                 email = "gilang@",
-                nameError = R.string.account_error_name_required,
-                emailError = R.string.account_error_email_invalid,
+                errors = mapOf("name" to "Nama wajib diisi.", "email" to "Email harus berupa alamat email yang valid."),
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun EditProfileEmailCodePreview() {
+    GotestTheme {
+        EditProfilePreviewScreen(
+            previewSuccess.copy(
+                codeStep =
+                    EmailCodeStep(
+                        email = "rina@contoh.id",
+                        sentTo = "r***@contoh.id",
+                        code = "12",
+                        resendIn = 42,
+                    ),
             ),
         )
     }

@@ -3,6 +3,7 @@ package com.gotest.app.feature.account.ui.components
 import androidx.compose.runtime.Immutable
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.feature.account.domain.PhotoCrop
+import com.gotest.app.feature.account.domain.ProfilePagesRepository
 import com.gotest.app.feature.account.domain.ProfilePhotoProcessor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +67,7 @@ class ProfilePhotoEditor
     constructor(
         private val userRepository: UserRepository,
         private val photoProcessor: ProfilePhotoProcessor,
+        private val profilePages: ProfilePagesRepository,
     ) {
         private val _sheet = MutableStateFlow<PhotoSheetUiState?>(null)
 
@@ -194,7 +196,22 @@ class ProfilePhotoEditor
             val photoUri = current?.selectedPhotoUri
             if (photoUri == null || current.isSaving) return null
             _sheet.value = current.copy(isSaving = true)
-            val result = userRepository.updateAvatar(photoUri)
+            // POST /profil/foto; the new photo is then read from /akun, here the account's own copy.
+            val result =
+                photoProcessor
+                    .uploadJpeg(photoUri)
+                    .mapCatching { jpeg -> profilePages.uploadPhoto(jpeg).getOrThrow() }
+                    .mapCatching { userRepository.updateAvatar(photoUri).getOrThrow() }
+            _sheet.update { open -> if (open == null || result.isSuccess) null else open.copy(isSaving = false) }
+            return result
+        }
+
+        /** "Hapus foto" (DELETE /profil/foto); closes the sheet on success. Null while a save runs. */
+        suspend fun delete(): Result<Unit>? {
+            val current = _sheet.value
+            if (current?.isSaving == true) return null
+            _sheet.update { it?.copy(isSaving = true) }
+            val result = profilePages.deletePhoto().map { }
             _sheet.update { open -> if (open == null || result.isSuccess) null else open.copy(isSaving = false) }
             return result
         }

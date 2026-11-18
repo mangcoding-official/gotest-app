@@ -15,9 +15,9 @@
     <string name="account_profile_avatar_cd">Ubah foto profil</string>
     <string name="account_profile_plan_free">Free</string>
     <string name="account_profile_plan_premium">Premium</string>
-    <string name="account_profile_stat_questions">Soal</string>
-    <string name="account_profile_stat_accuracy">Akurasi</string>
-    <string name="account_profile_stat_packages">Paket</string>
+    <string name="account_profile_stat_questions">Soal Dikerjakan</string>
+    <string name="account_profile_stat_accuracy">Akurasi Jawaban</string>
+    <string name="account_profile_stat_packages">Paket Selesai</string>
     <plurals name="account_profile_trial_remaining">
         <item quantity="one">%1$d hari tersisa • s/d %2$s</item>
         <item quantity="other">%1$d hari tersisa • s/d %2$s</item>
@@ -52,11 +52,14 @@
     <string name="account_notice_data_copy_requested">Permintaan terkirim. Tautan unduhan akan dikirim ke email kamu.</string>
 
     <!-- Akun / Foto Profil (Sheet) (frame 10299) -->
-    <string name="account_photo_title">Foto Profil</string>
+    <string name="account_photo_title">Tambahkan Foto Profile</string>
     <string name="account_photo_subtitle">Upload foto baru atau pilih yang sudah ada.</string>
     <string name="account_photo_take">Ambil Foto</string>
     <string name="account_photo_gallery">Pilih dari Galeri</string>
-    <string name="account_photo_hint">JPG, JPEG, atau PNG • 500 × 500 px • Maks. 5 MB</string>
+    <string name="account_photo_hint">JPG, JPEG, PNG, atau WEBP. Maks. 2 MB.</string>
+    <string name="account_photo_delete">Hapus foto</string>
+    <string name="account_photo_type_error">Format foto harus JPG, JPEG, PNG, atau WEBP.</string>
+    <string name="account_photo_size_error">Ukuran foto maksimal 2 MB.</string>
     <string name="account_photo_close">Tutup</string>
     <string name="account_photo_save">Simpan</string>
     <string name="account_photo_preview_cd">Pratinjau foto profil</string>
@@ -87,47 +90,47 @@
     <string name="account_adjust_error">Foto gagal diproses. Coba lagi.</string>
 
     <!-- Akun / Edit Informasi (frame 9994) -->
-    <string name="account_edit_title">Edit Informasi Akun</string>
-    <string name="account_edit_change_photo">Ubah Foto</string>
-    <string name="account_edit_hint">Perbarui nama tampilan dan email akunmu.</string>
+    <string name="account_edit_title">Edit Informasi Profile</string>
+    <string name="account_edit_change_photo">Ganti foto</string>
+    <string name="account_edit_hint">update informasi akun kamu, email dan juga password</string>
     <string name="account_edit_name_label">Display Name</string>
-    <string name="account_edit_name_hint">Nama tampilan</string>
     <string name="account_edit_email_label">Email</string>
-    <string name="account_edit_email_hint">nama@email.com</string>
-    <string name="account_edit_info">Jika email diubah, kami akan mengirim link verifikasi ke email baru.</string>
+    <string name="account_edit_info">Email baru dipakai setelah kamu memasukkan kode yang kami kirim ke email itu.</string>
     <string name="account_edit_submit">Simpan Informasi Akun</string>
-    <string name="account_error_name_required">Display name wajib diisi</string>
-    <string name="account_error_email_required">Email wajib diisi</string>
-    <string name="account_error_email_invalid">Format email belum benar</string>
+    <string name="account_email_code_title">Cek email kamu</string>
+    <string name="account_email_code_lede">Masukkan kode dari email untuk memakai email baru ini.</string>
+    <string name="account_email_code_sent">Kode 6 angka dikirim ke %1$s. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
+    <string name="account_email_code_label">Kode dari email</string>
+    <string name="account_email_code_hint">6 angka</string>
+    <string name="account_email_code_resend_in">Kirim ulang dalam %1$d detik</string>
+    <string name="account_email_code_resend">Kirim ulang kode</string>
+    <string name="account_email_code_cancel">Batal</string>
+    <string name="account_email_code_save">Simpan email</string>
 
     <!-- Akun / Ganti Password (frame 10122) -->
     <string name="account_password_title">Ganti Password</string>
-    <string name="account_password_description">Pastikan akunmu menggunakan password acak agar tetap aman.</string>
-    <string name="account_password_current_label">Password sebelumnya</string>
-    <string name="account_password_current_hint">Masukkan password sebelumnya</string>
-    <string name="account_password_new_label">Password baru</string>
-    <string name="account_password_new_hint">Masukkan password baru</string>
-    <string name="account_password_confirm_label">Konfirmasi password baru</string>
-    <string name="account_password_confirm_hint">Ulangi password baru</string>
-    <string name="account_password_rule_length">Minimal 8 karakter</string>
-    <string name="account_password_rule_mix">Kombinasi huruf dan angka</string>
-    <string name="account_password_rule_different">Berbeda dari password sebelumnya</string>
-    <string name="account_password_rule_met">Terpenuhi</string>
-    <string name="account_password_rule_unmet">Belum terpenuhi</string>
-    <string name="account_password_mismatch">Konfirmasi password belum sama</string>
+    <string name="account_password_description">Pastikan akun memakai password yang kuat dan hanya kamu yang tahu.</string>
+    <string name="account_password_link_google">Akun kamu terhubung dengan Google. Belum punya password atau lupa password saat ini? Kirim tautan untuk membuat password baru ke %1$s kamu.</string>
+    <string name="account_password_link_forgot">Lupa password saat ini? Kirim tautan untuk membuat password baru ke %1$s kamu.</string>
+    <string name="account_password_link_whatsapp">WhatsApp</string>
+    <string name="account_password_link_email">email</string>
+    <string name="account_password_link_send_whatsapp">Kirim Tautan ke WhatsApp</string>
+    <string name="account_password_link_send_email">Kirim Tautan ke Email</string>
+    <string name="account_password_link_sending">Mengirim...</string>
+    <string name="account_password_link_sent_whatsapp">Tautan dikirim ke WhatsApp kamu dalam beberapa menit. Buka pesannya, lalu ikuti tautannya untuk membuat password.</string>
+    <string name="account_password_link_sent_email">Tautan sudah dikirim ke %1$s. Buka email itu, lalu ikuti tautannya untuk membuat password.</string>
+    <string name="account_password_current_label">Password Saat Ini</string>
+    <string name="account_password_new_label">Password Baru</string>
+    <string name="account_password_confirm_label">Konfirmasi Password</string>
     <string name="account_password_submit">Simpan Password</string>
-    <string name="account_password_error">Password gagal diperbarui. Periksa password sebelumnya lalu coba lagi.</string>
 
     <!-- Akun / Hapus Akun (frame 10676) -->
     <string name="account_delete_title">Hapus Akun</string>
-    <string name="account_delete_heading">Hapus akun secara permanen?</string>
-    <string name="account_delete_message">Begitu akun dihapus, semua data dan riwayat akan dihapus permanen dan tidak dapat dipulihkan.</string>
-    <string name="account_delete_consequence_history">Riwayat latihan &amp; tryout akan hilang</string>
-    <string name="account_delete_consequence_ranking">Peringkat dan poin akan dihapus</string>
-    <string name="account_delete_consequence_subscription">Langganan aktif tidak dapat dikembalikan</string>
-    <string name="account_delete_confirm_label">Ketik ulang “%1$s” untuk konfirmasi</string>
-    <string name="account_delete_submit">Hapus Akun Permanen</string>
-    <string name="account_delete_error">Akun gagal dihapus. Coba lagi.</string>
+    <string name="account_delete_message">Begitu akun dihapus, kamu tidak dapat masuk lagi dan nama, email, foto profil, serta akses langgananmu dihapus permanen. Hasil pengerjaan tetap tersimpan tanpa identitasmu, tampil sebagai \"Peserta\" di peringkat. Unduh riwayat yang ingin kamu simpan sebelum menghapus akun.</string>
+    <string name="account_delete_sole_manager">Kamu satu-satunya pengelola %1$s. Setelah akunmu dihapus, Mitra itu tidak punya pengelola sampai tim Gotest menunjuk pengganti.</string>
+    <string name="account_delete_confirm_label">Silahkan ketik ulang “gotest.id”</string>
+    <string name="account_delete_confirm_hint">ketik ulang \"gotest.id\"</string>
+    <string name="account_delete_submit">Hapus Akun</string>
 
     <!-- Akun / Pengaturan (frame 10819) -->
     <string name="account_settings_title">Pengaturan</string>
@@ -252,7 +255,8 @@
 
     <!-- Sesi Aktif (web: Components/Student/Profile/ActiveSessionsPanel.tsx) -->
     <string name="account_sessions_title">Sesi Aktif</string>
-    <string name="account_sessions_subtitle">Perangkat yang sedang masuk ke akun ini. Nama perangkat diambil dari peramban yang dipakai.</string>
+    <string name="account_sessions_subtitle">Peramban dan aplikasi Gotest yang sedang masuk ke akun ini. Nama perangkat diambil dari peramban, atau dari nama HP untuk aplikasi Gotest.</string>
+    <string name="account_sessions_app">Aplikasi Gotest</string>
     <string name="account_sessions_revoke">Keluar dari perangkat lain</string>
     <string name="account_sessions_empty">Daftar perangkat belum tersedia.</string>
     <string name="account_sessions_current">Perangkat ini</string>

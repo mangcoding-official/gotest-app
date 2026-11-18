@@ -44,6 +44,8 @@ sealed interface ProfileUiEvent {
 
     data object SavePhoto : ProfileUiEvent
 
+    data object DeletePhoto : ProfileUiEvent
+
     data object DismissPhotoSheet : ProfileUiEvent
 
     data object SignOutClick : ProfileUiEvent
@@ -55,6 +57,12 @@ sealed interface ProfileUiEvent {
 
 sealed interface ProfileEffect {
     data object SignedOut : ProfileEffect
+
+    /** A server message, or null when nothing came back (the screen says "try again"). */
+    data class ShowText(
+        val message: String?,
+        val host: PhotoMessageHost = PhotoMessageHost.Screen,
+    ) : ProfileEffect
 
     /** [host] routes the snackbar into the open sheet or camera, where the screen's one would be hidden. */
     data class ShowMessage(

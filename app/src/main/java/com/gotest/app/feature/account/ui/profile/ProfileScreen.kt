@@ -109,6 +109,16 @@ fun ProfileRoute(
                     }
                 scope.launch { host.showSnackbar(resources.getString(effect.messageRes)) }
             }
+
+            is ProfileEffect.ShowText -> {
+                val host =
+                    when (effect.host) {
+                        PhotoMessageHost.Screen -> snackbarHostState
+                        PhotoMessageHost.Sheet -> sheetSnackbarHostState
+                        PhotoMessageHost.Capture -> captureSnackbarHostState
+                    }
+                scope.launch { host.showSnackbar(effect.message ?: resources.getString(R.string.state_error_message)) }
+            }
         }
     }
     val pickPhoto = rememberGalleryPhotoPicker { viewModel.onEvent(ProfileUiEvent.PhotoPick(it)) }
@@ -395,6 +405,7 @@ private fun ProfileOverlays(
             onPickFromGallery = onPickPhoto,
             onSave = { onEvent(ProfileUiEvent.SavePhoto) },
             onDismiss = { onEvent(ProfileUiEvent.DismissPhotoSheet) },
+            onDelete = { onEvent(ProfileUiEvent.DeletePhoto) },
         )
         sheet.capture?.let { capture ->
             ProfilePhotoCaptureDialog(

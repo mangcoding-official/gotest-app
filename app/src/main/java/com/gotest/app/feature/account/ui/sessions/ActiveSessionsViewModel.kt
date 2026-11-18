@@ -3,8 +3,9 @@ package com.gotest.app.feature.account.ui.sessions
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gotest.app.feature.account.domain.AccountSecurityRepository
-import com.gotest.app.feature.account.domain.ActiveSession
+import com.gotest.app.feature.account.domain.ProfilePagesRepository
+import com.gotest.app.feature.account.domain.ProfileSession
+import com.gotest.app.feature.account.ui.components.fieldMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,7 @@ data class RevokeSessionsForm(
 data class ActiveSessionsUiState(
     val isLoading: Boolean = true,
     val loadFailed: Boolean = false,
-    val sessions: List<ActiveSession> = emptyList(),
+    val sessions: List<ProfileSession> = emptyList(),
     val revoke: RevokeSessionsForm? = null,
 ) {
     val otherCount: Int get() = sessions.count { !it.current }
@@ -50,7 +51,7 @@ sealed interface ActiveSessionsUiEvent {
 class ActiveSessionsViewModel
     @Inject
     constructor(
-        private val security: AccountSecurityRepository,
+        private val profilePages: ProfilePagesRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(ActiveSessionsUiState())
         val uiState: StateFlow<ActiveSessionsUiState> = _uiState.asStateFlow()
@@ -86,9 +87,9 @@ class ActiveSessionsViewModel
         private fun load() {
             _uiState.update { it.copy(isLoading = true, loadFailed = false) }
             viewModelScope.launch {
-                security
-                    .sessions()
-                    .onSuccess { sessions -> _uiState.update { it.copy(isLoading = false, sessions = sessions) } }
+                profilePages
+                    .page()
+                    .onSuccess { page -> _uiState.update { it.copy(isLoading = false, sessions = page.sessions) } }
                     .onFailure { _uiState.update { it.copy(isLoading = false, loadFailed = true) } }
             }
         }
@@ -98,8 +99,8 @@ class ActiveSessionsViewModel
             if (form.isSubmitting) return
             _uiState.update { it.copy(revoke = form.copy(isSubmitting = true, errorMessage = null)) }
             viewModelScope.launch {
-                security
-                    .revokeOtherSessions(form.password)
+                profilePages
+                    .signOutOtherDevices(form.password)
                     .onSuccess {
                         _uiState.update { it.copy(revoke = null) }
                         load()
@@ -110,7 +111,7 @@ class ActiveSessionsViewModel
                                     it.revoke?.copy(
                                         isSubmitting = false,
                                         password = "",
-                                        errorMessage = error.message,
+                                        errorMessage = error.fieldMessage("current_password"),
                                     ),
                             )
                         }

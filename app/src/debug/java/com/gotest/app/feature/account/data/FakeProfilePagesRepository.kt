@@ -2,6 +2,7 @@ package com.gotest.app.feature.account.data
 
 import com.gotest.app.core.data.fake.FakeAccountStore
 import com.gotest.app.core.data.fake.simulateLatency
+import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.model.PhoneNumber
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.account.domain.PasswordChange
@@ -11,6 +12,7 @@ import com.gotest.app.feature.account.domain.ProfileSession
 import com.gotest.app.feature.account.domain.ProfileStats
 import com.gotest.app.feature.account.domain.ProfileUpdate
 import com.gotest.app.feature.account.domain.ProfileWriteReply
+import com.gotest.app.feature.account.domain.apiCode
 import kotlinx.coroutines.flow.update
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -64,7 +66,8 @@ class FakeProfilePagesRepository
                 errors["email"] = "Email harus berupa alamat email yang valid."
             }
             if (errors.isNotEmpty()) return Result.failure(invalid(errors))
-            store.profile.update { it.copy(fullName = update.name.trim()) }
+            val level = EducationLevel.entries.firstOrNull { it.apiCode == update.educationLevel }
+            store.profile.update { it.copy(fullName = update.name.trim(), educationLevel = level ?: it.educationLevel) }
             if (email ==
                 store.profile.value.email
                     .lowercase()

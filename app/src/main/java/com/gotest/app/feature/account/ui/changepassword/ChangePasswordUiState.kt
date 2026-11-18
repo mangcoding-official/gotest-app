@@ -1,32 +1,36 @@
 package com.gotest.app.feature.account.ui.changepassword
 
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import com.gotest.app.feature.account.domain.PasswordRule
 
-/**
- * Form-only screen: nothing is loaded, so there is no Loading/Error state; saving is tracked
- * by [isSubmitting] and failures arrive as a snackbar.
- */
+/** Web ChangePasswordModal: the password link box and the three fields; the server checks the rules. */
 @Immutable
 data class ChangePasswordUiState(
-    val currentPassword: String = "",
-    val newPassword: String = "",
+    val isLoading: Boolean = true,
+    val loadFailed: Boolean = false,
+    /** The account's email, named once the link is sent by email. */
+    val email: String = "",
+    val googleLinked: Boolean = false,
+    val linkByWhatsApp: Boolean = false,
+    val current: String = "",
+    val password: String = "",
     val confirmation: String = "",
-    /** Checklist rules the new password already meets (green tick). */
-    val satisfiedRules: Set<PasswordRule> = emptySet(),
-    /** True once something is typed in the confirmation and it differs from the new password. */
-    val confirmationMismatch: Boolean = false,
-    val canSubmit: Boolean = false,
+    /** Server messages by field: current_password, password. */
+    val errors: Map<String, String> = emptyMap(),
     val isSubmitting: Boolean = false,
+    val linkSending: Boolean = false,
+    /** After "Kirim Tautan", the button gives way to the sent note until the screen is opened again. */
+    val linkSent: Boolean = false,
+    val linkError: String? = null,
 )
 
 sealed interface ChangePasswordUiEvent {
-    data class CurrentPasswordChange(
+    data object Retry : ChangePasswordUiEvent
+
+    data class CurrentChange(
         val value: String,
     ) : ChangePasswordUiEvent
 
-    data class NewPasswordChange(
+    data class PasswordChange(
         val value: String,
     ) : ChangePasswordUiEvent
 
@@ -35,12 +39,15 @@ sealed interface ChangePasswordUiEvent {
     ) : ChangePasswordUiEvent
 
     data object Submit : ChangePasswordUiEvent
+
+    data object SendLink : ChangePasswordUiEvent
 }
 
 sealed interface ChangePasswordEffect {
     data object PasswordChanged : ChangePasswordEffect
 
+    /** Null when the request did not reach the server: the screen says "try again". */
     data class ShowMessage(
-        @param:StringRes val messageRes: Int,
+        val message: String?,
     ) : ChangePasswordEffect
 }
