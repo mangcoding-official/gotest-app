@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Files the app hands to other apps (camera capture, shared QR image) live in cache/shared/. -->
+<!-- Files the app hands to other apps: camera capture and the shared QR image in cache/shared/, and the
+     Riwayat CSV in the app's own Downloads folder on phones older than Android 10 (T-026 A2e). -->
 <paths>
     <cache-path
         name="shared"
         path="shared/" />
+    <external-files-path
+        name="downloads"
+        path="Download/" />
 </paths>

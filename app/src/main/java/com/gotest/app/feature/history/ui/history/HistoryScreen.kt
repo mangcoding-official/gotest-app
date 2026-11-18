@@ -1,8 +1,7 @@
 package com.gotest.app.feature.history.ui.history
 
+import android.content.Intent
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,422 +12,330 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.designsystem.component.GotestButton
+import com.gotest.app.core.designsystem.component.GotestButtonSize
+import com.gotest.app.core.designsystem.component.GotestButtonVariant
 import com.gotest.app.core.designsystem.component.GotestEmptyView
 import com.gotest.app.core.designsystem.component.GotestErrorView
-import com.gotest.app.core.designsystem.component.GotestFilterPill
-import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
-import com.gotest.app.core.designsystem.component.GotestTextField
-import com.gotest.app.core.designsystem.component.GotestTopAppBar
-import com.gotest.app.core.designsystem.component.GotestTopAppBarStyle
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.core.model.AttemptSummary
-import com.gotest.app.core.model.PackageType
-import com.gotest.app.core.ui.GotestFormat
 import com.gotest.app.core.ui.ObserveAsEvents
-import com.gotest.app.feature.history.domain.ExportFormat
-import com.gotest.app.feature.history.ui.components.HistoryMonthSection
-import com.gotest.app.feature.history.ui.components.HistoryStatTile
+import com.gotest.app.feature.history.data.HistoryCsvSaver
+import com.gotest.app.feature.history.domain.HistoryCategory
+import com.gotest.app.feature.history.domain.HistoryFilters
+import com.gotest.app.feature.history.domain.HistoryResult
+import com.gotest.app.feature.history.domain.HistoryStats
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.YearMonth
 
 @Composable
 fun HistoryRoute(
-    onViewResult: (attemptId: String) -> Unit,
+    onOpenResult: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val query by viewModel.query.collectAsStateWithLifecycle()
-    val sheet by viewModel.sheetState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
-    val showMessage: (Int) -> Unit = { messageRes ->
-        scope.launch { snackbarHostState.showSnackbar(resources.getString(messageRes)) }
-    }
-    val pickExportDestination =
-        rememberExportDestinationPicker(
-            onPick = { uri -> viewModel.onEvent(HistoryUiEvent.ExportDestinationPick(uri)) },
-            onUnavailable = { showMessage(R.string.history_export_failure) },
-        )
+    val context = LocalContext.current
     ObserveAsEvents(viewModel.effects) { effect ->
-        when (effect) {
-            is HistoryEffect.PickExportDestination -> pickExportDestination(effect.format, effect.fileName)
-            is HistoryEffect.ShowMessage -> showMessage(effect.messageRes)
+        scope.launch {
+            when (effect) {
+                is HistoryEffect.Exported -> {
+                    val result =
+                        snackbar.showSnackbar(
+                            message = resources.getString(R.string.history_export_saved),
+                            actionLabel = resources.getString(R.string.history_export_share),
+                            duration = SnackbarDuration.Long,
+                        )
+                    if (result == SnackbarResult.ActionPerformed) context.shareCsv(effect.uri)
+                }
+
+                HistoryEffect.ExportFailed -> {
+                    snackbar.showSnackbar(resources.getString(R.string.history_export_failed))
+                }
+
+                HistoryEffect.MoreFailed -> {
+                    snackbar.showSnackbar(resources.getString(R.string.state_error_message))
+                }
+            }
         }
     }
     HistoryScreen(
         uiState = uiState,
-        query = query,
-        sheet = sheet,
-        snackbarHostState = snackbarHostState,
-        onEvent = viewModel::onEvent,
-        onViewResult = onViewResult,
+        actions =
+            HistoryActions(
+                onRetry = viewModel::load,
+                onDraftChange = viewModel::onDraftChange,
+                onApply = viewModel::applyFilters,
+                onMore = viewModel::loadMore,
+                onExport = viewModel::export,
+                onOpenResult = onOpenResult,
+            ),
         modifier = modifier,
+        snackbarHostState = snackbar,
     )
 }
 
-/**
- * Opens the system "save as" dialog (Storage Access Framework, no storage permission) and
- * reports the new document's URI; cancelling reports nothing. Needs an Activity, so call it from
- * a Route, never from a previewed Screen.
- */
-@Composable
-private fun rememberExportDestinationPicker(
-    onPick: (uri: String) -> Unit,
-    onUnavailable: () -> Unit,
-): (ExportFormat, String) -> Unit {
-    val currentOnPick by rememberUpdatedState(onPick)
-    val currentOnUnavailable by rememberUpdatedState(onUnavailable)
-    val onResult: (Uri?) -> Unit = { uri -> uri?.let { currentOnPick(it.toString()) } }
-    val pdf = rememberLauncherForActivityResult(CreateDocument(ExportFormat.Pdf.mimeType), onResult)
-    val csv = rememberLauncherForActivityResult(CreateDocument(ExportFormat.Csv.mimeType), onResult)
-    return remember(pdf, csv) {
-        { format: ExportFormat, fileName: String ->
-            val launcher =
-                when (format) {
-                    ExportFormat.Pdf -> pdf
-                    ExportFormat.Csv -> csv
-                }
-            // Some devices ship without a document provider to save into.
-            if (runCatching { launcher.launch(fileName) }.isFailure) currentOnUnavailable()
-        }
-    }
+private fun android.content.Context.shareCsv(uri: Uri) {
+    val send =
+        Intent(Intent.ACTION_SEND)
+            .setType(HistoryCsvSaver.MIME)
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    startActivity(Intent.createChooser(send, null))
 }
+
+data class HistoryActions(
+    val onRetry: () -> Unit,
+    val onDraftChange: (HistoryFilters) -> Unit,
+    val onApply: () -> Unit,
+    val onMore: () -> Unit,
+    val onExport: () -> Unit,
+    val onOpenResult: (Long) -> Unit,
+)
 
 @Composable
 fun HistoryScreen(
     uiState: HistoryUiState,
-    query: String,
-    sheet: HistorySheetUiState?,
-    snackbarHostState: SnackbarHostState,
-    onEvent: (HistoryUiEvent) -> Unit,
-    onViewResult: (attemptId: String) -> Unit,
+    actions: HistoryActions,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     // Tab roots draw under the floating bottom bar.
     val bottomInset =
         GotestTheme.sizes.bottomBarHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(GotestTheme.colors.bgSubtle),
-    ) {
+    Box(modifier = modifier.fillMaxSize().background(GotestTheme.colors.bgSubtle)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            HistoryHeader(onEvent = onEvent)
-            val stateModifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(bottom = bottomInset)
-            when (uiState) {
-                HistoryUiState.Loading -> {
-                    GotestLoadingView(modifier = stateModifier)
+            HistoryHeader()
+            when {
+                uiState.isLoading -> {
+                    GotestLoadingView(modifier = Modifier.padding(bottom = bottomInset))
                 }
 
-                HistoryUiState.Error -> {
-                    GotestErrorView(onRetry = { onEvent(HistoryUiEvent.Retry) }, modifier = stateModifier)
-                }
-
-                HistoryUiState.Empty -> {
-                    GotestEmptyView(
-                        icon = GotestIcons.Linear.Directbox,
-                        title = stringResource(R.string.history_empty_title),
-                        message = stringResource(R.string.history_empty_message),
-                        modifier = stateModifier,
+                uiState.loadFailed -> {
+                    GotestErrorView(
+                        onRetry = actions.onRetry,
+                        modifier = Modifier.fillMaxSize().padding(bottom = bottomInset),
                     )
                 }
 
-                is HistoryUiState.Success -> {
-                    HistoryContent(
-                        state = uiState,
-                        query = query,
-                        bottomInset = bottomInset,
-                        onEvent = onEvent,
-                        onViewResult = onViewResult,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                else -> {
+                    HistoryList(uiState = uiState, actions = actions, bottomPadding = bottomInset)
                 }
             }
         }
         SnackbarHost(
             hostState = snackbarHostState,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = bottomInset),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomInset),
         )
-        sheet?.let { HistorySheet(state = it, onEvent = onEvent) }
     }
 }
 
 @Composable
-private fun HistoryHeader(
-    onEvent: (HistoryUiEvent) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    GotestTopAppBar(
-        title = stringResource(R.string.history_title),
-        subtitle = stringResource(R.string.history_subtitle),
-        style = GotestTopAppBarStyle.Leading,
-        modifier = modifier,
-        actions = {
-            Row(horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
-                GotestIconButton(
-                    icon = GotestIcons.Linear.Sort,
-                    contentDescription = stringResource(R.string.history_cd_sort),
-                    onClick = { onEvent(HistoryUiEvent.SortClick) },
-                )
-                GotestIconButton(
-                    icon = GotestIcons.Linear.Export,
-                    contentDescription = stringResource(R.string.history_cd_export),
-                    onClick = { onEvent(HistoryUiEvent.ExportClick) },
-                )
-            }
-        },
-    )
+private fun HistoryHeader(modifier: Modifier = Modifier) {
+    val spacing = GotestTheme.spacing
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .heightIn(min = GotestTheme.sizes.appBarHeight)
+                .padding(horizontal = spacing.screenHorizontal, vertical = spacing.sm),
+    ) {
+        Text(
+            text = stringResource(R.string.history_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
+            color = GotestTheme.colors.textPrimary,
+        )
+        Text(
+            text = stringResource(R.string.history_lede),
+            style = MaterialTheme.typography.bodySmall,
+            color = GotestTheme.colors.textSecondary,
+        )
+    }
 }
 
 @Composable
-private fun HistoryContent(
-    state: HistoryUiState.Success,
-    query: String,
-    bottomInset: Dp,
-    onEvent: (HistoryUiEvent) -> Unit,
-    onViewResult: (attemptId: String) -> Unit,
+private fun HistoryList(
+    uiState: HistoryUiState,
+    actions: HistoryActions,
+    bottomPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
-    val gutter = Modifier.padding(horizontal = spacing.screenHorizontal)
-    // Sections sit 16dp apart, month groups 8dp apart (design "content" vs "Frame 557").
-    val sectionGap = Modifier.padding(bottom = spacing.sm)
+    val groups = remember(uiState.results) { groupByMonth(uiState.results) }
     LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(top = spacing.sm, bottom = bottomInset + spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+        modifier = modifier.fillMaxSize(),
+        contentPadding =
+            PaddingValues(
+                start = spacing.screenHorizontal,
+                end = spacing.screenHorizontal,
+                top = spacing.sm,
+                bottom = bottomPadding + spacing.xl,
+            ),
+        verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        item(key = "search") {
-            GotestTextField(
-                value = query,
-                onValueChange = { onEvent(HistoryUiEvent.QueryChange(it)) },
-                modifier = gutter.then(sectionGap).fillMaxWidth(),
-                placeholder = stringResource(R.string.history_search_hint),
-                leadingIcon = GotestIcons.Linear.SearchNormal,
+        item { HistoryStatTiles(uiState.stats) }
+        item {
+            HistoryFilterPanel(
+                categories = uiState.categories,
+                draft = uiState.draft,
+                busy = uiState.isFiltering,
+                onDraftChange = actions.onDraftChange,
+                onApply = actions.onApply,
             )
         }
-        item(key = "filters") {
-            LazyRow(
-                modifier = sectionGap,
-                contentPadding = PaddingValues(horizontal = spacing.screenHorizontal),
-                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            ) {
-                items(HistoryFilter.entries, key = { it.name }) { filter ->
-                    GotestFilterPill(
-                        text = stringResource(filter.labelRes),
-                        selected = filter == state.filter,
-                        onClick = { onEvent(HistoryUiEvent.FilterSelect(filter)) },
-                    )
-                }
-            }
-        }
-        item(key = "stats") {
-            Row(
-                modifier = gutter.then(sectionGap),
-                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            ) {
-                HistoryStatTile(
-                    value = GotestFormat.number(state.totalAttempts),
-                    label = stringResource(R.string.history_stat_attempts),
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.history_showing, uiState.results.size, uiState.total),
                     modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GotestTheme.colors.textSecondary,
                 )
-                HistoryStatTile(
-                    value = stringResource(R.string.percent_value, state.accuracyPercent),
-                    label = stringResource(R.string.history_stat_accuracy),
-                    modifier = Modifier.weight(1f),
+                GotestButton(
+                    text =
+                        stringResource(
+                            if (uiState.isExporting) R.string.history_loading else R.string.history_export,
+                        ),
+                    onClick = actions.onExport,
+                    variant = GotestButtonVariant.Plain,
+                    size = GotestButtonSize.Small,
+                    leadingIcon = GotestIcons.Linear.Export,
+                    enabled = !uiState.isExporting,
                 )
             }
         }
-        if (state.groups.isEmpty()) {
-            item(key = "no_results") {
+        if (uiState.results.isEmpty()) {
+            item {
                 GotestEmptyView(
-                    icon = GotestIcons.Linear.SearchNormal,
-                    title = stringResource(R.string.history_no_results_title),
-                    message = stringResource(R.string.history_no_results_message),
-                    modifier = Modifier.fillMaxWidth(),
+                    icon = GotestIcons.Linear.Directbox,
+                    title = stringResource(R.string.history_empty_title),
+                    message = stringResource(R.string.history_empty_message),
                 )
             }
-        } else {
-            items(state.groups, key = { it.key }) { group ->
-                HistoryMonthSection(
-                    monthStart = group.month?.atDay(1),
-                    attempts = group.attempts,
-                    onViewResult = onViewResult,
-                    modifier = gutter,
+        }
+        groups.forEach { (month, results) ->
+            item(key = "month-$month") { MonthLabel(month) }
+            items(results, key = {
+                it.id
+            }) { result -> HistoryResultRow(result = result, onOpen = { actions.onOpenResult(result.id) }) }
+        }
+        if (uiState.nextPage != null) {
+            item {
+                GotestButton(
+                    text =
+                        stringResource(
+                            if (uiState.isLoadingMore) R.string.history_loading else R.string.history_more,
+                        ),
+                    onClick = actions.onMore,
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = GotestButtonVariant.Plain,
+                    enabled = !uiState.isLoadingMore,
                 )
             }
         }
     }
 }
 
-private val previewHistory =
+private val previewResults =
     listOf(
-        AttemptSummary(
-            "a1",
-            "p1",
-            "Simulasi UTBK-SNBT Session 2",
-            PackageType.Tryout,
-            "UTBK-SNBT",
-            LocalDate.of(2026, 10, 21),
-            1_232,
-            540,
+        HistoryResult(
+            id = 1,
+            packageName = "Try Out UTBK-SNBT 3",
+            sessionTitle = "Try Out Bersama November",
+            categoryName = "UTBK-SNBT",
+            mode = "tryout",
+            submittedAt = "2026-11-17T08:30:00Z",
+            durationLabel = "95 Menit 12 Detik",
+            accuracy = 71,
+            score = 612.5,
         ),
-        AttemptSummary(
-            "a2",
-            "p2",
-            "Latihan September Session 1",
-            PackageType.Practice,
-            "UTBK-SNBT",
-            LocalDate.of(2026, 10, 20),
-            720,
-            31,
-        ),
-        AttemptSummary(
-            "a3",
-            "p3",
-            "Latihan Logaritma Dasar",
-            PackageType.Practice,
-            "UTBK-SNBT",
-            LocalDate.of(2026, 10, 18),
-            540,
-            7,
-        ),
-        AttemptSummary(
-            "a4",
-            "p4",
-            "Simulasi UTBK-SNBT Session 1",
-            PackageType.Tryout,
-            "UTBK-SNBT",
-            LocalDate.of(2026, 9, 19),
-            1_232,
-            540,
-        ),
-        AttemptSummary(
-            "a5",
-            "p5",
-            "Latihan TWK CPNS Session 1",
-            PackageType.Practice,
-            "CPNS",
-            LocalDate.of(2026, 9, 12),
-            900,
-            14,
+        HistoryResult(
+            id = 2,
+            packageName = "Latihan Aljabar",
+            categoryName = "TKA SMA",
+            mode = "practice",
+            submittedAt = "2026-10-30T08:30:00Z",
+            durationLabel = "18 Menit 4 Detik",
+            accuracy = 90,
+            score = 92.0,
+            scoreLabel = "Nilai",
         ),
     )
 
+private val previewActions = HistoryActions({}, {}, {}, {}, {}, {})
+
+@Preview(showBackground = true, heightDp = 1200)
 @Composable
-private fun HistoryPreviewHost(
-    uiState: HistoryUiState,
-    query: String = "",
-) {
+private fun HistoryScreenPreview() {
     GotestTheme {
         HistoryScreen(
-            uiState = uiState,
-            query = query,
-            sheet = null,
-            snackbarHostState = remember { SnackbarHostState() },
-            onEvent = {},
-            onViewResult = {},
+            uiState =
+                HistoryUiState(
+                    isLoading = false,
+                    stats = HistoryStats(480, 68, 19),
+                    categories = listOf(HistoryCategory(1, "TKA SMA"), HistoryCategory(2, "UTBK-SNBT")),
+                    results = previewResults,
+                    total = 27,
+                    nextPage = 2,
+                ),
+            actions = previewActions,
         )
     }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryScreenSuccessPreview() {
-    HistoryPreviewHost(
-        uiState =
-            HistoryUiState.Success(
-                filter = HistoryFilter.All,
-                sort = HistorySort.Newest,
-                totalAttempts = 24,
-                accuracyPercent = 86,
-                groups =
-                    previewHistory
-                        .groupBy { YearMonth.from(it.completedOn) }
-                        .map { (month, attempts) -> HistoryAttemptGroup(month, attempts) },
-            ),
-    )
-}
-
-/** "Nama paket (A–Z)": not by date, so one card without month headers. */
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryScreenSortedByNamePreview() {
-    HistoryPreviewHost(
-        uiState =
-            HistoryUiState.Success(
-                filter = HistoryFilter.All,
-                sort = HistorySort.Name,
-                totalAttempts = 24,
-                accuracyPercent = 86,
-                groups = listOf(HistoryAttemptGroup(month = null, attempts = previewHistory.sortedBy { it.title })),
-            ),
-    )
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryScreenNoResultsPreview() {
-    HistoryPreviewHost(
-        uiState =
-            HistoryUiState.Success(
-                filter = HistoryFilter.Cpns,
-                sort = HistorySort.Newest,
-                totalAttempts = 24,
-                accuracyPercent = 86,
-                groups = emptyList(),
-            ),
-        query = "kimia",
-    )
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryScreenLoadingPreview() {
-    HistoryPreviewHost(uiState = HistoryUiState.Loading)
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Preview(showBackground = true)
 @Composable
 private fun HistoryScreenEmptyPreview() {
-    HistoryPreviewHost(uiState = HistoryUiState.Empty)
+    GotestTheme { HistoryScreen(uiState = HistoryUiState(isLoading = false), actions = previewActions) }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Preview(showBackground = true)
+@Composable
+private fun HistoryScreenLoadingPreview() {
+    GotestTheme { HistoryScreen(uiState = HistoryUiState(), actions = previewActions) }
+}
+
+@Preview(showBackground = true)
 @Composable
 private fun HistoryScreenErrorPreview() {
-    HistoryPreviewHost(uiState = HistoryUiState.Error)
+    GotestTheme {
+        HistoryScreen(
+            uiState = HistoryUiState(isLoading = false, loadFailed = true),
+            actions = previewActions,
+        )
+    }
 }

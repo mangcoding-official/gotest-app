@@ -1,113 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Riwayat (T-026 A2e). Texts are the web's: Pages/History/Index.tsx, Components/Student/History/*,
+     Components/Student/Packages/PracticeResultModal.tsx, Dashboard/StudentStatCards.tsx. -->
 <resources>
-    <!-- Riwayat -->
-    <string name="history_title">Riwayat &amp; Hasil</string>
-    <string name="history_subtitle">Semua latihan &amp; tryout yang sudah kamu kerjakan.</string>
-    <string name="history_cd_sort">Urutkan riwayat</string>
-    <string name="history_cd_export">Ekspor riwayat</string>
-    <string name="history_search_hint">Cari paket…</string>
-    <string name="history_filter_all">Semua</string>
-    <string name="history_filter_practice">Latihan</string>
-    <string name="history_filter_tryout">Tryout</string>
-    <string name="history_filter_utbk">UTBK-SNBT</string>
-    <string name="history_filter_cpns">CPNS</string>
-    <string name="history_stat_attempts">Total attempt</string>
-    <string name="history_stat_accuracy">Rata-rata akurasi</string>
-    <string name="history_type_practice">Latihan</string>
-    <string name="history_type_tryout">Tryout</string>
-    <!-- "Tryout • 21 Okt • 20 mnt 32 dtk" -->
-    <string name="history_row_subtitle">%1$s • %2$s • %3$s</string>
-    <string name="history_duration_hours_minutes">%1$d jam %2$d mnt</string>
-    <string name="history_duration_minutes_seconds">%1$d mnt %2$d dtk</string>
-    <string name="history_duration_minutes">%1$d mnt</string>
-    <string name="history_duration_seconds">%1$d dtk</string>
-    <string name="history_view_result">Lihat Hasil</string>
-    <string name="history_empty_title">Belum ada riwayat</string>
-    <string name="history_empty_message">Kerjakan latihan atau tryout untuk melihat hasilnya di sini.</string>
-    <string name="history_no_results_title">Paket tidak ditemukan</string>
-    <string name="history_no_results_message">Coba kata kunci lain atau ganti filter riwayatmu.</string>
+    <string name="history_title">Riwayat Pengerjaan</string>
+    <string name="history_lede">Semua pengerjaan Latihan dan Try Out kamu.</string>
+    <string name="history_stat_questions">Soal Dikerjakan</string>
+    <string name="history_stat_accuracy">Akurasi Jawaban</string>
+    <string name="history_stat_packages">Paket Selesai</string>
+    <string name="history_percent">%1$d%%</string>
 
-    <!-- Riwayat / Urutkan (Sheet) -->
-    <string name="history_sort_title">Urutkan</string>
-    <string name="history_sort_subtitle">Atur urutan riwayat latihan dan tryout kamu.</string>
+    <!-- Filters (HistoryPanel.tsx) -->
+    <string name="history_search">Cari</string>
+    <string name="history_mode_all">Semua Paket</string>
+    <string name="history_mode_practice">Latihan</string>
+    <string name="history_mode_tryout">Try Out</string>
+    <string name="history_category_all">Semua jenjang</string>
     <string name="history_sort_newest">Terbaru</string>
     <string name="history_sort_oldest">Terlama</string>
-    <string name="history_sort_accuracy_high">Akurasi tertinggi</string>
-    <string name="history_sort_accuracy_low">Akurasi terendah</string>
-    <string name="history_sort_name">Nama paket (A–Z)</string>
-    <string name="history_sort_reset">Reset</string>
-    <string name="history_sort_apply">Terapkan</string>
+    <string name="history_filter">Filter</string>
 
-    <!-- Riwayat / Ekspor (Sheet) -->
-    <string name="history_export_title">Ekspor Riwayat</string>
-    <string name="history_export_subtitle">Simpan rekap hasil latihan dan tryout ke perangkatmu.</string>
-    <string name="history_export_period">Periode</string>
-    <string name="history_export_period_7_days">7 hari</string>
-    <string name="history_export_period_30_days">30 hari</string>
-    <string name="history_export_period_3_months">3 bulan</string>
-    <string name="history_export_period_all">Semua</string>
-    <string name="history_export_format">Format file</string>
-    <string name="history_export_format_pdf">PDF</string>
-    <string name="history_export_format_pdf_description">Rapi untuk dibaca dan dicetak</string>
-    <string name="history_export_format_csv">CSV (Excel / Sheets)</string>
-    <string name="history_export_format_csv_description">Untuk diolah sendiri di spreadsheet</string>
-    <!-- "24 attempt • 1 Okt – 29 Okt 2026" -->
-    <string name="history_export_summary">%1$s attempt • %2$s</string>
-    <string name="history_export_summary_empty">Belum ada attempt di periode ini.</string>
-    <string name="history_export_date_range">%1$s – %2$s</string>
-    <string name="history_export_cancel">Batal</string>
-    <string name="history_export_download">Unduh File</string>
-    <string name="history_export_success">File riwayat berhasil disimpan.</string>
-    <string name="history_export_failure">File riwayat gagal disimpan. Coba lagi.</string>
+    <!-- List -->
+    <string name="history_showing">Menampilkan %1$d dari %2$d Hasil</string>
+    <string name="history_export">Export data</string>
+    <string name="history_more">Tampilkan lebih banyak</string>
+    <string name="history_loading">Memuat...</string>
+    <string name="history_empty_title">Belum ada riwayat</string>
+    <string name="history_empty_message">Kerjakan latihan atau Try Out untuk melihat hasil di sini.</string>
+    <string name="history_no_date">Tanpa tanggal</string>
+    <string name="history_date_missing">Belum tersedia</string>
+    <string name="history_session">Sesi: %1$s</string>
+    <string name="history_type_tryout">Try Out</string>
+    <string name="history_type_practice">Latihan</string>
+    <string name="history_accuracy">Akurasi</string>
+    <string name="history_view_result">Lihat Hasil</string>
+    <string name="history_open_failed">Hasil belum dapat dibuka. Periksa koneksi lalu coba lagi.</string>
 
-    <!-- Riwayat / Ekspor: isi file PDF dan CSV -->
-    <string name="history_export_document_title">Rekap Hasil Latihan &amp; Tryout</string>
-    <!-- "Periode: 30 hari terakhir (18 Okt 2026 – 21 Okt 2026)" -->
-    <string name="history_export_document_period_range">Periode: %1$s (%2$s – %3$s)</string>
-    <string name="history_export_document_period">Periode: %1$s</string>
-    <string name="history_export_document_period_7_days">7 hari terakhir</string>
-    <string name="history_export_document_period_30_days">30 hari terakhir</string>
-    <string name="history_export_document_period_3_months">3 bulan terakhir</string>
-    <string name="history_export_document_period_all">Semua riwayat</string>
-    <!-- "3 attempt • Diekspor 30 Okt 2026" -->
-    <string name="history_export_document_count">%1$s attempt • Diekspor %2$s</string>
-    <string name="history_export_document_page">Halaman %1$d dari %2$d</string>
-    <string name="history_export_column_date">Tanggal</string>
-    <string name="history_export_column_package">Paket</string>
-    <string name="history_export_column_type">Jenis</string>
-    <string name="history_export_column_score">Skor</string>
-    <string name="history_export_column_accuracy_percent" formatted="false">Akurasi (%)</string>
-    <string name="history_export_column_score_accuracy">Skor / Akurasi</string>
-    <string name="history_export_column_duration">Durasi</string>
-    <!-- "540 / 72%" -->
-    <string name="history_export_score_accuracy">%1$s / %2$s</string>
+    <!-- CSV export: not on the web (the browser downloads it); wording proposed in T-026 A2e-1. -->
+    <string name="history_export_saved">Riwayat tersimpan di folder Unduhan.</string>
+    <string name="history_export_share">Bagikan</string>
+    <string name="history_export_failed">Riwayat belum bisa diunduh. Coba lagi sebentar lagi.</string>
 
-    <!-- Riwayat / Detail Hasil -->
-    <string name="history_detail_title">Detail Hasil</string>
-    <string name="history_detail_subtitle_tryout">Simulasi %1$s</string>
-    <string name="history_detail_subtitle_practice">Latihan %1$s</string>
-    <string name="history_detail_cd_share">Bagikan hasil</string>
-    <string name="history_detail_sections_title">Hasil per section</string>
-    <string name="history_detail_correct">Benar</string>
-    <string name="history_detail_wrong">Salah</string>
-    <string name="history_detail_empty">Kosong</string>
-    <string name="history_detail_final_score">Skor Akhir</string>
+    <!-- Result detail (HistoryResultModal.tsx, PracticeResultModal.tsx) -->
+    <string name="history_detail_fallback">Ringkasan hasil pengerjaan paket ini.</string>
+    <string name="history_detail_sections">Hasil per Subtes</string>
+    <string name="history_detail_correct">Benar %1$d</string>
+    <string name="history_detail_wrong">Salah %1$d</string>
+    <string name="history_detail_empty">Kosong %1$d</string>
+    <string name="history_detail_final">Skor Akhir</string>
     <string name="history_detail_score">Skor</string>
-    <string name="history_detail_ranking_title">Peringkat</string>
-    <string name="history_detail_ranking_note">Hasil latihan internal terbaik setiap peserta pada paket ini. Angka ini bukan skor resmi UTBK-SNBT atau prediksi kelulusan.</string>
-    <string name="history_detail_ranking_empty">Belum ada peserta lain di paket ini.</string>
-    <string name="history_detail_see_more">Lihat Selengkapnya</string>
-    <string name="history_detail_close">Tutup</string>
-    <string name="history_detail_open_discussion">Buka Pembahasan</string>
-    <string name="history_detail_you">%1$s (Kamu)</string>
-    <string name="history_detail_cd_rank">Peringkat %1$d</string>
-    <string name="history_detail_duration_hours_minutes">%1$d Jam %2$d Menit</string>
-    <string name="history_detail_duration_minutes_seconds">%1$d Menit %2$d Detik</string>
-    <string name="history_detail_duration_minutes">%1$d Menit</string>
-    <string name="history_detail_duration_seconds">%1$d Detik</string>
-    <string name="history_detail_not_found_title">Hasil tidak ditemukan</string>
-    <string name="history_detail_not_found_message">Riwayat pengerjaan ini sudah tidak tersedia.</string>
-    <string name="history_detail_share_chooser">Bagikan hasil</string>
-    <string name="history_detail_share_text">Aku meraih skor %1$s di %2$s lewat Gotest!</string>
-    <string name="history_detail_share_text_ranked">Aku meraih skor %1$s di %2$s dan berada di peringkat #%3$s dari %4$s peserta lewat Gotest!</string>
+    <string name="history_detail_disqualified">Dikeluarkan dari peringkat</string>
+    <string name="history_detail_repeat">Pengulangan, tidak diperingkat</string>
+    <string name="history_detail_ranking">Peringkat</string>
+    <string name="history_detail_ranking_note">Skor pengerjaan pertama setiap peserta pada paket ini.</string>
+    <string name="history_detail_ranking_score">Skor %1$d</string>
+    <string name="history_detail_ranking_empty">Belum ada peringkat untuk paket ini.</string>
+    <string name="history_detail_more">Lihat Selengkapnya</string>
 </resources>
