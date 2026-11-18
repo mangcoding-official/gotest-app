@@ -324,7 +324,7 @@ private fun RankingRow(
             text = stringResource(R.string.history_detail_ranking_score, row.score.roundToInt()),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
-            color = if (row.rank <= PODIUM) colors.bgYellowDark else colors.textPrimary,
+            color = if (row.rank <= PODIUM) colors.bgYellow else colors.textPrimary,
         )
     }
 }
