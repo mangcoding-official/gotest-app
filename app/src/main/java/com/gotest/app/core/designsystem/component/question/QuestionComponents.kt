@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
 import com.gotest.app.R
+import com.gotest.app.core.designsystem.component.richtext.RichText
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestColors
 import com.gotest.app.core.designsystem.theme.GotestTheme
@@ -106,8 +107,8 @@ fun GotestAnswerOption(
             ) {
                 Text(text = letter, style = MaterialTheme.typography.labelLarge, color = colors.content)
             }
-            Text(
-                text = text,
+            RichText(
+                content = text,
                 modifier =
                     Modifier
                         .weight(1f)
@@ -115,6 +116,7 @@ fun GotestAnswerOption(
                         .padding(horizontal = spacing.md, vertical = spacing.xs),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.content,
+                zoomImages = onClick == null,
             )
         }
     }
@@ -158,14 +160,15 @@ fun GotestCheckOption(
                     tint = if (checked) colors.iconBrandDark else colors.iconDefault,
                 )
             }
-            Text(
-                text = text,
+            RichText(
+                content = text,
                 modifier =
                     Modifier
                         .weight(1f)
                         .padding(horizontal = spacing.md, vertical = spacing.xs),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (checked) colors.textBrandDark else colors.textPrimary,
+                zoomImages = onCheckedChange == null,
             )
         }
     }
@@ -212,7 +215,7 @@ fun GotestStatementOption(
                         .padding(horizontal = spacing.md, vertical = spacing.xs),
                 verticalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
-                Text(text = text, style = MaterialTheme.typography.bodySmall, color = colors.textPrimary)
+                RichText(content = text, style = MaterialTheme.typography.bodySmall, color = colors.textPrimary)
                 Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
                     StatementChoice(
                         label = stringResource(R.string.question_true),
@@ -341,7 +344,12 @@ fun GotestStimulusCard(
             Text(text = title, style = MaterialTheme.typography.labelLarge, color = colors.bgBlueDark)
         }
         if (body != null) {
-            Text(text = body, style = MaterialTheme.typography.bodySmall, color = colors.bgBlueDark)
+            RichText(
+                content = body,
+                isHtml = true,
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.bgBlueDark,
+            )
         }
         if (imageModel != null) {
             AsyncImage(

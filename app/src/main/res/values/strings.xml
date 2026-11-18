@@ -33,4 +33,8 @@
     <string name="update_required_title">Perbarui aplikasi Gotest untuk melanjutkan.</string>
     <string name="update_required_message">Versi ini sudah tidak bisa dipakai. Pasang versi terbaru dari Play Store.</string>
     <string name="update_required_action">Buka Play Store</string>
+
+    <!-- Question content: image shown full screen (T-026) -->
+    <string name="rich_image_description">Gambar soal</string>
+    <string name="rich_image_close">Tutup</string>
 </resources>

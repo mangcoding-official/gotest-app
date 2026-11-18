@@ -39,6 +39,7 @@ import com.gotest.app.core.designsystem.component.GotestFilterPill
 import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTopAppBar
+import com.gotest.app.core.designsystem.component.richtext.RichText
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.GotestFormat
@@ -279,8 +280,9 @@ private fun SummaryReviewCard(
             )
             ReviewStatusChip(status = item.status)
         }
-        Text(
-            text = question.prompt,
+        RichText(
+            content = question.prompt,
+            isHtml = true,
             style = MaterialTheme.typography.bodyMedium,
             color = GotestTheme.colors.textPrimary,
         )

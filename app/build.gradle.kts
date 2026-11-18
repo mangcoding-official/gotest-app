@@ -124,6 +124,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)
+    // Question HTML and KaTeX math in a WebView served from app assets (T-026 criterion 6).
+    implementation(libs.androidx.webkit)
     ksp(libs.hilt.compiler)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
