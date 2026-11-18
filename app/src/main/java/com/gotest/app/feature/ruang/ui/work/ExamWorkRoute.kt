@@ -183,7 +183,6 @@ private fun PinGate(
             text = stringResource(R.string.exam_pin_confirm),
             onClick = onPin,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !state.isWaiting,
         )
         PinGuidance(state = state)
         GotestButton(

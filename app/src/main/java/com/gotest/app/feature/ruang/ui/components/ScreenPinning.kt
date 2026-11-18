@@ -29,17 +29,19 @@ class ScreenPinning(
                 ?.lockTaskModeState
                 ?.let { it != ActivityManager.LOCK_TASK_MODE_NONE } ?: false
 
+    /** Shows Android's "pin this app?" confirmation again; asking twice is harmless. */
+    fun ask() {
+        if (!isPinned) activity?.startLockTask()
+    }
+
     /**
-     * Asks Android to pin the screen and waits up to a minute for the student to accept: true once
-     * pinned. Android's confirmation does not take the window focus and says nothing when declined, and
-     * on a phone where pinning is off in Settings no confirmation appears at all; so the screen keeps
-     * its guidance visible while this waits, and a declined request simply ends at the time limit.
+     * Waits up to a minute for the screen to be pinned: true once pinned. Android's confirmation does
+     * not take the window focus and says nothing when declined, and on a phone where pinning is off in
+     * Settings no confirmation appears at all; so the screen keeps its guidance visible while this waits.
      */
-    suspend fun request(): Boolean {
-        val target = activity ?: return false
-        if (!isPinned) target.startLockTask()
+    suspend fun awaitPinned(): Boolean {
         var poll = 0
-        while (!isPinned && poll < MAX_POLLS) {
+        while (activity != null && !isPinned && poll < MAX_POLLS) {
             delay(POLL_MS)
             poll++
         }

@@ -131,4 +131,19 @@ class ExamWorkViewModelTest {
             assertEquals(1, vm.uiState.value.violationWarning)
             vm.viewModelScope.cancel()
         }
+
+    @Test
+    fun leavingThroughKeluarIsNotAViolation() =
+        runTest {
+            repository.workPage = Result.success(page(secondsLeft = 3_600))
+            val vm = viewModel()
+            runCurrent()
+            vm.onPinnedChange(true)
+            vm.onEvent(ExamWorkEvent.ConfirmExit)
+            // The screen lets go of the pinned screen on its way out.
+            vm.onLeave()
+            runCurrent()
+            assertEquals(null, local.awaySince(9))
+            vm.viewModelScope.cancel()
+        }
 }

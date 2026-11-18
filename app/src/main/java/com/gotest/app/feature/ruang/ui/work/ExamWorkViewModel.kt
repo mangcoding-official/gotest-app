@@ -97,6 +97,9 @@ class ExamWorkViewModel
         private var finishing = false
         private var finished = false
 
+        /** "Keluar ke Daftar Ujian" was chosen: letting go of the pinned screen is not leaving. */
+        private var exiting = false
+
         init {
             load()
         }
@@ -147,7 +150,7 @@ class ExamWorkViewModel
         private fun guarded(): Boolean {
             val state = _uiState.value
             return state.page?.isQuiz == false && !state.otherDevice && state.stopped == null && !state.timeUp &&
-                !finished
+                !finished && !exiting
         }
 
         /** Reports kept on the phone go to the server one by one (A2b-4). */
@@ -442,6 +445,9 @@ class ExamWorkViewModel
         /** "Keluar ke Daftar Ujian": the queue is sent once, then the screen closes even if that failed. */
         private fun exit() {
             _uiState.update { it.copy(showExit = false) }
+            // As on the web, leaving through Keluar is not a violation; the time keeps running.
+            exiting = true
+            reporter?.cancelLeave()
             viewModelScope.launch {
                 flush(wait = true)
                 _effects.send(ExamWorkEffect.Leave)

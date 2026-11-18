@@ -43,12 +43,14 @@ class PinRequestState(
 
     val isWaiting: Boolean get() = job?.isActive == true
 
+    /** Asks Android again on every tap (after "No thanks" too); only one wait runs at a time. */
     fun request(onPinned: () -> Unit) {
-        if (isWaiting) return
         if (pinning.isPinned) {
             onPinned()
             return
         }
+        pinning.ask()
+        if (isWaiting) return
         job =
             scope.launch {
                 val timer =
@@ -56,7 +58,7 @@ class PinRequestState(
                         delay(SLOW_MS)
                         slow = true
                     }
-                val pinned = pinning.request()
+                val pinned = pinning.awaitPinned()
                 timer.cancel()
                 if (pinned) {
                     slow = false
