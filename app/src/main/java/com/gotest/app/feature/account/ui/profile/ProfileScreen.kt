@@ -426,11 +426,12 @@ private fun AccountSection(
                     onClick = navigation.onOpenSessions,
                 )
             }
-            if (AppFeatures.NOTIFICATION_SETTINGS) {
+            // Notifikasi lives in Pengaturan: without Pengaturan the row has nowhere to go, so it is hidden too.
+            navigation.onOpenSettings?.takeIf { AppFeatures.NOTIFICATION_SETTINGS }?.let { onClick ->
                 AccountMenuRow(
                     label = stringResource(R.string.account_profile_notifications),
                     icon = GotestIcons.Linear.Notification,
-                    onClick = navigation.onOpenSettings ?: {},
+                    onClick = onClick,
                 )
             }
         }

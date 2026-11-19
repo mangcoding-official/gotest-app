@@ -7,6 +7,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.account.ui.changepassword.ChangePasswordRoute
 import com.gotest.app.feature.account.ui.components.AccountNotice
@@ -83,12 +84,19 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             ActiveSessionsRoute(onBack = navController::navigateUp)
         }
     }
-    composable<DeleteAccountDestination> {
-        AdultOnly(onChildAccount = navController::navigateUp) {
-            DeleteAccountRoute(
-                onBack = navController::navigateUp,
-                onDeleteSuccess = navController::navigateToOnboardingClearingAll,
-            )
+    composable<DeleteAccountDestination> { entry ->
+        val deleteAccount =
+            @Composable {
+                DeleteAccountRoute(
+                    onBack = navController::navigateUp,
+                    onDeleteSuccess = navController::navigateToOnboardingClearingAll,
+                )
+            }
+        // From the parental-approval page /akun answers 403, so AdultOnly is not asked (A2e review ulang 2).
+        if (entry.toRoute<DeleteAccountDestination>().awaitingConsent) {
+            deleteAccount()
+        } else {
+            AdultOnly(onChildAccount = navController::navigateUp) { deleteAccount() }
         }
     }
     if (AppFeatures.ACCOUNT_SETTINGS) settingsScreens(navController)
@@ -133,7 +141,7 @@ private fun NavGraphBuilder.profileScreen(navController: NavController) {
                     onEditProfile = { navController.navigate(EditProfileDestination) },
                     onChangePassword = { navController.navigate(ChangePasswordDestination) },
                     onOpenHelp = { navController.navigate(HelpDestination) },
-                    onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+                    onDeleteAccount = { navController.navigate(DeleteAccountDestination()) },
                     onOpenPhone = { navController.navigate(AccountPhoneDestination) },
                     onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
                     onOpenRuang = { code -> navController.navigate(RuangDestination(code)) },

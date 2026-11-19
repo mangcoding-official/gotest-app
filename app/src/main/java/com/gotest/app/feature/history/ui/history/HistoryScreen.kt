@@ -85,7 +85,7 @@ fun HistoryRoute(
                     snackbar.showSnackbar(resources.getString(R.string.history_export_failed))
                 }
 
-                HistoryEffect.MoreFailed -> {
+                HistoryEffect.ListFailed -> {
                     snackbar.showSnackbar(resources.getString(R.string.state_error_message))
                 }
             }

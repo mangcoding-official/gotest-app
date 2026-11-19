@@ -28,7 +28,10 @@ data class HistoryUiState(
     val loadFailed: Boolean = false,
     val stats: HistoryStats = HistoryStats(),
     val categories: List<HistoryCategory> = emptyList(),
-    /** What the list shows; [draft] is what the filters say until "Filter" is pressed, as on the web. */
+    /**
+     * The filters of the list on screen, changed only when a new list arrives; [draft] is what the
+     * filters say until "Filter" is pressed, as on the web.
+     */
     val applied: HistoryFilters = HistoryFilters(),
     val draft: HistoryFilters = HistoryFilters(),
     val results: List<HistoryResult> = emptyList(),
@@ -46,8 +49,8 @@ sealed interface HistoryEffect {
 
     data object ExportFailed : HistoryEffect
 
-    /** Showing more failed: the list stays as it was. */
-    data object MoreFailed : HistoryEffect
+    /** A new filter or showing more failed: the list and its filters stay as they were (A2e review ulang 1). */
+    data object ListFailed : HistoryEffect
 }
 
 /** Riwayat (web: History/Index): stats, filters applied with "Filter", 20 results a page, CSV export. */
@@ -74,14 +77,23 @@ class HistoryViewModel
             load()
         }
 
-        fun load() {
+        /** "Coba lagi": the filters of the list on screen again. */
+        fun load() = request(_uiState.value.applied)
+
+        fun onDraftChange(draft: HistoryFilters) = _uiState.update { it.copy(draft = draft) }
+
+        /** "Filter" or Enter in the search: the list starts again from the first page. */
+        fun applyFilters() = request(_uiState.value.draft)
+
+        private fun request(filters: HistoryFilters) {
             listJob?.cancel()
+            // With a list on screen, a failure keeps it and says so; without one, the page shows the error.
+            val onScreen = _uiState.value.let { !it.isLoading && !it.loadFailed }
             _uiState.update {
-                it.copy(isLoading = it.results.isEmpty() && !it.isFiltering, loadFailed = false, isLoadingMore = false)
+                it.copy(isLoading = !onScreen, isFiltering = onScreen, loadFailed = false, isLoadingMore = false)
             }
             listJob =
                 viewModelScope.launch {
-                    val filters = _uiState.value.applied
                     repository
                         .history(filters, page = 1)
                         .onSuccess { page ->
@@ -99,23 +111,10 @@ class HistoryViewModel
                                 )
                             }
                         }.onFailure {
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    isFiltering = false,
-                                    loadFailed = it.results.isEmpty(),
-                                )
-                            }
+                            _uiState.update { it.copy(isLoading = false, isFiltering = false, loadFailed = !onScreen) }
+                            if (onScreen) _effects.send(HistoryEffect.ListFailed)
                         }
                 }
-        }
-
-        fun onDraftChange(draft: HistoryFilters) = _uiState.update { it.copy(draft = draft) }
-
-        /** "Filter" or Enter in the search: the list starts again from the first page. */
-        fun applyFilters() {
-            _uiState.update { it.copy(applied = it.draft, isFiltering = true) }
-            load()
         }
 
         /** "Tampilkan lebih banyak": the next 20, added without duplicates (the web matches on id). */
@@ -140,7 +139,7 @@ class HistoryViewModel
                             }
                         }.onFailure {
                             _uiState.update { it.copy(isLoadingMore = false) }
-                            _effects.send(HistoryEffect.MoreFailed)
+                            _effects.send(HistoryEffect.ListFailed)
                         }
                 }
         }

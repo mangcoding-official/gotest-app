@@ -1,6 +1,7 @@
 package com.gotest.app.feature.account
 
 import androidx.lifecycle.viewModelScope
+import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.session.KeyValueStore
 import com.gotest.app.core.session.SessionStore
 import com.gotest.app.core.session.TokenCipher
@@ -24,20 +25,23 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
 /**
  * A2e review 1: an account waiting for, refused, or withdrawn parental approval gets 403 on GET /profil
- * but may still DELETE /profil, so the form shows without /profil.
+ * but may still DELETE /profil, so the form shows without /profil. Review ulang: without a connection the
+ * page asks to try again instead.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeleteAccountViewModelTest {
     private class NoProfilePages : ProfilePagesRepository {
         var deletedWith: String? = null
-        private val refused: Result<Nothing> get() = Result.failure(IOException("403"))
+        var pageReply: Result<ProfilePage> = Result.failure(ApiError(ApiError.FORBIDDEN, "", ApiError.GUARDIAN_CONSENT))
+        private val refused: Result<Nothing> get() = Result.failure(IOException())
 
-        override suspend fun page(): Result<ProfilePage> = refused
+        override suspend fun page(): Result<ProfilePage> = pageReply
 
         override suspend fun update(update: ProfileUpdate): Result<ProfileWriteReply> = refused
 
@@ -111,6 +115,7 @@ class DeleteAccountViewModelTest {
             backgroundScope.launch { vm.effects.collect { effects += it } }
             runCurrent()
             assertFalse(vm.uiState.value.isLoading)
+            assertFalse(vm.uiState.value.loadFailed)
             assertEquals(emptyList<String>(), vm.uiState.value.soleManagerOf)
 
             vm.onConfirmationChange("gotest.id")
@@ -119,6 +124,23 @@ class DeleteAccountViewModelTest {
             assertEquals("gotest.id", pages.deletedWith)
             assertEquals(listOf<DeleteAccountEffect>(DeleteAccountEffect.AccountDeleted), effects)
             assertNull(session.token)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun withoutConnectionThePageAsksToTryAgain() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val pages = NoProfilePages().apply { pageReply = Result.failure(IOException()) }
+            val vm = DeleteAccountViewModel(pages, SessionStore(MemoryStore(), PlainCipher))
+            runCurrent()
+            assertTrue(vm.uiState.value.loadFailed)
+
+            pages.pageReply = Result.success(ProfilePage(soleManagerOf = listOf("Bimbel Cerdas")))
+            vm.load()
+            runCurrent()
+            assertFalse(vm.uiState.value.loadFailed)
+            assertEquals(listOf("Bimbel Cerdas"), vm.uiState.value.soleManagerOf)
             vm.viewModelScope.cancel()
         }
 }

@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Bantuan (T-026 A2e). Texts are the web's: Pages/Support/*, Components/Student/Support/* (TopicCards, FaqAccordion,
      TicketPanel, ContactCards) and Support/data.ts, which the web keeps in its page code, not in the API. Tidied for
-     the app (A2e-7 = b): no "sidebar", typos fixed; the WhatsApp number stays the web's. -->
+     the app (A2e-7 = b): no "sidebar", typos fixed, "kamu" as on student pages, the app's tab names, capitals and
+     question marks (A2e review ulang 3); the WhatsApp number stays the web's. -->
 <resources>
     <string name="support_title">Bantuan &amp; Support</string>
     <string name="support_lede">Temukan jawaban, panduan, atau hubungi tim kami untuk mendapatkan bantuan.</string>
 
     <!-- Topic cards (data.ts) -->
     <string name="support_topic_account_title">Akun &amp; Profil</string>
-    <string name="support_topic_account_body">Kelola Akun, profile, dan keamanan</string>
+    <string name="support_topic_account_body">Kelola Akun, profil, dan keamanan</string>
     <string name="support_topic_practice_title">Paket Latihan &amp; Try Out</string>
-    <string name="support_topic_practice_body">mengerjakan, report latihan, dan Try Out</string>
+    <string name="support_topic_practice_body">Mengerjakan, report latihan, dan Try Out</string>
     <string name="support_topic_payment_title">Pembayaran &amp; Berlangganan</string>
     <string name="support_topic_payment_body">Upgrade akun, metode pembayaran, dan invoice</string>
 
@@ -18,12 +19,12 @@
     <string name="support_faq_title">FAQ</string>
     <string name="support_faq_lede">Pertanyaan yang sering diajukan</string>
     <string name="support_faq_1_q">Bagaimana cara melihat report latihan?</string>
-    <string name="support_faq_1_a">Untuk melihat report latihan, Anda dapat mengakses menu \"Paket Latihan\" di dashboard. Setelah itu, pilih latihan yang ingin Anda lihat laporannya. Di halaman tersebut, Anda akan menemukan ringkasan hasil, termasuk skor dan analisis performa Anda.</string>
-    <string name="support_faq_2_q">Bagaimana cara mengikuti Try Out</string>
-    <string name="support_faq_2_a">Buka menu \"Paket Try Out\", pilih paket yang tersedia, lalu tekan Mulai. Timer akan berjalan per subtes. Pastikan koneksi stabil sebelum memulai karena waktu tetap berjalan setelah Try Out dimulai.</string>
-    <string name="support_faq_3_q">Di mana saya bisa melihat hasil Try Out</string>
-    <string name="support_faq_3_a">Setelah Try Out dikumpulkan, hasil muncul di halaman hasil paket tersebut. Kamu juga bisa membuka menu Riwayat untuk melihat skor, durasi, dan analisis percobaan sebelumnya.</string>
-    <string name="support_faq_4_q">Bagaimana cara melihat pembahasan soal</string>
+    <string name="support_faq_1_a">Untuk melihat report latihan, kamu dapat membuka tab \"Paket\". Setelah itu, pilih latihan yang ingin kamu lihat laporannya. Di halaman tersebut, kamu akan menemukan ringkasan hasil, termasuk skor dan analisis performa kamu.</string>
+    <string name="support_faq_2_q">Bagaimana cara mengikuti Try Out?</string>
+    <string name="support_faq_2_a">Buka tab \"Paket\", pilih paket Try Out yang tersedia, lalu tekan Mulai. Timer akan berjalan per subtes. Pastikan koneksi stabil sebelum memulai karena waktu tetap berjalan setelah Try Out dimulai.</string>
+    <string name="support_faq_3_q">Di mana saya bisa melihat hasil Try Out?</string>
+    <string name="support_faq_3_a">Setelah Try Out dikumpulkan, hasil muncul di halaman hasil paket tersebut. Kamu juga bisa membuka tab Riwayat untuk melihat skor, durasi, dan analisis percobaan sebelumnya.</string>
+    <string name="support_faq_4_q">Bagaimana cara melihat pembahasan soal?</string>
     <string name="support_faq_4_a">Buka hasil latihan yang sudah selesai, lalu pilih Pembahasan. Setiap soal menampilkan jawaban kamu, kunci, dan penjelasan. Try Out hanya menampilkan skor, hasil per subtes, dan peringkat, tanpa kunci dan pembahasan.</string>
     <string name="support_faq_5_q">Bagaimana cara upgrade akun ke akun berbayar?</string>
     <string name="support_faq_5_a">Hubungi tim support melalui email atau WhatsApp untuk upgrade paket. Tim akan membantu metode pembayaran dan mengaktifkan langganan di akun kamu.</string>
@@ -56,7 +57,7 @@
     <string name="support_contact_whatsapp_title">WhatsApp</string>
     <string name="support_contact_whatsapp_value">+62 3142 2453</string>
     <string name="support_contact_hours_title">Jam Operasional</string>
-    <string name="support_contact_hours_value">Senin - jumat, 08:00 - 17:00 kecuali hari libur nasional</string>
+    <string name="support_contact_hours_value">Senin–Jumat, 08:00 - 17:00 kecuali hari libur nasional</string>
 
     <!-- Topic (Support/Topic.tsx, ArticleLayout.tsx) -->
     <string name="support_topic_sections">Topik</string>

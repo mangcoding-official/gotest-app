@@ -21,6 +21,8 @@ import javax.inject.Inject
 @Immutable
 data class DeleteAccountUiState(
     val isLoading: Boolean = true,
+    /** GET /profil did not reach the server; a server refusal still shows the form. */
+    val loadFailed: Boolean = false,
     /** Active Mitra where this account is the only manager (`soleManagerOf` of GET /profil). */
     val soleManagerOf: List<String> = emptyList(),
     val confirmation: String = "",
@@ -39,7 +41,8 @@ sealed interface DeleteAccountEffect {
  * "Hapus Akun" (web: Components/Student/Profile/DeleteAccountModal.tsx). The server checks the typed
  * "gotest.id"; once deleted every token is gone, so the app forgets its own. GET /profil only adds the
  * sole-manager paragraph: an account waiting for, refused, or withdrawn parental approval reaches only
- * DELETE /profil (API-K6 = B), so the form shows whether or not /profil answered (A2e review 1).
+ * DELETE /profil (API-K6 = B), so the form shows when the server refuses /profil (A2e review 1). Without a
+ * connection the page asks to try again, so the sole-manager paragraph is not lost silently (A2e review ulang).
  */
 @HiltViewModel
 class DeleteAccountViewModel
@@ -58,15 +61,17 @@ class DeleteAccountViewModel
             load()
         }
 
-        private fun load() {
+        fun load() {
+            _uiState.update { it.copy(isLoading = true, loadFailed = false) }
             viewModelScope.launch {
-                val soleManagerOf =
-                    profilePages
-                        .page()
-                        .getOrNull()
-                        ?.soleManagerOf
-                        .orEmpty()
-                _uiState.update { it.copy(isLoading = false, soleManagerOf = soleManagerOf) }
+                val page = profilePages.page()
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadFailed = page.exceptionOrNull()?.let { error -> error !is ApiError } ?: false,
+                        soleManagerOf = page.getOrNull()?.soleManagerOf.orEmpty(),
+                    )
+                }
             }
         }
 
