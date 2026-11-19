@@ -61,6 +61,7 @@ import com.gotest.app.feature.account.ui.components.ProfilePhotoSheet
 import com.gotest.app.feature.account.ui.components.ProfilePhotoSheetContent
 import com.gotest.app.feature.account.ui.components.rememberGalleryPhotoPicker
 import com.gotest.app.feature.account.ui.components.rememberTakePhotoAction
+import com.gotest.app.feature.ruang.domain.MitraMembership
 import kotlinx.coroutines.launch
 
 /** Navigation out of Profil, grouped so the screen signature stays readable. */
@@ -76,6 +77,10 @@ data class ProfileNavigation(
     val onDeleteAccount: () -> Unit,
     val onOpenPhone: () -> Unit,
     val onOpenSessions: () -> Unit,
+    /** A Mitra space by its code (T-026 A2b). */
+    val onOpenRuang: (String) -> Unit = {},
+    /** "Gabung ke kelas"; null for a child account (DEC-145). */
+    val onJoinWithCode: (() -> Unit)? = null,
 )
 
 @Composable
@@ -272,12 +277,47 @@ private fun ProfileContent(
             onUpgrade = navigation.onUpgrade,
             onOpenSubscription = navigation.onOpenSubscription,
         )
+        MitraSection(
+            spaces = state.spaces,
+            onOpenRuang = navigation.onOpenRuang,
+            onJoinWithCode = navigation.onJoinWithCode.takeUnless { profile.isChild },
+        )
         ProfileMenu(
             profile = profile,
             phoneSignIn = state.phoneSignIn,
             navigation = navigation,
             onSignOut = { onEvent(ProfileUiEvent.SignOutClick) },
         )
+    }
+}
+
+/**
+ * The web's account menu rows for Mitra: "Ruang {nama}" per space where the account is a student,
+ * then "Gabung ke kelas" (not for a child account). "Portal {nama}" comes with the portal (A4).
+ */
+@Composable
+private fun MitraSection(
+    spaces: List<MitraMembership>,
+    onOpenRuang: (String) -> Unit,
+    onJoinWithCode: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    if (spaces.isEmpty() && onJoinWithCode == null) return
+    AccountListCard(modifier = modifier) {
+        spaces.forEach { space ->
+            AccountMenuRow(
+                label = stringResource(R.string.ruang_menu_space, space.name),
+                icon = GotestIcons.Linear.Buildings,
+                onClick = { onOpenRuang(space.code) },
+            )
+        }
+        onJoinWithCode?.let {
+            AccountMenuRow(
+                label = stringResource(R.string.ruang_menu_join),
+                icon = GotestIcons.Linear.AddCircle,
+                onClick = it,
+            )
+        }
     }
 }
 

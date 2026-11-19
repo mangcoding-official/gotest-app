@@ -68,8 +68,13 @@ fun GotestApp(
                 navController.navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
             }
 
-            // Gabung ke kelas gets its screen in the next Android task; until then the link only opens the app.
-            is AppLink.JoinCode -> {}
+            is AppLink.JoinCode -> {
+                navController.navigate(JoinCodeDestination(link.code))
+            }
+
+            is AppLink.Invitation -> {
+                navController.navigate(InvitationDestination(link.token))
+            }
         }
         currentOnAppLinkConsume()
     }

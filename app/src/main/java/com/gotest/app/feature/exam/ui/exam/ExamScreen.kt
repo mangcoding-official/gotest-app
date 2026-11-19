@@ -58,6 +58,7 @@ import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.question.GotestQuestionOptions
 import com.gotest.app.core.designsystem.component.question.GotestStimulusCard
+import com.gotest.app.core.designsystem.component.richtext.RichText
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.PackageType
@@ -319,8 +320,9 @@ private fun QuestionBody(
                 imageModel = question.imageUrl,
             )
         }
-        Text(
-            text = question.prompt,
+        RichText(
+            content = question.prompt,
+            isHtml = true,
             style = MaterialTheme.typography.bodyLarge,
             color = GotestTheme.colors.textPrimary,
         )

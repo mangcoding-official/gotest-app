@@ -12,6 +12,7 @@ import com.gotest.app.feature.account.domain.ProfilePagesRepository
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
 import com.gotest.app.feature.account.ui.components.fieldMessage
+import com.gotest.app.feature.ruang.domain.RuangRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -49,6 +50,7 @@ class ProfileViewModel
         private val authRepository: AuthRepository,
         private val photoEditor: ProfilePhotoEditor,
         private val profilePages: ProfilePagesRepository,
+        private val ruang: RuangRepository,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
         private val signOut = MutableStateFlow(SignOutState())
@@ -58,15 +60,16 @@ class ProfileViewModel
                 // GET /profil: the number, whether numbers can be added, and the stats; the rest comes from /akun.
                 // Without /profil the page still shows, with Keluar (A2e review): those parts stay as /akun has them.
                 val page = flow { emit(profilePages.page().getOrNull()) }
-                userRepository
-                    .observeProfile()
-                    .combine(page) { profile, profilePage ->
-                        ProfileUiState.Success(
-                            profile = profilePage?.let(profile::withPage) ?: profile,
-                            phoneSignIn = profilePage?.phoneSignIn ?: false,
-                            daysRemaining = daysUntil(profile),
-                        )
-                    }.map<ProfileUiState.Success, ProfileUiState> { it }
+                // The Mitra portal is not in the app yet (A4), so only student spaces are listed.
+                val spaces = flow { emit(ruang.memberships().getOrDefault(emptyList()).filterNot { it.opensPortal }) }
+                combine(userRepository.observeProfile(), page, spaces) { profile, profilePage, studentSpaces ->
+                    ProfileUiState.Success(
+                        profile = profilePage?.let(profile::withPage) ?: profile,
+                        phoneSignIn = profilePage?.phoneSignIn ?: false,
+                        spaces = studentSpaces,
+                        daysRemaining = daysUntil(profile),
+                    )
+                }.map<ProfileUiState.Success, ProfileUiState> { it }
                     .onStart { emit(ProfileUiState.Loading) }
                     .catch { emit(ProfileUiState.Error) }
             }

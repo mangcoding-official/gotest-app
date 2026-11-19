@@ -191,3 +191,40 @@ import kotlinx.serialization.Serializable
 @Serializable data class GameDetailDestination(
     val gameCode: String,
 )
+
+// Ruang Mitra and Ujian for students (T-026 A2b, API module G).
+@Serializable data class RuangDestination(
+    val code: String,
+)
+
+@Serializable data class UjianListDestination(
+    val code: String,
+)
+
+@Serializable data class UjianDetailDestination(
+    val code: String,
+    val scheduleId: Long,
+)
+
+@Serializable data class UjianWorkDestination(
+    val code: String,
+    val attemptId: Long,
+)
+
+@Serializable data class UjianResultDestination(
+    val code: String,
+    val attemptId: Long,
+)
+
+/** "Gabung ke kelas": type a class or event code. */
+@Serializable data object JoinWithCodeDestination
+
+/** The page of one class or event code (web `/gabung/{code}`). */
+@Serializable data class JoinCodeDestination(
+    val code: String,
+)
+
+/** An invitation link (web `/undangan/{token}`). */
+@Serializable data class InvitationDestination(
+    val token: String,
+)

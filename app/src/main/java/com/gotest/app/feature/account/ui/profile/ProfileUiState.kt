@@ -6,6 +6,7 @@ import com.gotest.app.core.model.UserProfile
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.PhotoMessageHost
 import com.gotest.app.feature.account.ui.components.PhotoSheetUiState
+import com.gotest.app.feature.ruang.domain.MitraMembership
 
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
@@ -17,6 +18,8 @@ sealed interface ProfileUiState {
         val profile: UserProfile,
         /** Whether the server offers WhatsApp codes: "Tambah Nomor WhatsApp" needs it (the web's `phoneSignIn`). */
         val phoneSignIn: Boolean = false,
+        /** Mitra spaces of the account where it is a student: "Ruang {nama}" rows (T-026 A2b). */
+        val spaces: List<MitraMembership> = emptyList(),
         /** Days until the plan ends ("30 hari tersisa"); negative once it has ended. */
         val daysRemaining: Long,
         /** Null while the "Foto Profil" sheet is closed. */

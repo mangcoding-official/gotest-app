@@ -34,9 +34,11 @@ import com.gotest.app.navigation.DownloadAccountDataDestination
 import com.gotest.app.navigation.EditProfileDestination
 import com.gotest.app.navigation.HelpDestination
 import com.gotest.app.navigation.HelpTopicDestination
+import com.gotest.app.navigation.JoinWithCodeDestination
 import com.gotest.app.navigation.MainLevelDestination
 import com.gotest.app.navigation.PersonalDataDestination
 import com.gotest.app.navigation.ProfileDestination
+import com.gotest.app.navigation.RuangDestination
 import com.gotest.app.navigation.SettingsDestination
 import com.gotest.app.navigation.SubscriptionDestination
 import com.gotest.app.navigation.UpgradePlanDestination
@@ -109,6 +111,7 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
     }
 }
 
+/** Profil, the tab root, with its menu rows (Mitra spaces and "Gabung ke kelas" since T-026 A2b). */
 private fun NavGraphBuilder.profileScreen(navController: NavController) {
     composable<ProfileDestination> { entry ->
         ProfileRoute(
@@ -133,6 +136,8 @@ private fun NavGraphBuilder.profileScreen(navController: NavController) {
                     onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
                     onOpenPhone = { navController.navigate(AccountPhoneDestination) },
                     onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
+                    onOpenRuang = { code -> navController.navigate(RuangDestination(code)) },
+                    onJoinWithCode = { navController.navigate(JoinWithCodeDestination) },
                 ),
             notice = entry.accountNotice(),
             onNoticeConsume = entry::consumeAccountNotice,
