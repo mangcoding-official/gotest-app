@@ -18,11 +18,14 @@ import com.gotest.app.feature.ruang.domain.ExamViolationResult
 import com.gotest.app.feature.ruang.domain.ExamWorkPage
 import com.gotest.app.feature.ruang.domain.MitraRef
 import com.gotest.app.feature.ruang.domain.MyExamStatus
+import com.gotest.app.feature.ruang.domain.RoomTask
+import com.gotest.app.feature.ruang.domain.TaskStart
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import java.io.IOException
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,6 +54,40 @@ class FakeExamRepository
             )
         }
         private var attempt: FakeAttempt? = null
+
+        /** Rencana Belajar quizzes by attempt id; they run on the same engine (T-031). */
+        private val quizzes = mutableMapOf<Long, FakeAttempt>()
+
+        private fun find(attemptId: Long): FakeAttempt? = attempt?.takeIf { it.id == attemptId } ?: quizzes[attemptId]
+
+        /** The quiz attempt of a task, if the child started it. */
+        internal fun quizOf(taskId: Long): FakeAttempt? = quizzes.values.firstOrNull { it.quizTaskId == taskId }
+
+        /** `POST …/tugas/{task}/mulai` for a quiz: a new attempt with its token, or the running one without. */
+        internal fun startQuiz(taskId: Long): Result<TaskStart> {
+            val running = quizOf(taskId)?.apply { closeIfLate() }
+            return when {
+                running != null && running.submitted -> {
+                    refuse(UNPROCESSABLE, "submitted", "Kuis ini sudah kamu kumpulkan.")
+                }
+
+                running != null -> {
+                    Result.success(TaskStart(RoomTask.TYPE_QUIZ, running.id, null, STATUS_RUNNING))
+                }
+
+                else -> {
+                    val fresh =
+                        FakeAttempt(
+                            scheduleId = 0,
+                            deadline = Instant.now().plus(QUIZ_HOURS, ChronoUnit.HOURS),
+                            id = QUIZ_ATTEMPTS + taskId,
+                            quizTaskId = taskId,
+                        )
+                    quizzes[fresh.id] = fresh
+                    Result.success(TaskStart(RoomTask.TYPE_QUIZ, fresh.id, fresh.token, STATUS_RUNNING))
+                }
+            }
+        }
 
         override suspend fun schedules(code: String): Result<ExamListPage> =
             call {
@@ -103,27 +140,77 @@ class FakeExamRepository
             call {
                 val current = attempt?.takeIf { it.id == attemptId }?.apply { closeIfLate() } ?: return@call notFound()
                 if (current.submitted) return@call refuse(UNPROCESSABLE, "submitted", "Ujian ini sudah dikumpulkan.")
-                Result.success(
-                    ExamWorkPage(
-                        organization = MitraRef(SMP_NAME, FakeRuangRepository.SMP),
-                        title = paper.title,
-                        attempt =
-                            ExamAttemptInfo(
-                                id = current.id,
-                                status = STATUS_RUNNING,
-                                deadlineAt = current.deadline.toString(),
-                                serverNow = Instant.now().toString(),
-                                violations = current.violations,
-                                violationLimit = VIOLATION_LIMIT,
-                                deviceToken = deviceToken?.takeIf { it == current.token },
-                                lastClientSeq = current.lastSeq,
-                            ),
-                        blocks = paper.blocks,
-                        items = paper.items,
-                        answers = current.answers.mapKeys { it.key.toString() },
-                    ),
-                )
+                Result.success(paperOf(current, deviceToken, paper.title))
             }
+
+        override suspend fun quizWork(
+            code: String,
+            attemptId: Long,
+            deviceToken: String?,
+        ): Result<ExamWorkPage> =
+            call {
+                val current = quizzes[attemptId]?.apply { closeIfLate() } ?: return@call notFound()
+                if (current.submitted) return@call refuse(UNPROCESSABLE, "submitted", "Kuis ini sudah dikumpulkan.")
+                Result.success(paperOf(current, deviceToken, FakeStudyPlan.QUIZ_TITLE))
+            }
+
+        override suspend fun quizResult(
+            code: String,
+            attemptId: Long,
+        ): Result<ExamResultPage> =
+            call {
+                val current = quizzes[attemptId]?.apply { closeIfLate() }
+                when {
+                    current != null && !current.submitted -> {
+                        refuse(CONFLICT, "in_progress", "Kuis ini belum dikumpulkan.")
+                    }
+
+                    current != null || attemptId == FakeStudyPlan.DONE_QUIZ_ATTEMPT -> {
+                        Result.success(
+                            schedules.quizResult(json, context).copy(
+                                title =
+                                    if (current !=
+                                        null
+                                    ) {
+                                        FakeStudyPlan.QUIZ_TITLE
+                                    } else {
+                                        FakeStudyPlan.DONE_QUIZ_TITLE
+                                    },
+                                submittedAt = current?.submittedAt?.toString() ?: "2026-11-12T03:20:00+00:00",
+                                submitReason = current?.reason ?: "manual",
+                            ),
+                        )
+                    }
+
+                    else -> {
+                        notFound()
+                    }
+                }
+            }
+
+        private fun paperOf(
+            current: FakeAttempt,
+            deviceToken: String?,
+            title: String,
+        ) = ExamWorkPage(
+            organization = MitraRef(SMP_NAME, FakeRuangRepository.SMP),
+            title = title,
+            mode = if (current.quizTaskId != null) ExamWorkPage.MODE_QUIZ else ExamWorkPage.MODE_EXAM,
+            attempt =
+                ExamAttemptInfo(
+                    id = current.id,
+                    status = STATUS_RUNNING,
+                    deadlineAt = current.deadline.toString(),
+                    serverNow = Instant.now().toString(),
+                    violations = current.violations,
+                    violationLimit = if (current.quizTaskId != null) 0 else VIOLATION_LIMIT,
+                    deviceToken = deviceToken?.takeIf { it == current.token },
+                    lastClientSeq = current.lastSeq,
+                ),
+            blocks = paper.blocks,
+            items = paper.items,
+            answers = current.answers.mapKeys { it.key.toString() },
+        )
 
         override suspend fun saveAnswers(
             attemptId: Long,
@@ -194,7 +281,7 @@ class FakeExamRepository
 
         override suspend fun takeOver(attemptId: Long): Result<String> =
             call {
-                val current = attempt?.takeIf { it.id == attemptId && !it.submitted } ?: return@call notFound()
+                val current = find(attemptId)?.takeIf { !it.submitted } ?: return@call notFound()
                 current.token = "fake-device-${System.nanoTime()}"
                 Result.success(current.token)
             }
@@ -204,7 +291,7 @@ class FakeExamRepository
             deviceToken: String?,
         ): Result<Unit> =
             call {
-                val current = attempt?.takeIf { it.id == attemptId } ?: return@call notFound()
+                val current = find(attemptId) ?: return@call notFound()
                 if (!current.submitted) {
                     if (deviceToken != current.token) return@call otherDevice()
                     current.submit(if (Instant.now().isAfter(current.deadline)) "time_up" else "manual")
@@ -246,9 +333,10 @@ class FakeExamRepository
             attemptId: Long,
             deviceToken: String?,
         ): Result<FakeAttempt> {
-            val current = attempt?.takeIf { it.id == attemptId }?.apply { closeIfLate() } ?: return notFound()
+            val current = find(attemptId)?.apply { closeIfLate() } ?: return notFound()
+            val noun = if (current.quizTaskId != null) "Kuis" else "Ujian"
             return when {
-                current.submitted -> refuse(UNPROCESSABLE, "submitted", "Ujian ini sudah dikumpulkan.")
+                current.submitted -> refuse(UNPROCESSABLE, "submitted", "$noun ini sudah dikumpulkan.")
                 deviceToken != current.token -> otherDevice()
                 else -> Result.success(current)
             }
@@ -281,6 +369,8 @@ class FakeExamRepository
             private const val UNPROCESSABLE = 422
             private const val CONFLICT = 409
             private const val NOT_FOUND = 404
+            private const val QUIZ_HOURS = 24L
+            private const val QUIZ_ATTEMPTS = 100L
 
             fun <T> refuse(
                 status: Int,
@@ -292,12 +382,13 @@ class FakeExamRepository
         }
     }
 
-/** The one attempt the fake keeps (attempt 9 of "PTS Matematika Kelas 8"). */
+/** The Ujian attempt the fake keeps (attempt 9 of "PTS Matematika Kelas 8"), or a Rencana Belajar quiz. */
 internal class FakeAttempt(
     val scheduleId: Long,
     var deadline: Instant,
+    val id: Long = 9,
+    val quizTaskId: Long? = null,
 ) {
-    val id: Long = 9
     var token: String = "fake-device-start"
     var violations: Int = 0
     var lastSeq: Long = 0

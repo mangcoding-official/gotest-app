@@ -36,20 +36,22 @@ fun WorkDialogs(
     uiState: ExamWorkUiState,
     onEvent: (ExamWorkEvent) -> Unit,
 ) {
+    // A Rencana Belajar quiz says "Kuis" and goes back to Tugas hari ini (Work.tsx `noun`, T-031).
+    val quiz = uiState.page?.isQuiz == true
     when {
         uiState.otherDevice && uiState.page != null -> {
             OtherDeviceDialog(uiState = uiState, onEvent = onEvent)
         }
 
         uiState.submit != null -> {
-            SubmitDialog(state = uiState.submit, onEvent = onEvent)
+            SubmitDialog(state = uiState.submit, quiz = quiz, onEvent = onEvent)
         }
 
         uiState.showExit -> {
             GotestDialog(
-                title = stringResource(R.string.work_exit_title),
-                message = stringResource(R.string.work_exit_message),
-                confirmText = stringResource(R.string.work_exit_confirm),
+                title = stringResource(if (quiz) R.string.quiz_exit_title else R.string.work_exit_title),
+                message = stringResource(if (quiz) R.string.quiz_exit_message else R.string.work_exit_message),
+                confirmText = stringResource(if (quiz) R.string.quiz_exit_confirm else R.string.work_exit_confirm),
                 onConfirm = { onEvent(ExamWorkEvent.ConfirmExit) },
                 onDismissRequest = { onEvent(ExamWorkEvent.DismissExit) },
                 dismissText = stringResource(R.string.work_keep_working),
@@ -74,8 +76,12 @@ private fun OtherDeviceDialog(
     uiState: ExamWorkUiState,
     onEvent: (ExamWorkEvent) -> Unit,
 ) {
-    WorkDialog(title = stringResource(R.string.work_other_device_title), onDismissRequest = {}) {
-        Body(stringResource(R.string.work_other_device_message))
+    val quiz = uiState.page?.isQuiz == true
+    WorkDialog(
+        title = stringResource(if (quiz) R.string.quiz_other_device_title else R.string.work_other_device_title),
+        onDismissRequest = {},
+    ) {
+        Body(stringResource(if (quiz) R.string.quiz_other_device_message else R.string.work_other_device_message))
         val error =
             uiState.takeOverMessage ?: stringResource(R.string.work_take_over_failed).takeIf { uiState.takeOverFailed }
         error?.let { NoticeBox(text = it, tone = NoticeTone.Danger) }
@@ -86,7 +92,7 @@ private fun OtherDeviceDialog(
             enabled = !uiState.isTakingOver && !uiState.timeUp,
         )
         GotestButton(
-            text = stringResource(R.string.work_back_to_list),
+            text = stringResource(if (quiz) R.string.quiz_back else R.string.work_back_to_list),
             onClick = { onEvent(ExamWorkEvent.ConfirmExit) },
             modifier = Modifier.fillMaxWidth(),
             variant = GotestButtonVariant.Plain,
@@ -97,10 +103,11 @@ private fun OtherDeviceDialog(
 @Composable
 private fun SubmitDialog(
     state: SubmitDialogState,
+    quiz: Boolean,
     onEvent: (ExamWorkEvent) -> Unit,
 ) {
     WorkDialog(
-        title = stringResource(R.string.work_submit_title),
+        title = stringResource(if (quiz) R.string.quiz_submit_title else R.string.work_submit_title),
         onDismissRequest = { if (!state.isSubmitting) onEvent(ExamWorkEvent.DismissSubmit) },
     ) {
         if (state.unanswered != null) {
@@ -108,11 +115,12 @@ private fun SubmitDialog(
         } else {
             Body(stringResource(R.string.work_submit_all_answered))
         }
-        Body(stringResource(R.string.work_submit_note))
+        Body(stringResource(if (quiz) R.string.quiz_submit_note else R.string.work_submit_note))
         val error =
             state.message
                 ?: stringResource(R.string.work_submit_unsent).takeIf { state.unsent }
-                ?: stringResource(R.string.work_submit_failed).takeIf { state.failed }
+                ?: stringResource(if (quiz) R.string.quiz_submit_failed else R.string.work_submit_failed)
+                    .takeIf { state.failed }
         error?.let { NoticeBox(text = it, tone = NoticeTone.Danger) }
         Row(horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
             GotestButton(

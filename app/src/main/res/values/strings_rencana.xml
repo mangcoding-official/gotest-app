@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rencana Belajar for the child (T-026, T-031). Texts are the web's: Pages/Ruang/Plan.tsx, Pages/Ruang/Show.tsx
+     (Tugas hari ini, Perkembanganmu), Components/StudyPlan/RoomTasks.tsx, PlanProgressView.tsx, lib/studyPlan.ts,
+     and the quiz words of Pages/Ruang/Exams/Work.tsx and Result.tsx. -->
+<resources>
+    <!-- Ruang/Show: Tugas hari ini and Perkembanganmu -->
+    <string name="plan_today_title">Tugas hari ini</string>
+    <string name="plan_today_empty">Tidak ada tugas untuk hari ini. Tugas berikutnya ada di rencanamu.</string>
+    <string name="plan_open">Lihat rencana</string>
+    <string name="plan_progress_title">Perkembanganmu</string>
+    <string name="plan_topics">Topik</string>
+
+    <!-- Ruang/Plan -->
+    <string name="plan_title">Rencana Belajar</string>
+    <string name="plan_back">Ruang %1$s</string>
+    <string name="plan_lede">Tugas setiap minggu sampai hari ujianmu. Tugas tercentang sendiri saat selesai.</string>
+    <string name="plan_lede_former">Kamu sudah tidak terdaftar di %1$s. Rencana dan nilai yang sudah ada tetap bisa dilihat.</string>
+    <string name="plan_choose">Pilih rencana</string>
+    <string name="plan_choice_primary">%1$s (rencana utama)</string>
+    <string name="plan_empty">Belum ada rencana belajar untukmu di Mitra ini.</string>
+    <string name="plan_primary">Rencana utama</string>
+    <string name="plan_exam_line">%1$sUjian %2$s · %3$s</string>
+    <string name="plan_exam_target">%1$s ·\u0020</string>
+    <string name="plan_week_of">Minggu %1$d dari %2$d</string>
+    <string name="plan_weeks">%1$d minggu</string>
+    <string name="plan_today_from_primary">Tugas hari ini diambil dari rencana utamamu.</string>
+    <string name="plan_history_title">Riwayat minggu ini</string>
+    <string name="plan_topics_empty">Belum ada topik yang dikerjakan.</string>
+    <string name="plan_history_empty">Belum ada tugas minggu ini.</string>
+    <string name="plan_week">Minggu %1$d</string>
+    <string name="plan_week_range">%1$s sampai %2$s</string>
+    <string name="plan_week_current">Minggu ini</string>
+    <string name="plan_week_empty">Belum ada tugas.</string>
+    <string name="plan_week_history_range">Minggu %1$d · %2$s sampai %3$s</string>
+
+    <!-- lib/studyPlan.ts: plan states, task types and statuses -->
+    <string name="plan_state_upcoming">Akan datang</string>
+    <string name="plan_state_running">Berjalan</string>
+    <string name="plan_state_finished">Selesai</string>
+    <string name="plan_state_archived">Diarsipkan</string>
+    <string name="task_type_quiz">Kuis</string>
+    <string name="task_type_external">Tugas luar</string>
+    <string name="task_type_practice">Latihan Gotest</string>
+    <string name="task_status_not_started">Belum mulai</string>
+    <string name="task_status_in_progress">Sedang dikerjakan</string>
+    <string name="task_status_done">Selesai</string>
+    <string name="task_status_late">Terlambat</string>
+    <string name="task_below_target">Di bawah target</string>
+
+    <!-- RoomTasks.tsx: a task card -->
+    <string name="task_questions">%1$d soal</string>
+    <string name="task_min_score">nilai minimal %1$s</string>
+    <string name="task_due">tenggat %1$s</string>
+    <string name="task_recorded_child">dicatat kamu</string>
+    <string name="task_recorded_staff">dicatat %1$s</string>
+    <string name="task_staff_parent">orang tua</string>
+    <string name="task_staff_teacher">guru</string>
+    <string name="task_result_with_by">%1$s · %2$s</string>
+    <string name="task_score">Nilai %1$s</string>
+    <string name="task_done_without_score">Selesai tanpa nilai</string>
+    <string name="task_start">Mulai</string>
+    <string name="task_continue">Lanjutkan</string>
+    <string name="task_opening">Membuka...</string>
+    <string name="task_result">Lihat hasil</string>
+    <string name="task_record">Catat selesai</string>
+    <string name="task_record_edit">Ubah catatan</string>
+    <string name="task_failed">Aksi belum berhasil. Coba lagi.</string>
+
+    <!-- RoomTasks.tsx: RecordModal -->
+    <string name="record_title">Catat tugas selesai</string>
+    <string name="record_title_edit">Ubah catatan tugas</string>
+    <string name="record_mode_score">Nilai 0–100</string>
+    <string name="record_mode_count">Benar … dari …</string>
+    <string name="record_mode_none">Tanpa nilai</string>
+    <string name="record_score">Nilaimu</string>
+    <string name="record_score_hint">Contoh: 85</string>
+    <string name="record_correct">Benar</string>
+    <string name="record_of">dari</string>
+    <string name="record_correct_label">Jumlah benar</string>
+    <string name="record_total_label">Jumlah soal</string>
+    <string name="record_none_text">Tugas ditandai selesai tanpa nilai, misalnya setelah menonton video.</string>
+    <string name="record_note">Catatan (boleh dikosongkan)</string>
+    <string name="record_remove">Hapus catatan</string>
+    <string name="record_removing">Menghapus...</string>
+    <string name="record_cancel">Batal</string>
+    <string name="record_save">Simpan</string>
+    <string name="record_saving">Menyimpan...</string>
+
+    <!-- PlanProgressView.tsx -->
+    <string name="progress_completion">Rencana selesai</string>
+    <string name="progress_completion_none">Belum ada tugas yang jatuh tempo.</string>
+    <string name="progress_tasks_of">%1$d dari %2$d tugas</string>
+    <string name="progress_average">Nilai rata-rata</string>
+    <string name="progress_average_none">Belum ada tugas bernilai.</string>
+    <string name="progress_streak">Hari aktif berturut-turut</string>
+    <string name="progress_days">hari</string>
+    <string name="progress_percent">%1$d%%</string>
+    <string name="progress_none">—</string>
+    <string name="progress_topic_counts">%1$d tugas · %2$d soal</string>
+    <string name="progress_topic_average">Rata-rata %1$s</string>
+    <string name="progress_done_at">selesai %1$s</string>
+    <string name="progress_deleted">Dihapus dari rencana</string>
+    <string name="week_on_track">Sesuai rencana</string>
+    <string name="week_slipping">Agak tertinggal</string>
+    <string name="week_behind">Tertinggal</string>
+    <string name="week_nothing_due">Belum ada tugas yang jatuh tempo minggu ini</string>
+    <string name="week_upcoming">Rencana belum mulai</string>
+    <string name="week_starts">Rencana mulai %1$s</string>
+    <string name="topic_red">Perlu latihan</string>
+    <string name="topic_yellow">Cukup</string>
+    <string name="topic_green">Baik</string>
+    <string name="topic_gray">Data belum cukup</string>
+
+    <!-- Ruang/Exams/Work.tsx and Result.tsx with mode quiz -->
+    <string name="quiz_kicker">Kuis</string>
+    <string name="quiz_time_up">Batas 24 jam sudah lewat. Jawaban terakhir sedang dikirim, lalu kuismu dikumpulkan.</string>
+    <string name="quiz_stopped">Kuis ini tidak bisa dilanjutkan.</string>
+    <string name="quiz_other_device_title">Kuis ini sedang dibuka di perangkat lain</string>
+    <string name="quiz_other_device_message">Kamu bisa melanjutkan di perangkat ini. Perangkat lain tidak bisa dipakai lagi untuk kuis ini. Jawaban yang belum terkirim dari perangkat lain tidak ikut tersimpan.</string>
+    <string name="quiz_back">Kembali ke Tugas hari ini</string>
+    <string name="quiz_submit_title">Kumpulkan Kuis?</string>
+    <string name="quiz_submit_note">Setelah dikumpulkan, jawaban tidak bisa diubah lagi. Nilai, kunci, dan pembahasan langsung tampil.</string>
+    <string name="quiz_submit_failed">Kuis belum bisa dikumpulkan. Coba lagi.</string>
+    <string name="quiz_exit_title">Keluar dari Kuis?</string>
+    <string name="quiz_exit_message">Jawaban yang sudah terkirim tersimpan, dan kamu bisa melanjutkan dari Tugas hari ini. Kuis dikumpulkan otomatis 24 jam setelah dimulai.</string>
+    <string name="quiz_exit_confirm">Keluar ke Tugas hari ini</string>
+    <string name="quiz_result_kicker">Kuis · %1$s</string>
+    <string name="quiz_result_time_up">Dikumpulkan otomatis %1$s karena sudah 24 jam sejak dimulai.</string>
+    <string name="quiz_result_key_title">Jawaban, kunci, dan pembahasan</string>
+    <string name="quiz_result_explanation">Pembahasan</string>
+</resources>

@@ -3,6 +3,7 @@ package com.gotest.app.feature.ruang.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.gotest.app.feature.auth.navigation.navigateToOnboardingClearingAll
 import com.gotest.app.feature.ruang.domain.JoinedMitra
 import com.gotest.app.feature.ruang.ui.detail.ExamDetailRoute
@@ -11,8 +12,10 @@ import com.gotest.app.feature.ruang.ui.exams.ExamListRoute
 import com.gotest.app.feature.ruang.ui.join.InvitationRoute
 import com.gotest.app.feature.ruang.ui.join.JoinCodeRoute
 import com.gotest.app.feature.ruang.ui.join.JoinWithCodeRoute
+import com.gotest.app.feature.ruang.ui.plan.PlanRoute
 import com.gotest.app.feature.ruang.ui.result.ExamResultRoute
 import com.gotest.app.feature.ruang.ui.space.RuangRoute
+import com.gotest.app.feature.ruang.ui.tasks.TaskNavigation
 import com.gotest.app.feature.ruang.ui.work.ExamWorkRoute
 import com.gotest.app.navigation.HomeDestination
 import com.gotest.app.navigation.InvitationDestination
@@ -20,6 +23,7 @@ import com.gotest.app.navigation.JoinCodeDestination
 import com.gotest.app.navigation.JoinWithCodeDestination
 import com.gotest.app.navigation.LoginDestination
 import com.gotest.app.navigation.RegisterDestination
+import com.gotest.app.navigation.RencanaDestination
 import com.gotest.app.navigation.RuangDestination
 import com.gotest.app.navigation.UjianDetailDestination
 import com.gotest.app.navigation.UjianListDestination
@@ -32,6 +36,14 @@ fun NavGraphBuilder.ruangScreens(navController: NavController) {
         RuangRoute(
             onBack = navController::navigateUp,
             onOpenExams = { code -> navController.navigate(UjianListDestination(code)) },
+            onOpenPlan = { code -> navController.navigate(RencanaDestination(code)) },
+            taskNavigation = navController.taskNavigation(),
+        )
+    }
+    composable<RencanaDestination> {
+        PlanRoute(
+            onBack = navController::navigateUp,
+            taskNavigation = navController.taskNavigation(),
         )
     }
     composable<UjianListDestination> {
@@ -60,20 +72,35 @@ fun NavGraphBuilder.ruangScreens(navController: NavController) {
             onOpenResult = { code, attemptId -> navController.navigate(UjianResultDestination(code, attemptId)) },
         )
     }
-    composable<UjianWorkDestination> {
+    composable<UjianWorkDestination> { entry ->
+        val quiz = entry.toRoute<UjianWorkDestination>().quiz
         ExamWorkRoute(
             onOpenResult = { code, attemptId ->
-                navController.navigate(UjianResultDestination(code, attemptId)) {
+                navController.navigate(UjianResultDestination(code, attemptId, quiz)) {
                     popUpTo<UjianWorkDestination> { inclusive = true }
                 }
             },
-            onLeave = navController::navigateUp,
+            // A quiz goes back to Tugas hari ini in the Mitra space, as on the web (Work.tsx leaveUrl).
+            onLeave = {
+                if (!quiz ||
+                    !navController.popBackStack<RuangDestination>(inclusive = false)
+                ) {
+                    navController.navigateUp()
+                }
+            },
         )
     }
-    composable<UjianResultDestination> {
+    composable<UjianResultDestination> { entry ->
+        val quiz = entry.toRoute<UjianResultDestination>().quiz
         ExamResultRoute(
             onBackToList = { code ->
-                if (!navController.popBackStack<UjianListDestination>(inclusive = false)) {
+                if (quiz) {
+                    if (!navController.popBackStack<RuangDestination>(inclusive = false)) {
+                        navController.navigate(RuangDestination(code)) {
+                            popUpTo<UjianResultDestination> { inclusive = true }
+                        }
+                    }
+                } else if (!navController.popBackStack<UjianListDestination>(inclusive = false)) {
                     navController.navigate(UjianListDestination(code)) {
                         popUpTo<UjianResultDestination> { inclusive = true }
                     }
@@ -128,5 +155,12 @@ private fun NavController.openJoined(joined: JoinedMitra) {
         navigate(HomeDestination) { launchSingleTop = true }
     }
 }
+
+/** Where a Rencana Belajar task leads (T-031 "`target` di aksi tugas"). */
+private fun NavController.taskNavigation() =
+    TaskNavigation(
+        onOpenQuiz = { code, attemptId -> navigate(UjianWorkDestination(code, attemptId, quiz = true)) },
+        onOpenQuizResult = { code, attemptId -> navigate(UjianResultDestination(code, attemptId, quiz = true)) },
+    )
 
 private const val STUDENT = "siswa"

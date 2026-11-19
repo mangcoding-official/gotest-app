@@ -18,12 +18,15 @@ import javax.inject.Singleton
  * SMP 1 Bantargedung and was a student of Bimbel Cerdas. Codes to try in "Gabung ke kelas":
  * `KELAS8A` (class code, ready), `PENUH01` (full), `EVENT01` (event code, ready); anything else is not
  * found. Invitation tokens: `undangan-siap`, `undangan-kode` (needs the email code `123456`),
- * `undangan-terpakai`. Texts are the server's (JoinCodePages, InvitationPages).
+ * `undangan-terpakai`. Texts are the server's (JoinCodePages, InvitationPages). Tugas hari ini and the
+ * plan progress come from [FakeStudyPlanRepository].
  */
 @Singleton
 class FakeRuangRepository
     @Inject
-    constructor() : RuangRepository {
+    constructor(
+        private val plans: FakeStudyPlanRepository,
+    ) : RuangRepository {
         private val members =
             mutableListOf(
                 MitraMembership(SMP, "SMP 1 Bantargedung", "sekolah", "siswa", former = false, hasExams = true),
@@ -49,7 +52,14 @@ class FakeRuangRepository
         override suspend fun ruang(code: String): Result<RuangPage> {
             simulateLatency()
             val member = members.firstOrNull { it.code == code } ?: return notFound()
-            return Result.success(RuangPage(MitraRef(member.name, member.code), member.former))
+            return Result.success(
+                RuangPage(
+                    organization = MitraRef(member.name, member.code),
+                    former = member.former,
+                    today = plans.today(code),
+                    planProgress = plans.progressOf(code),
+                ),
+            )
         }
 
         override suspend fun lookupCode(typed: String): Result<String> {

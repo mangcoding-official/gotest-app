@@ -26,7 +26,7 @@ data class ExamResultUiState(
     val errorMessage: String? = null,
 )
 
-/** The result of one Ujian attempt (web: Ruang/Exams/Result). */
+/** The result of one Ujian attempt or Rencana Belajar quiz (web: Ruang/Exams/Result). */
 @HiltViewModel
 class ExamResultViewModel
     @Inject
@@ -38,6 +38,9 @@ class ExamResultViewModel
         private val route = savedStateHandle.toRoute<UjianResultDestination>()
         val code: String = route.code
 
+        /** A Rencana Belajar quiz result (T-031): grade, key, and pembahasan, then back to Tugas hari ini. */
+        val quiz: Boolean = route.quiz
+
         private val _uiState = MutableStateFlow(ExamResultUiState())
         val uiState: StateFlow<ExamResultUiState> = _uiState.asStateFlow()
 
@@ -48,8 +51,7 @@ class ExamResultViewModel
         fun load() {
             _uiState.update { ExamResultUiState() }
             viewModelScope.launch {
-                exams
-                    .result(code, route.attemptId)
+                (if (quiz) exams.quizResult(code, route.attemptId) else exams.result(code, route.attemptId))
                     .onSuccess { page ->
                         // A result means the attempt is over, also when it ended away from the work screen
                         // (time up while the app was closed): nothing of it stays on the phone.

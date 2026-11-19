@@ -123,4 +123,21 @@ internal class ScriptedExamRepository : ExamRepository {
         code: String,
         attemptId: Long,
     ): Result<ExamResultPage> = offline
+
+    /** Which address the paper was read from: the Ujian one or the quiz one (T-031). */
+    var quizWorkCalls = 0
+
+    override suspend fun quizWork(
+        code: String,
+        attemptId: Long,
+        deviceToken: String?,
+    ): Result<ExamWorkPage> {
+        quizWorkCalls++
+        return workPage
+    }
+
+    override suspend fun quizResult(
+        code: String,
+        attemptId: Long,
+    ): Result<ExamResultPage> = offline
 }

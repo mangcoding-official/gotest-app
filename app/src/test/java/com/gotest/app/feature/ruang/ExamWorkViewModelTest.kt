@@ -82,6 +82,28 @@ class ExamWorkViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
+    fun aQuizIsReadFromItsOwnAddressAndNeedsNoPinning() =
+        runTest {
+            repository.workPage = Result.success(page(secondsLeft = 3_600).copy(mode = ExamWorkPage.MODE_QUIZ))
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            local.saveDeviceToken(9, "token")
+            val vm =
+                ExamWorkViewModel(
+                    SavedStateHandle(mapOf("code" to "SMP1BTG", "attemptId" to 9L, "quiz" to true)),
+                    repository,
+                    local,
+                    ElapsedClock { testScheduler.currentTime },
+                )
+            runCurrent()
+            assertEquals(1, repository.quizWorkCalls)
+            // T-031: a quiz has no pinning, no violations, and no countdown on screen.
+            assertFalse(vm.uiState.value.awaitingPin)
+            vm.onEvent(ExamWorkEvent.Answer(55, ExamAnswer.Single("b")))
+            assertEquals(ExamAnswer.Single("b"), vm.uiState.value.answers[55])
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
     fun answersAreRefusedUntilTheScreenIsPinned() =
         runTest {
             repository.workPage = Result.success(page(secondsLeft = 3_600))

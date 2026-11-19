@@ -60,9 +60,13 @@ fun WorkBanners(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
-        if (uiState.timeUp) NoticeBox(text = stringResource(R.string.work_time_up))
+        val quiz = uiState.page?.isQuiz == true
+        if (uiState.timeUp) {
+            NoticeBox(text = stringResource(if (quiz) R.string.quiz_time_up else R.string.work_time_up))
+        }
         uiState.stopped?.let {
-            NoticeBox(text = it.ifBlank { stringResource(R.string.work_stopped) }, tone = NoticeTone.Danger)
+            val fallback = stringResource(if (quiz) R.string.quiz_stopped else R.string.work_stopped)
+            NoticeBox(text = it.ifBlank { fallback }, tone = NoticeTone.Danger)
         }
         if (uiState.connectionLost && uiState.unsentItemIds.isNotEmpty()) {
             val numbers = uiState.unsentItemIds.mapNotNull { uiState.items[it]?.item?.number }.sorted()

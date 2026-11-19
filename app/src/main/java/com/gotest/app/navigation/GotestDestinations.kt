@@ -212,14 +212,22 @@ import kotlinx.serialization.Serializable
     val scheduleId: Long,
 )
 
+/** [quiz]: a Rencana Belajar quiz, which runs on the Ujian engine at its own address (T-031). */
 @Serializable data class UjianWorkDestination(
     val code: String,
     val attemptId: Long,
+    val quiz: Boolean = false,
 )
 
 @Serializable data class UjianResultDestination(
     val code: String,
     val attemptId: Long,
+    val quiz: Boolean = false,
+)
+
+/** The child's Rencana Belajar in a Mitra space (web: Ruang/Plan, T-031). */
+@Serializable data class RencanaDestination(
+    val code: String,
 )
 
 /** "Gabung ke kelas": type a class or event code. */
