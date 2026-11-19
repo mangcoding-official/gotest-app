@@ -62,6 +62,7 @@ fun ProfilePhotoSheet(
     onSave: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    onDelete: (() -> Unit)? = null,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -73,6 +74,7 @@ fun ProfilePhotoSheet(
                 onTakePhoto = onTakePhoto,
                 onPickFromGallery = onPickFromGallery,
                 onSave = onSave,
+                onDelete = onDelete,
                 onClose = {
                     scope
                         .launch { sheetState.hide() }
@@ -94,6 +96,7 @@ fun ProfilePhotoSheetContent(
     onSave: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onDelete: (() -> Unit)? = null,
 ) {
     val spacing = GotestTheme.spacing
     val colors = GotestTheme.colors
@@ -136,6 +139,17 @@ fun ProfilePhotoSheetContent(
             color = colors.textSecondary,
             textAlign = TextAlign.Center,
         )
+        // Web: "Hapus foto" only while the account has a photo.
+        if (onDelete != null && currentPhoto != null) {
+            GotestButton(
+                text = stringResource(R.string.account_photo_delete),
+                onClick = onDelete,
+                modifier = Modifier.fillMaxWidth(),
+                variant = GotestButtonVariant.Text,
+                enabled = !state.isSaving,
+                contentColor = colors.statusDanger,
+            )
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
             GotestButton(
                 text = stringResource(R.string.account_photo_close),

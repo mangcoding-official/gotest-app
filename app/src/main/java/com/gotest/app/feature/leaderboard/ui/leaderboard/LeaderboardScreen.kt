@@ -1,387 +1,462 @@
 package com.gotest.app.feature.leaderboard.ui.leaderboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.designsystem.component.GotestButton
+import com.gotest.app.core.designsystem.component.GotestButtonSize
+import com.gotest.app.core.designsystem.component.GotestCard
 import com.gotest.app.core.designsystem.component.GotestEmptyView
 import com.gotest.app.core.designsystem.component.GotestErrorView
-import com.gotest.app.core.designsystem.component.GotestIconButton
+import com.gotest.app.core.designsystem.component.GotestFilterPill
 import com.gotest.app.core.designsystem.component.GotestLoadingView
-import com.gotest.app.core.designsystem.component.GotestSegmentedControl
-import com.gotest.app.core.designsystem.component.GotestTopAppBar
-import com.gotest.app.core.designsystem.component.GotestTopAppBarStyle
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.core.model.LeaderboardEntry
-import com.gotest.app.core.model.PackageRanking
-import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.feature.leaderboard.ui.components.LeaderboardInfoSheet
-import com.gotest.app.feature.leaderboard.ui.components.LeaderboardList
-import com.gotest.app.feature.leaderboard.ui.components.LeaderboardMetric
-import com.gotest.app.feature.leaderboard.ui.components.LeaderboardPodium
-import com.gotest.app.feature.leaderboard.ui.components.MyRankCard
-import com.gotest.app.feature.leaderboard.ui.components.PackageRankingCard
-import java.time.LocalDateTime
+import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.leaderboard.domain.LeaderboardFilters
+import com.gotest.app.feature.leaderboard.domain.LeaderboardPackageCard
+import com.gotest.app.feature.leaderboard.domain.LeaderboardPage
+import com.gotest.app.feature.leaderboard.domain.LeaderboardPeriod
+import com.gotest.app.feature.leaderboard.domain.LeaderboardRules
+import com.gotest.app.feature.leaderboard.domain.LeaderboardScope
+import com.gotest.app.feature.leaderboard.domain.NamedOption
+import com.gotest.app.feature.leaderboard.ui.components.BoardEmpty
+import com.gotest.app.feature.leaderboard.ui.components.BoardPackageCard
+import com.gotest.app.feature.leaderboard.ui.components.BoardPodium
+import com.gotest.app.feature.leaderboard.ui.components.BoardTable
+import com.gotest.app.feature.leaderboard.ui.components.LeaderboardHero
+import kotlinx.coroutines.launch
 
+/** [onOpenPackage] gets the package id and whether it is a Latihan package. */
 @Composable
 fun LeaderboardRoute(
-    onOpenPackage: (packageId: String) -> Unit,
+    onOpenPackage: (Long, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LeaderboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val resources = LocalResources.current
+    ObserveAsEvents(viewModel.effects) {
+        scope.launch { snackbar.showSnackbar(resources.getString(R.string.state_error_message)) }
+    }
     LeaderboardScreen(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
-        onOpenPackage = onOpenPackage,
+        actions =
+            LeaderboardActions(
+                onSelectTab = viewModel::selectTab,
+                onRetry = viewModel::retry,
+                onDraftChange = viewModel::onDraftChange,
+                onApply = viewModel::applyFilters,
+                onMore = viewModel::loadMore,
+                onOpenPackage = onOpenPackage,
+            ),
         modifier = modifier,
+        snackbarHostState = snackbar,
     )
 }
+
+data class LeaderboardActions(
+    val onSelectTab: (LeaderboardScope) -> Unit,
+    val onRetry: () -> Unit,
+    val onDraftChange: (LeaderboardFilters) -> Unit,
+    val onApply: () -> Unit,
+    val onMore: () -> Unit,
+    val onOpenPackage: (Long, Boolean) -> Unit,
+)
 
 @Composable
 fun LeaderboardScreen(
     uiState: LeaderboardUiState,
-    onEvent: (LeaderboardUiEvent) -> Unit,
-    onOpenPackage: (packageId: String) -> Unit,
+    actions: LeaderboardActions,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
-    val spacing = GotestTheme.spacing
     // Tab roots draw under the floating bottom bar.
     val bottomInset =
         GotestTheme.sizes.bottomBarHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    // One scroll position per segment, kept while switching.
-    val globalListState = rememberLazyListState()
-    val packagesListState = rememberLazyListState()
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(GotestTheme.colors.bgSubtle),
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            GotestTopAppBar(
-                title = stringResource(R.string.leaderboard_title),
-                subtitle = stringResource(R.string.leaderboard_subtitle),
-                style = GotestTopAppBarStyle.Leading,
-                actions = {
-                    GotestIconButton(
-                        icon = GotestIcons.Linear.InfoCircle,
-                        contentDescription = stringResource(R.string.leaderboard_cd_info),
-                        onClick = { onEvent(LeaderboardUiEvent.InfoClick) },
-                    )
-                },
-            )
-            GotestSegmentedControl(
-                options = LeaderboardTab.entries.map { stringResource(it.labelRes) },
-                selectedIndex = uiState.selectedTab.ordinal,
-                onSelect = { index -> onEvent(LeaderboardUiEvent.TabSelect(LeaderboardTab.entries[index])) },
-                modifier = Modifier.padding(horizontal = spacing.screenHorizontal, vertical = spacing.sm),
-            )
-            val contentModifier = Modifier.weight(1f)
-            when (uiState.selectedTab) {
-                LeaderboardTab.Global -> {
-                    GlobalContent(
-                        state = uiState.global,
-                        listState = globalListState,
-                        bottomInset = bottomInset,
-                        onRetry = { onEvent(LeaderboardUiEvent.RetryGlobal) },
-                        modifier = contentModifier,
-                    )
-                }
-
-                LeaderboardTab.PerPackage -> {
-                    PackagesContent(
-                        state = uiState.packages,
-                        listState = packagesListState,
-                        bottomInset = bottomInset,
-                        onRetry = { onEvent(LeaderboardUiEvent.RetryPackages) },
-                        onOpenPackage = onOpenPackage,
-                        modifier = contentModifier,
-                    )
-                }
-            }
-        }
-        if (uiState.isInfoVisible) {
-            LeaderboardInfoSheet(onDismiss = { onEvent(LeaderboardUiEvent.InfoDismiss) })
-        }
-    }
-}
-
-@Composable
-private fun GlobalContent(
-    state: GlobalLeaderboardUiState,
-    listState: LazyListState,
-    bottomInset: Dp,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val spacing = GotestTheme.spacing
-    val stateModifier =
-        Modifier
-            .fillMaxSize()
-            .padding(bottom = bottomInset)
-    Box(modifier = modifier) {
-        when (state) {
-            GlobalLeaderboardUiState.Loading -> {
-                GotestLoadingView(modifier = stateModifier)
-            }
-
-            GlobalLeaderboardUiState.Error -> {
-                GotestErrorView(onRetry = onRetry, modifier = stateModifier)
-            }
-
-            GlobalLeaderboardUiState.Empty -> {
-                GotestEmptyView(
-                    icon = GotestIcons.Linear.Leaderboard,
-                    title = stringResource(R.string.leaderboard_global_empty_title),
-                    message = stringResource(R.string.leaderboard_global_empty_message),
-                    modifier = stateModifier,
-                )
-            }
-
-            is GlobalLeaderboardUiState.Success -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = listState,
-                    contentPadding =
-                        PaddingValues(
-                            start = spacing.screenHorizontal,
-                            end = spacing.screenHorizontal,
-                            top = spacing.sm,
-                            bottom = bottomInset + spacing.xl,
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.lg),
-                ) {
-                    item(key = "my_rank") {
-                        MyRankCard(
-                            rank = state.myRank,
-                            rankChange = state.myRankChange,
-                            totalUsers = state.totalUsers,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item(key = "podium") {
-                        LeaderboardPodium(
-                            entries = state.podium,
-                            metric = LeaderboardMetric.Attempts,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    if (state.rows.isNotEmpty()) {
-                        item(key = "rows") {
-                            LeaderboardList(
-                                entries = state.rows,
-                                metric = LeaderboardMetric.Attempts,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PackagesContent(
-    state: PackageRankingsUiState,
-    listState: LazyListState,
-    bottomInset: Dp,
-    onRetry: () -> Unit,
-    onOpenPackage: (packageId: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val spacing = GotestTheme.spacing
-    val stateModifier =
-        Modifier
-            .fillMaxSize()
-            .padding(bottom = bottomInset)
-    Box(modifier = modifier) {
-        when (state) {
-            PackageRankingsUiState.Loading -> {
-                GotestLoadingView(modifier = stateModifier)
-            }
-
-            PackageRankingsUiState.Error -> {
-                GotestErrorView(onRetry = onRetry, modifier = stateModifier)
-            }
-
-            PackageRankingsUiState.Empty -> {
-                GotestEmptyView(
-                    icon = GotestIcons.Linear.TaskSquare,
-                    title = stringResource(R.string.leaderboard_packages_empty_title),
-                    message = stringResource(R.string.leaderboard_packages_empty_message),
-                    modifier = stateModifier,
-                )
-            }
-
-            is PackageRankingsUiState.Success -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = listState,
-                    contentPadding =
-                        PaddingValues(
-                            start = spacing.screenHorizontal,
-                            end = spacing.screenHorizontal,
-                            top = spacing.sm,
-                            bottom = bottomInset + spacing.xl,
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sm),
-                ) {
-                    item(key = "heading") {
-                        PackagesHeading(
-                            updatedAt = state.updatedAt,
-                            modifier = Modifier.padding(bottom = spacing.sm),
-                        )
-                    }
-                    items(state.rankings, key = { it.packageId }) { ranking ->
-                        PackageRankingCard(
-                            ranking = ranking,
-                            onViewLeaderboard = { onOpenPackage(ranking.packageId) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** "Semua Paket Tryout" plus "… • Diperbarui 21 Okt 2026, 15:30". */
-@Composable
-private fun PackagesHeading(
-    updatedAt: LocalDateTime,
-    modifier: Modifier = Modifier,
-) {
-    val updated =
-        stringResource(
-            R.string.leaderboard_updated_at,
-            GotestFormat.mediumDate(updatedAt.toLocalDate()),
-            GotestFormat.time(updatedAt),
+    Box(modifier = modifier.fillMaxSize().background(GotestTheme.colors.bgSubtle)) {
+        LeaderboardList(uiState = uiState, actions = actions, bottomPadding = bottomInset)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomInset),
         )
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xxs)) {
+    }
+}
+
+@Composable
+private fun LeaderboardList(
+    uiState: LeaderboardUiState,
+    actions: LeaderboardActions,
+    bottomPadding: Dp,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = GotestTheme.spacing
+    val page = uiState.page
+    val shown = uiState.shown
+    LazyColumn(
+        modifier = modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars),
+        contentPadding =
+            PaddingValues(
+                start = spacing.screenHorizontal,
+                end = spacing.screenHorizontal,
+                top = spacing.sm,
+                bottom = bottomPadding + spacing.xl,
+            ),
+        verticalArrangement = Arrangement.spacedBy(spacing.md),
+    ) {
+        item(key = "header") { LeaderboardHeader() }
+        item(key = "tabs") { LeaderboardTabs(selected = uiState.scope, onSelect = actions.onSelectTab) }
+        // The hero is always the global rank (web LeaderboardHero), so the last page's stays while a tab loads.
+        if (page != null) {
+            item(
+                key = "hero",
+            ) { LeaderboardHero(current = page.current?.toRow(), totalParticipants = page.totalParticipants) }
+        }
+        when {
+            shown != null && uiState.scope == LeaderboardScope.Global -> {
+                globalBoard(shown, uiState, actions)
+            }
+
+            shown != null -> {
+                packageCards(
+                    shown,
+                    practice = uiState.scope == LeaderboardScope.Practice,
+                    actions.onOpenPackage,
+                )
+            }
+
+            uiState.loadFailed -> {
+                item(key = "error") { GotestErrorView(onRetry = actions.onRetry) }
+            }
+
+            else -> {
+                item(key = "loading") { GotestLoadingView() }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LeaderboardHeader(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.leaderboard_packages_title),
-            style = MaterialTheme.typography.titleMedium,
+            text = stringResource(R.string.leaderboard_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.headlineMedium,
             color = GotestTheme.colors.textPrimary,
         )
         Text(
-            text = stringResource(R.string.leaderboard_packages_subtitle, updated),
-            style = MaterialTheme.typography.labelSmall,
+            text = stringResource(R.string.leaderboard_lede),
+            style = MaterialTheme.typography.bodySmall,
             color = GotestTheme.colors.textSecondary,
         )
     }
 }
 
-private fun previewEntry(
-    rank: Int,
-    name: String,
-    points: Int,
-    attempts: Int,
-    rankChange: Int = 0,
-    isCurrentUser: Boolean = false,
-) = LeaderboardEntry(rank, name, null, points, attempts, null, rankChange, isCurrentUser)
-
-private val previewGlobal =
-    GlobalLeaderboardUiState.Success(
-        myRank = 12,
-        myRankChange = 1,
-        totalUsers = 12_512,
-        podium =
-            listOf(
-                previewEntry(1, "John S.", 424, 152),
-                previewEntry(2, "Michael T.", 324, 148),
-                previewEntry(3, "Emily C.", 172, 145),
-            ),
-        rows =
-            listOf(
-                previewEntry(4, "Alex Thompson", 124, 141, rankChange = 2),
-                previewEntry(5, "Mia Johnson", 121, 138, rankChange = 1),
-                previewEntry(6, "Ethan Williams", 118, 130, rankChange = -4),
-                previewEntry(12, "Gilang P.", 104, 98, rankChange = 1, isCurrentUser = true),
-                previewEntry(13, "Sophia Carter", 101, 96),
-            ),
-    )
-
-private val previewPackages =
-    PackageRankingsUiState.Success(
-        rankings =
-            listOf(
-                PackageRanking("p1", "Tryout UTBK-SNBT 2026 (Sesi 1)", "UTBK-SNBT", 120, 120, 12, 12_412, 680, 76, 2),
-                PackageRanking("p2", "Tryout UTBK-SNBT 2026 (Sesi 2)", "UTBK-SNBT", 120, 120, 7, 9_820, 712, 81, 1),
-                PackageRanking("p3", "Simulasi CPNS SKD Batch 3", "CPNS", 120, 120, 40, 5_115, 402, 64, -3),
-            ),
-        updatedAt = LocalDateTime.of(2026, 10, 21, 15, 30),
-    )
+@Composable
+private fun LeaderboardTabs(
+    selected: LeaderboardScope,
+    onSelect: (LeaderboardScope) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    PillRow(modifier = modifier) {
+        LeaderboardScope.entries.forEach { scope ->
+            GotestFilterPill(
+                text =
+                    stringResource(
+                        when (scope) {
+                            LeaderboardScope.Global -> R.string.leaderboard_tab_global
+                            LeaderboardScope.Package -> R.string.leaderboard_tab_package
+                            LeaderboardScope.Practice -> R.string.leaderboard_tab_practice
+                        },
+                    ),
+                selected = scope == selected,
+                onClick = { onSelect(scope) },
+            )
+        }
+    }
+}
 
 @Composable
-private fun LeaderboardPreviewHost(uiState: LeaderboardUiState) {
-    GotestTheme {
-        LeaderboardScreen(
-            uiState = uiState,
-            onEvent = {},
-            onOpenPackage = {},
+private fun PillRow(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
+    ) { content() }
+}
+
+private fun LazyListScope.globalBoard(
+    page: LeaderboardPage,
+    uiState: LeaderboardUiState,
+    actions: LeaderboardActions,
+) {
+    item(key = "filters") {
+        GlobalFilters(
+            categories = page.options.categories,
+            subjects = uiState.subjectChoices,
+            draft = uiState.draft,
+            busy = uiState.isLoading,
+            onDraftChange = actions.onDraftChange,
+            onApply = actions.onApply,
+        )
+    }
+    item(key = "updated") { UpdatedNote(page.updatedAt, showScale = true) }
+    if (page.top.isEmpty()) {
+        item(key = "empty") { BoardEmpty(message = stringResource(R.string.leaderboard_empty_global)) }
+    } else {
+        item(key = "podium") { BoardPodium(top = page.top.map { it.toRow() }, showTime = false) }
+    }
+    if (page.rows.isNotEmpty()) {
+        item(key = "table") { BoardTable(rows = page.rows.map { it.toRow() }) }
+    }
+    if (page.hasMore) {
+        item(key = "more") {
+            GotestButton(
+                text = stringResource(R.string.leaderboard_more),
+                onClick = actions.onMore,
+                modifier = Modifier.fillMaxWidth(),
+                size = GotestButtonSize.Medium,
+                enabled = !uiState.isLoading,
+            )
+        }
+    }
+}
+
+@Composable
+private fun GlobalFilters(
+    categories: List<NamedOption>,
+    subjects: List<NamedOption>,
+    draft: LeaderboardFilters,
+    busy: Boolean,
+    onDraftChange: (LeaderboardFilters) -> Unit,
+    onApply: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    GotestCard(modifier = modifier.fillMaxWidth(), verticalSpacing = GotestTheme.spacing.sm) {
+        OptionPills(
+            allLabel = stringResource(R.string.leaderboard_category_all),
+            options = categories,
+            selected = draft.category,
+            onSelect = { onDraftChange(draft.copy(category = it)) },
+        )
+        OptionPills(
+            allLabel = stringResource(R.string.leaderboard_subject_all),
+            options = subjects,
+            selected = draft.subject,
+            onSelect = { onDraftChange(draft.copy(subject = it)) },
+        )
+        PillRow {
+            LeaderboardPeriod.entries.forEach { period ->
+                GotestFilterPill(
+                    text = stringResource(period.label()),
+                    selected = draft.period == period,
+                    onClick = { onDraftChange(draft.copy(period = period)) },
+                )
+            }
+        }
+        GotestButton(
+            text = stringResource(R.string.leaderboard_filter),
+            onClick = onApply,
+            modifier = Modifier.fillMaxWidth(),
+            size = GotestButtonSize.Medium,
+            enabled = !busy,
         )
     }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
-private fun LeaderboardGlobalPreview() {
-    LeaderboardPreviewHost(LeaderboardUiState(global = previewGlobal, packages = previewPackages))
+private fun OptionPills(
+    allLabel: String,
+    options: List<NamedOption>,
+    selected: Long?,
+    onSelect: (Long?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    PillRow(modifier = modifier) {
+        GotestFilterPill(text = allLabel, selected = selected == null, onClick = { onSelect(null) })
+        options.forEach { option ->
+            GotestFilterPill(text = option.name, selected = selected == option.id, onClick = { onSelect(option.id) })
+        }
+    }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+private fun LeaderboardPeriod.label(): Int =
+    when (this) {
+        LeaderboardPeriod.All -> R.string.leaderboard_period_all
+        LeaderboardPeriod.Week -> R.string.leaderboard_period_week
+        LeaderboardPeriod.Month -> R.string.leaderboard_period_month
+        LeaderboardPeriod.Year -> R.string.leaderboard_period_year
+    }
+
+/** "Terakhir diperbarui 18 Nov 2026, 14.05" in the phone's time zone, and on Global the points scale. */
 @Composable
-private fun LeaderboardPerPackagePreview() {
-    LeaderboardPreviewHost(
-        LeaderboardUiState(selectedTab = LeaderboardTab.PerPackage, global = previewGlobal, packages = previewPackages),
-    )
+private fun UpdatedNote(
+    updatedAt: String?,
+    showScale: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        LeaderboardRules.updatedLabel(updatedAt)?.let {
+            Text(
+                text = stringResource(R.string.leaderboard_updated, it),
+                style = MaterialTheme.typography.bodySmall,
+                color = GotestTheme.colors.textSecondary,
+            )
+        }
+        if (showScale) {
+            Text(
+                text = stringResource(R.string.leaderboard_scale),
+                style = MaterialTheme.typography.labelSmall,
+                color = GotestTheme.colors.textSecondary,
+            )
+        }
+    }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun LeaderboardLoadingPreview() {
-    LeaderboardPreviewHost(LeaderboardUiState())
+private fun LazyListScope.packageCards(
+    page: LeaderboardPage,
+    practice: Boolean,
+    onOpenPackage: (Long, Boolean) -> Unit,
+) {
+    item(key = "cards-head") {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xxs),
+        ) {
+            Text(
+                text =
+                    stringResource(
+                        if (practice) R.string.leaderboard_practice_title else R.string.leaderboard_packages_title,
+                    ),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleMedium,
+                color = GotestTheme.colors.textPrimary,
+            )
+            Text(
+                text =
+                    stringResource(
+                        if (practice) R.string.leaderboard_practice_lede else R.string.leaderboard_packages_lede,
+                    ),
+                style = MaterialTheme.typography.bodySmall,
+                color = GotestTheme.colors.textSecondary,
+            )
+            UpdatedNote(page.updatedAt, showScale = false)
+        }
+    }
+    if (page.packageCards.isEmpty()) {
+        item(key = "cards-empty") { PackageCardsEmpty(practice) }
+    }
+    items(page.packageCards, key = LeaderboardPackageCard::id) { card ->
+        BoardPackageCard(card = card, onOpen = { onOpenPackage(card.id, practice) })
+    }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Composable
+private fun PackageCardsEmpty(
+    practice: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val title = if (practice) R.string.leaderboard_practice_empty_title else R.string.leaderboard_packages_empty_title
+    val body = if (practice) R.string.leaderboard_practice_empty_body else R.string.leaderboard_packages_empty_body
+    GotestCard(modifier = modifier.fillMaxWidth()) {
+        GotestEmptyView(
+            icon = GotestIcons.Linear.Leaderboard,
+            title = stringResource(title),
+            message = stringResource(body),
+        )
+    }
+}
+
+private val previewActions = LeaderboardActions({}, {}, {}, {}, {}, { _, _ -> })
+
+@Preview(showBackground = true, heightDp = 1600)
+@Composable
+private fun LeaderboardScreenPreview() {
+    GotestTheme {
+        LeaderboardScreen(
+            uiState = LeaderboardUiState(page = LeaderboardPreviewData.global, isLoading = false),
+            actions = previewActions,
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 1200)
+@Composable
+private fun LeaderboardPackagesPreview() {
+    GotestTheme {
+        LeaderboardScreen(
+            uiState =
+                LeaderboardUiState(
+                    scope = LeaderboardScope.Package,
+                    page = LeaderboardPreviewData.packages,
+                    isLoading = false,
+                ),
+            actions = previewActions,
+        )
+    }
+}
+
+@Preview(showBackground = true)
 @Composable
 private fun LeaderboardEmptyPreview() {
-    LeaderboardPreviewHost(
-        LeaderboardUiState(
-            selectedTab = LeaderboardTab.PerPackage,
-            global = GlobalLeaderboardUiState.Empty,
-            packages = PackageRankingsUiState.Empty,
-        ),
-    )
+    GotestTheme {
+        LeaderboardScreen(
+            uiState = LeaderboardUiState(page = LeaderboardPage(), isLoading = false),
+            actions = previewActions,
+        )
+    }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Preview(showBackground = true)
+@Composable
+private fun LeaderboardLoadingPreview() {
+    GotestTheme { LeaderboardScreen(uiState = LeaderboardUiState(), actions = previewActions) }
+}
+
+@Preview(showBackground = true)
 @Composable
 private fun LeaderboardErrorPreview() {
-    LeaderboardPreviewHost(LeaderboardUiState(global = GlobalLeaderboardUiState.Error))
+    GotestTheme {
+        LeaderboardScreen(uiState = LeaderboardUiState(isLoading = false, loadFailed = true), actions = previewActions)
+    }
 }

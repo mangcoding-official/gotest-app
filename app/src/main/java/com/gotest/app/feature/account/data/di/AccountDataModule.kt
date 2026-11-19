@@ -2,12 +2,8 @@ package com.gotest.app.feature.account.data.di
 
 import com.gotest.app.feature.account.data.BitmapProfilePhotoProcessor
 import com.gotest.app.feature.account.data.FakeAccountDataRepository
-import com.gotest.app.feature.account.data.FakeAccountSecurityRepository
-import com.gotest.app.feature.account.data.FakeHelpRepository
 import com.gotest.app.feature.account.data.FakeSettingsRepository
 import com.gotest.app.feature.account.domain.AccountDataRepository
-import com.gotest.app.feature.account.domain.AccountSecurityRepository
-import com.gotest.app.feature.account.domain.HelpRepository
 import com.gotest.app.feature.account.domain.ProfilePhotoProcessor
 import com.gotest.app.feature.account.domain.SettingsRepository
 import dagger.Binds
@@ -21,11 +17,7 @@ import dagger.hilt.components.SingletonComponent
 interface AccountDataModule {
     @Binds fun bindSettingsRepository(impl: FakeSettingsRepository): SettingsRepository
 
-    @Binds fun bindHelpRepository(impl: FakeHelpRepository): HelpRepository
-
     @Binds fun bindAccountDataRepository(impl: FakeAccountDataRepository): AccountDataRepository
 
     @Binds fun bindProfilePhotoProcessor(impl: BitmapProfilePhotoProcessor): ProfilePhotoProcessor
-
-    @Binds fun bindAccountSecurityRepository(impl: FakeAccountSecurityRepository): AccountSecurityRepository
 }

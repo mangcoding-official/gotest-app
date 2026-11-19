@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,10 +45,18 @@ fun AccountPhoneRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val resources = LocalResources.current
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            is AccountPhoneEffect.ShowMessage -> scope.launch { snackbarHostState.showSnackbar(effect.message) }
-            AccountPhoneEffect.Close -> onBack()
+            is AccountPhoneEffect.ShowMessage -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(effect.message ?: resources.getString(R.string.state_error_message))
+                }
+            }
+
+            AccountPhoneEffect.Close -> {
+                onBack()
+            }
         }
     }
     AccountPhoneScreen(

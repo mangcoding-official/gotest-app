@@ -2,27 +2,30 @@ package com.gotest.app.feature.account.ui.changepassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gotest.app.R
 import com.gotest.app.core.domain.repository.UserRepository
-import com.gotest.app.feature.account.domain.AccountValidator
-import com.gotest.app.feature.account.domain.PasswordRule
+import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.account.domain.PasswordChange
+import com.gotest.app.feature.account.domain.ProfilePagesRepository
+import com.gotest.app.feature.account.ui.components.fieldMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** "Ganti Password" (web: Components/Student/Profile/ChangePasswordModal.tsx). */
 @HiltViewModel
 class ChangePasswordViewModel
     @Inject
     constructor(
         private val userRepository: UserRepository,
-        private val validator: AccountValidator,
+        private val profilePages: ProfilePagesRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(ChangePasswordUiState())
         val uiState: StateFlow<ChangePasswordUiState> = _uiState.asStateFlow()
@@ -30,39 +33,116 @@ class ChangePasswordViewModel
         private val _effects = Channel<ChangePasswordEffect>(Channel.BUFFERED)
         val effects: Flow<ChangePasswordEffect> = _effects.receiveAsFlow()
 
+        init {
+            load()
+        }
+
         fun onEvent(event: ChangePasswordUiEvent) {
             when (event) {
-                is ChangePasswordUiEvent.CurrentPasswordChange -> edit { it.copy(currentPassword = event.value) }
-                is ChangePasswordUiEvent.NewPasswordChange -> edit { it.copy(newPassword = event.value) }
-                is ChangePasswordUiEvent.ConfirmationChange -> edit { it.copy(confirmation = event.value) }
-                ChangePasswordUiEvent.Submit -> submit()
+                ChangePasswordUiEvent.Retry -> {
+                    load()
+                }
+
+                is ChangePasswordUiEvent.CurrentChange -> {
+                    _uiState.update {
+                        it.copy(
+                            current = event.value,
+                            errors =
+                                it.errors - CURRENT,
+                        )
+                    }
+                }
+
+                is ChangePasswordUiEvent.PasswordChange -> {
+                    _uiState.update {
+                        it.copy(
+                            password = event.value,
+                            errors =
+                                it.errors - PASSWORD,
+                        )
+                    }
+                }
+
+                is ChangePasswordUiEvent.ConfirmationChange -> {
+                    _uiState.update { it.copy(confirmation = event.value) }
+                }
+
+                ChangePasswordUiEvent.Submit -> {
+                    submit()
+                }
+
+                ChangePasswordUiEvent.SendLink -> {
+                    sendLink()
+                }
             }
         }
 
-        /** Applies [change] and re-evaluates the live checklist. */
-        private fun edit(change: (ChangePasswordUiState) -> ChangePasswordUiState) {
-            _uiState.update { old ->
-                val state = change(old)
-                val rules = validator.satisfiedPasswordRules(state.currentPassword, state.newPassword)
-                val mismatch = state.confirmation.isNotEmpty() && state.confirmation != state.newPassword
-                state.copy(
-                    satisfiedRules = rules,
-                    confirmationMismatch = mismatch,
-                    canSubmit = rules.containsAll(PasswordRule.entries) && state.confirmation == state.newPassword,
-                )
+        private fun load() {
+            _uiState.update { it.copy(isLoading = true, loadFailed = false) }
+            viewModelScope.launch {
+                val email = runCatching { userRepository.observeProfile().first().email }.getOrDefault("")
+                profilePages
+                    .page()
+                    .onSuccess { page ->
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                email = email,
+                                googleLinked = page.googleLinked,
+                                linkByWhatsApp = page.linkByWhatsApp,
+                            )
+                        }
+                    }.onFailure { _uiState.update { it.copy(isLoading = false, loadFailed = true) } }
             }
         }
 
         private fun submit() {
             val state = _uiState.value
-            if (!state.canSubmit || state.isSubmitting) return
+            if (state.isSubmitting) return
+            _uiState.update { it.copy(isSubmitting = true, errors = emptyMap()) }
             viewModelScope.launch {
-                _uiState.update { it.copy(isSubmitting = true) }
-                userRepository
-                    .changePassword(state.currentPassword, state.newPassword)
-                    .onSuccess { _effects.send(ChangePasswordEffect.PasswordChanged) }
-                    .onFailure { _effects.send(ChangePasswordEffect.ShowMessage(R.string.account_password_error)) }
-                _uiState.update { it.copy(isSubmitting = false) }
+                profilePages
+                    .changePassword(PasswordChange(state.current, state.password, state.confirmation))
+                    .onSuccess {
+                        _uiState.update {
+                            it.copy(
+                                isSubmitting = false,
+                                current = "",
+                                password = "",
+                                confirmation = "",
+                            )
+                        }
+                        _effects.send(ChangePasswordEffect.PasswordChanged)
+                    }.onFailure { error ->
+                        val fields = (error as? ApiError)?.fieldErrors?.mapValues { it.value.first() }.orEmpty()
+                        _uiState.update { it.copy(isSubmitting = false, errors = fields) }
+                        if (fields.isEmpty()) {
+                            _effects.send(
+                                ChangePasswordEffect.ShowMessage((error as? ApiError)?.message),
+                            )
+                        }
+                    }
             }
+        }
+
+        private fun sendLink() {
+            if (_uiState.value.linkSending || _uiState.value.linkSent) return
+            _uiState.update { it.copy(linkSending = true, linkError = null) }
+            viewModelScope.launch {
+                profilePages
+                    .sendPasswordLink()
+                    .onSuccess { _uiState.update { it.copy(linkSending = false, linkSent = true) } }
+                    .onFailure { error ->
+                        val message = error.fieldMessage(LINK)
+                        _uiState.update { it.copy(linkSending = false, linkError = message) }
+                        if (message == null) _effects.send(ChangePasswordEffect.ShowMessage(null))
+                    }
+            }
+        }
+
+        private companion object {
+            const val CURRENT = "current_password"
+            const val PASSWORD = "password"
+            const val LINK = "password_link"
         }
     }

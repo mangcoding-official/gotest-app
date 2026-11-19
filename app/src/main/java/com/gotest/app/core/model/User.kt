@@ -14,6 +14,8 @@ data class UserProfile(
     val phone: String? = null,
     /** The Mitra that keeps a child account (Aturan 11.30), or null for any other account. */
     val managedBy: String? = null,
+    /** `user.education_level` of /akun; null until the account has one. */
+    val educationLevel: EducationLevel? = null,
 ) {
     val isChild: Boolean get() = managedBy != null
 

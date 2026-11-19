@@ -7,6 +7,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.feature.account.ui.changepassword.ChangePasswordRoute
 import com.gotest.app.feature.account.ui.components.AccountNotice
@@ -14,8 +15,6 @@ import com.gotest.app.feature.account.ui.components.AdultOnly
 import com.gotest.app.feature.account.ui.deleteaccount.DeleteAccountRoute
 import com.gotest.app.feature.account.ui.downloaddata.DownloadDataRoute
 import com.gotest.app.feature.account.ui.editprofile.EditProfileRoute
-import com.gotest.app.feature.account.ui.help.HelpRoute
-import com.gotest.app.feature.account.ui.helptopic.HelpTopicRoute
 import com.gotest.app.feature.account.ui.mainlevel.MainLevelRoute
 import com.gotest.app.feature.account.ui.personaldata.PersonalDataRoute
 import com.gotest.app.feature.account.ui.phone.AccountPhoneRoute
@@ -26,6 +25,8 @@ import com.gotest.app.feature.account.ui.settings.SettingsNavigation
 import com.gotest.app.feature.account.ui.settings.SettingsRoute
 import com.gotest.app.feature.account.ui.subscription.SubscriptionRoute
 import com.gotest.app.feature.auth.navigation.navigateToOnboardingClearingAll
+import com.gotest.app.feature.support.ui.SupportRoute
+import com.gotest.app.feature.support.ui.SupportTopicRoute
 import com.gotest.app.navigation.AccountPhoneDestination
 import com.gotest.app.navigation.ActiveSessionsDestination
 import com.gotest.app.navigation.ChangePasswordDestination
@@ -46,6 +47,9 @@ import com.gotest.app.navigation.UpgradePlanDestination
 /** SavedStateHandle key on the previous back-stack entry carrying an [AccountNotice] name. */
 private const val ACCOUNT_NOTICE_KEY = "account_notice"
 
+/** The same, carrying a server's own message. */
+private const val ACCOUNT_TEXT_KEY = "account_notice_text"
+
 /**
  * Profil (tab root) plus Edit Informasi Akun, Ganti Password, Hapus Akun, Pengaturan (with
  * Jenjang Utama, Data Pribadi and Unduh Data Akun), Langganan, Bantuan & Support and
@@ -58,7 +62,7 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
         AdultOnly(onChildAccount = navController::navigateUp) {
             EditProfileRoute(
                 onBack = navController::navigateUp,
-                onSaveSuccess = { navController.navigateUpWithNotice(AccountNotice.ProfileSaved) },
+                onSaveSuccess = navController::navigateUpWithText,
             )
         }
     }
@@ -80,15 +84,22 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
             ActiveSessionsRoute(onBack = navController::navigateUp)
         }
     }
-    composable<DeleteAccountDestination> {
-        AdultOnly(onChildAccount = navController::navigateUp) {
-            DeleteAccountRoute(
-                onBack = navController::navigateUp,
-                onDeleteSuccess = navController::navigateToOnboardingClearingAll,
-            )
+    composable<DeleteAccountDestination> { entry ->
+        val deleteAccount =
+            @Composable {
+                DeleteAccountRoute(
+                    onBack = navController::navigateUp,
+                    onDeleteSuccess = navController::navigateToOnboardingClearingAll,
+                )
+            }
+        // From the parental-approval page /akun answers 403, so AdultOnly is not asked (A2e review ulang 2).
+        if (entry.toRoute<DeleteAccountDestination>().awaitingConsent) {
+            deleteAccount()
+        } else {
+            AdultOnly(onChildAccount = navController::navigateUp) { deleteAccount() }
         }
     }
-    settingsScreens(navController)
+    if (AppFeatures.ACCOUNT_SETTINGS) settingsScreens(navController)
     if (AppFeatures.PAYMENTS) {
         composable<SubscriptionDestination> {
             SubscriptionRoute(
@@ -98,13 +109,13 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
         }
     }
     composable<HelpDestination> {
-        HelpRoute(
+        SupportRoute(
             onBack = navController::navigateUp,
             onOpenTopic = { topicId -> navController.navigate(HelpTopicDestination(topicId)) },
         )
     }
     composable<HelpTopicDestination> {
-        HelpTopicRoute(onBack = navController::navigateUp)
+        SupportTopicRoute(onBack = navController::navigateUp)
     }
 }
 
@@ -114,7 +125,12 @@ private fun NavGraphBuilder.profileScreen(navController: NavController) {
         ProfileRoute(
             navigation =
                 ProfileNavigation(
-                    onOpenSettings = { navController.navigate(SettingsDestination) },
+                    onOpenSettings =
+                        {
+                            navController.navigate(
+                                SettingsDestination,
+                            )
+                        }.takeIf { AppFeatures.ACCOUNT_SETTINGS },
                     onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
                     onOpenSubscription =
                         {
@@ -125,7 +141,7 @@ private fun NavGraphBuilder.profileScreen(navController: NavController) {
                     onEditProfile = { navController.navigate(EditProfileDestination) },
                     onChangePassword = { navController.navigate(ChangePasswordDestination) },
                     onOpenHelp = { navController.navigate(HelpDestination) },
-                    onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+                    onDeleteAccount = { navController.navigate(DeleteAccountDestination()) },
                     onOpenPhone = { navController.navigate(AccountPhoneDestination) },
                     onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
                     onOpenRuang = { code -> navController.navigate(RuangDestination(code)) },
@@ -134,6 +150,7 @@ private fun NavGraphBuilder.profileScreen(navController: NavController) {
             notice = entry.accountNotice(),
             onNoticeConsume = entry::consumeAccountNotice,
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
+            noticeText = entry.accountText(),
         )
     }
 }
@@ -192,6 +209,18 @@ private fun NavController.navigateUpWithNotice(notice: AccountNotice) {
     navigateUp()
 }
 
+/** Closes the current screen; a server's [message], if any, shows as a snackbar on the previous entry. */
+private fun NavController.navigateUpWithText(message: String?) {
+    message?.let { previousBackStackEntry?.savedStateHandle?.set(ACCOUNT_TEXT_KEY, it) }
+    navigateUp()
+}
+
+@Composable
+private fun NavBackStackEntry.accountText(): String? {
+    val text by savedStateHandle.getStateFlow<String?>(ACCOUNT_TEXT_KEY, null).collectAsStateWithLifecycle()
+    return text
+}
+
 /** The notice a closed screen left for this entry, if any. */
 @Composable
 private fun NavBackStackEntry.accountNotice(): AccountNotice? {
@@ -201,4 +230,5 @@ private fun NavBackStackEntry.accountNotice(): AccountNotice? {
 
 private fun NavBackStackEntry.consumeAccountNotice() {
     savedStateHandle[ACCOUNT_NOTICE_KEY] = null
+    savedStateHandle[ACCOUNT_TEXT_KEY] = null
 }

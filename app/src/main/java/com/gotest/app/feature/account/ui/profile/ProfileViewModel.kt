@@ -6,9 +6,12 @@ import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.UserProfile
-import com.gotest.app.feature.account.domain.AccountSecurityRepository
+import com.gotest.app.core.model.UserStats
+import com.gotest.app.feature.account.domain.ProfilePage
+import com.gotest.app.feature.account.domain.ProfilePagesRepository
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
 import com.gotest.app.feature.account.ui.components.ProfilePhotoEditor
+import com.gotest.app.feature.account.ui.components.fieldMessage
 import com.gotest.app.feature.ruang.domain.RuangRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,7 +49,7 @@ class ProfileViewModel
         private val userRepository: UserRepository,
         private val authRepository: AuthRepository,
         private val photoEditor: ProfilePhotoEditor,
-        private val security: AccountSecurityRepository,
+        private val profilePages: ProfilePagesRepository,
         private val ruang: RuangRepository,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
@@ -54,13 +57,15 @@ class ProfileViewModel
 
         private val content: Flow<ProfileUiState> =
             retryKey.flatMapLatest {
-                val phoneSignIn = flow { emit(security.isPhoneSignInAvailable()) }
+                // GET /profil: the number, whether numbers can be added, and the stats; the rest comes from /akun.
+                // Without /profil the page still shows, with Keluar (A2e review): those parts stay as /akun has them.
+                val page = flow { emit(profilePages.page().getOrNull()) }
                 // The Mitra portal is not in the app yet (A4), so only student spaces are listed.
                 val spaces = flow { emit(ruang.memberships().getOrDefault(emptyList()).filterNot { it.opensPortal }) }
-                combine(userRepository.observeProfile(), phoneSignIn, spaces) { profile, available, studentSpaces ->
+                combine(userRepository.observeProfile(), page, spaces) { profile, profilePage, studentSpaces ->
                     ProfileUiState.Success(
-                        profile = profile,
-                        phoneSignIn = available,
+                        profile = profilePage?.let(profile::withPage) ?: profile,
+                        phoneSignIn = profilePage?.phoneSignIn ?: false,
                         spaces = studentSpaces,
                         daysRemaining = daysUntil(profile),
                     )
@@ -93,6 +98,7 @@ class ProfileViewModel
                 is ProfileUiEvent.PhotoCapture -> onCaptureEvent(event.event)
                 is ProfileUiEvent.PhotoPick -> photoEditor.select(event.photoUri)
                 ProfileUiEvent.SavePhoto -> savePhoto()
+                ProfileUiEvent.DeletePhoto -> deletePhoto()
                 ProfileUiEvent.DismissPhotoSheet -> photoEditor.dismiss()
                 ProfileUiEvent.SignOutClick -> signOut.update { it.copy(showDialog = true) }
                 ProfileUiEvent.DismissSignOut -> signOut.update { it.copy(showDialog = false) }
@@ -102,14 +108,18 @@ class ProfileViewModel
 
         private fun savePhoto() {
             viewModelScope.launch {
-                val result = photoEditor.save() ?: return@launch
-                val effect =
-                    if (result.isSuccess) {
-                        ProfileEffect.ShowMessage(R.string.account_notice_photo_saved)
-                    } else {
-                        ProfileEffect.ShowMessage(R.string.account_error_save, host = photoEditor.messageHost)
-                    }
-                _effects.send(effect)
+                // A saved photo shows itself; only a refusal is told (A2e-9).
+                photoEditor.save()?.onFailure {
+                    _effects.send(ProfileEffect.ShowText(it.fieldMessage("photo"), host = photoEditor.messageHost))
+                }
+            }
+        }
+
+        private fun deletePhoto() {
+            viewModelScope.launch {
+                photoEditor.delete()?.onFailure {
+                    _effects.send(ProfileEffect.ShowText(it.fieldMessage("photo"), host = photoEditor.messageHost))
+                }
             }
         }
 
@@ -135,3 +145,20 @@ class ProfileViewModel
         private fun daysUntil(profile: UserProfile): Long =
             ChronoUnit.DAYS.between(LocalDate.now(), profile.subscription.activeUntil)
     }
+
+/** Profil's own numbers (web StudentStatCards from /profil); a change the server leaves out shows as none. */
+private fun UserProfile.withPage(page: ProfilePage): UserProfile {
+    val stats = page.stats ?: return copy(phone = page.phone)
+    return copy(
+        phone = page.phone,
+        stats =
+            UserStats(
+                questionsAnswered = stats.questionsDone,
+                accuracyPercent = stats.accuracy,
+                packagesCompleted = stats.packagesDone,
+                questionsTrendPercent = stats.questionsDoneChange ?: 0,
+                accuracyTrendPercent = stats.accuracyChange ?: 0,
+                packagesTrendPercent = stats.packagesDoneChange ?: 0,
+            ),
+    )
+}

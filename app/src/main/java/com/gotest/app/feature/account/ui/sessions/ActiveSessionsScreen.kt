@@ -32,9 +32,11 @@ import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestPasswordField
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.feature.account.domain.ActiveSession
+import com.gotest.app.feature.account.domain.ProfileSession
 import com.gotest.app.feature.account.ui.components.AccountDetailScaffold
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.format.DateTimeParseException
 
 @Composable
 fun ActiveSessionsRoute(
@@ -110,7 +112,7 @@ fun ActiveSessionsScreen(
 
 @Composable
 private fun SessionList(
-    sessions: List<ActiveSession>,
+    sessions: List<ProfileSession>,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -127,7 +129,7 @@ private fun SessionList(
 
 @Composable
 private fun SessionRow(
-    session: ActiveSession,
+    session: ProfileSession,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -146,8 +148,13 @@ private fun SessionRow(
                 )
             }
         }
-        Muted(session.ip ?: stringResource(R.string.account_sessions_unknown_ip))
-        val lastActive = session.lastActiveAt
+        Muted(
+            when {
+                session.isApp -> stringResource(R.string.account_sessions_app)
+                else -> session.ip ?: stringResource(R.string.account_sessions_unknown_ip)
+            },
+        )
+        val lastActive = session.lastActiveAt?.let(::parseInstant)
         when {
             session.current -> {
                 Muted(stringResource(R.string.account_sessions_in_use))
@@ -217,16 +224,25 @@ private fun Muted(text: String) {
 
 private val PreviewSessions =
     listOf(
-        ActiveSession("this", "Gotest di Android", "103.10.66.12", null, current = true),
-        ActiveSession(
+        ProfileSession("app-17", "app", "Google Pixel 8", null, "2026-11-18T02:10:00+00:00", current = true),
+        ProfileSession(
             "web",
+            "browser",
             "Chrome di Windows",
             "36.71.140.5",
-            Instant.parse("2026-11-16T05:30:00Z"),
+            "2026-11-16T05:30:00+00:00",
             current = false,
         ),
-        ActiveSession("iphone", "Safari di iPhone", null, Instant.parse("2026-11-13T09:00:00Z"), current = false),
+        ProfileSession("iphone", "browser", "Safari di iPhone", null, "2026-11-13T09:00:00+00:00", current = false),
     )
+
+/** Server times have an offset ("+00:00"), which Instant.parse does not read on older Android. */
+private fun parseInstant(value: String): Instant? =
+    try {
+        OffsetDateTime.parse(value).toInstant()
+    } catch (_: DateTimeParseException) {
+        null
+    }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 800)
 @Composable

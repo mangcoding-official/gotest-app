@@ -78,7 +78,7 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
     composable<GuardianConsentDestination> {
         GuardianConsentRoute(
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
-            onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+            onDeleteAccount = { navController.navigate(DeleteAccountDestination(awaitingConsent = true)) },
         )
     }
     composable<ForgotPasswordDestination> {

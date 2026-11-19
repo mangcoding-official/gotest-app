@@ -1,321 +1,408 @@
 package com.gotest.app.feature.history.ui.detail
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestBackButton
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestButtonVariant
+import com.gotest.app.core.designsystem.component.GotestCard
+import com.gotest.app.core.designsystem.component.GotestChip
+import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.component.GotestDivider
-import com.gotest.app.core.designsystem.component.GotestEmptyView
 import com.gotest.app.core.designsystem.component.GotestErrorView
-import com.gotest.app.core.designsystem.component.GotestIconButton
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTopAppBar
-import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.core.model.AttemptResult
-import com.gotest.app.core.model.PackageType
-import com.gotest.app.core.model.SectionResult
 import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.feature.history.ui.components.HistoryRankingCard
-import com.gotest.app.feature.history.ui.components.HistorySummaryCard
-import java.time.LocalDate
+import com.gotest.app.feature.history.domain.HistoryDetail
+import com.gotest.app.feature.history.domain.HistoryRankingRow
+import com.gotest.app.feature.history.domain.HistoryResult
+import com.gotest.app.feature.history.domain.HistorySection
+import com.gotest.app.feature.history.ui.history.localDate
+import kotlin.math.roundToInt
 
+/**
+ * [onOpenPackageBoard] gets the package id of a Try Out, or null (the web then opens the Leaderboard page).
+ * "Lihat Hasil" and "Buka Pembahasan" wait for the result and explanation screens (T-026 A2c).
+ */
 @Composable
 fun HistoryDetailRoute(
     onBack: () -> Unit,
-    onOpenDiscussion: (attemptId: String) -> Unit,
-    onOpenPackageLeaderboard: (packageId: String) -> Unit,
+    onOpenPackageBoard: (Long?) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HistoryDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     HistoryDetailScreen(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
         onBack = onBack,
-        onShare = { result -> context.shareResult(result) },
-        onOpenDiscussion = onOpenDiscussion,
-        onOpenPackageLeaderboard = onOpenPackageLeaderboard,
+        onRetry = viewModel::load,
+        onOpenPackageBoard = onOpenPackageBoard,
         modifier = modifier,
     )
-}
-
-/** Hands a short summary to the system share sheet (ACTION_SEND, plain text). */
-private fun Context.shareResult(result: AttemptResult) {
-    val score = GotestFormat.number(result.score)
-    val rank = result.rank
-    val participants = result.participants
-    val text =
-        if (rank != null && participants != null) {
-            getString(
-                R.string.history_detail_share_text_ranked,
-                score,
-                result.title,
-                GotestFormat.number(rank),
-                GotestFormat.number(participants),
-            )
-        } else {
-            getString(R.string.history_detail_share_text, score, result.title)
-        }
-    val send =
-        Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-        }
-    startActivity(Intent.createChooser(send, getString(R.string.history_detail_share_chooser)))
 }
 
 @Composable
 fun HistoryDetailScreen(
     uiState: HistoryDetailUiState,
-    onEvent: (HistoryDetailUiEvent) -> Unit,
     onBack: () -> Unit,
-    onShare: (AttemptResult) -> Unit,
-    onOpenDiscussion: (attemptId: String) -> Unit,
-    onOpenPackageLeaderboard: (packageId: String) -> Unit,
+    onRetry: () -> Unit,
+    onOpenPackageBoard: (Long?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val success = uiState as? HistoryDetailUiState.Success
+    val detail = uiState.detail
+    Column(modifier = modifier.fillMaxSize().background(GotestTheme.colors.bgSubtle)) {
+        GotestTopAppBar(
+            title = detail?.attempt?.packageName.orEmpty(),
+            navigationIcon = { GotestBackButton(onClick = onBack) },
+        )
+        when {
+            detail != null -> {
+                DetailContent(detail = detail, onOpenPackageBoard = onOpenPackageBoard)
+            }
+
+            uiState.loadFailed -> {
+                GotestErrorView(
+                    onRetry = onRetry,
+                    modifier = Modifier.fillMaxSize(),
+                    message = stringResource(R.string.history_open_failed),
+                )
+            }
+
+            else -> {
+                GotestLoadingView()
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailContent(
+    detail: HistoryDetail,
+    onOpenPackageBoard: (Long?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = GotestTheme.spacing
+    val attempt = detail.attempt
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(GotestTheme.colors.bgSubtle),
-    ) {
-        GotestTopAppBar(
-            title = stringResource(R.string.history_detail_title),
-            subtitle = success?.result?.let { subtitleFor(it) },
-            navigationIcon = { GotestBackButton(onClick = onBack) },
-            actions = {
-                if (success != null) {
-                    GotestIconButton(
-                        icon = GotestIcons.Linear.Export,
-                        contentDescription = stringResource(R.string.history_detail_cd_share),
-                        onClick = { onShare(success.result) },
-                    )
-                }
-            },
-        )
-        val stateModifier =
-            Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-        when (uiState) {
-            HistoryDetailUiState.Loading -> {
-                GotestLoadingView(modifier = stateModifier)
-            }
-
-            HistoryDetailUiState.Error -> {
-                GotestErrorView(onRetry = { onEvent(HistoryDetailUiEvent.Retry) }, modifier = stateModifier)
-            }
-
-            HistoryDetailUiState.Empty -> {
-                GotestEmptyView(
-                    icon = GotestIcons.Linear.Directbox,
-                    title = stringResource(R.string.history_detail_not_found_title),
-                    message = stringResource(R.string.history_detail_not_found_message),
-                    modifier = stateModifier,
-                )
-            }
-
-            is HistoryDetailUiState.Success -> {
-                HistoryDetailContent(
-                    state = uiState,
-                    onOpenPackageLeaderboard = { onOpenPackageLeaderboard(uiState.result.packageId) },
-                    modifier = Modifier.weight(1f),
-                )
-                HistoryDetailActions(
-                    onClose = onBack,
-                    onOpenDiscussion = { onOpenDiscussion(uiState.result.attemptId) },
-                )
-            }
-        }
-    }
-}
-
-/** "Simulasi UTBK-SNBT" for tryouts, "Latihan UTBK-SNBT" for practice. */
-@Composable
-private fun subtitleFor(result: AttemptResult): String =
-    stringResource(
-        when (result.type) {
-            PackageType.Tryout -> R.string.history_detail_subtitle_tryout
-            PackageType.Practice -> R.string.history_detail_subtitle_practice
-        },
-        result.examLabel,
-    )
-
-@Composable
-private fun HistoryDetailContent(
-    state: HistoryDetailUiState.Success,
-    onOpenPackageLeaderboard: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val spacing = GotestTheme.spacing
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(
-                    start = spacing.screenHorizontal,
-                    end = spacing.screenHorizontal,
-                    top = spacing.sm,
-                    bottom = spacing.xl,
-                ),
-        verticalArrangement = Arrangement.spacedBy(spacing.md),
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
+        verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
-        HistorySummaryCard(
-            title = state.result.title,
-            description = state.result.description,
-            sections = state.result.sections,
-            score = state.result.score,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        HistoryRankingCard(
-            rows = state.ranking,
-            onSeeMore = onOpenPackageLeaderboard,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-/** White bottom bar with "Tutup" and "Buka Pembahasan". */
-@Composable
-private fun HistoryDetailActions(
-    onClose: () -> Unit,
-    onOpenDiscussion: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val spacing = GotestTheme.spacing
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .background(GotestTheme.colors.bgApp),
-    ) {
-        GotestDivider()
-        Row(
-            modifier =
-                Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = spacing.screenHorizontal, vertical = spacing.md),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            GotestButton(
-                text = stringResource(R.string.history_detail_close),
-                onClick = onClose,
-                modifier = Modifier.weight(1f),
-                variant = GotestButtonVariant.Plain,
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Text(
+                text = attempt.packageName,
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleLarge,
+                color = GotestTheme.colors.textPrimary,
             )
-            GotestButton(
-                text = stringResource(R.string.history_detail_open_discussion),
-                onClick = onOpenDiscussion,
-                modifier = Modifier.weight(1f),
+            Text(
+                text =
+                    attempt.description?.takeIf(String::isNotBlank) ?: stringResource(R.string.history_detail_fallback),
+                style = MaterialTheme.typography.bodySmall,
+                color = GotestTheme.colors.textSecondary,
             )
+        }
+        SectionsCard(attempt)
+        // Only a Try Out has a package ranking (web HistoryResultModal); Latihan shows the summary alone.
+        if (attempt.isTryout) {
+            RankingCard(ranking = detail.ranking, onMore = { onOpenPackageBoard(attempt.packageId) })
         }
     }
 }
 
-private val previewResult =
-    AttemptResult(
-        attemptId = "att_tryout_utbk_1",
-        packageId = "pkg_tryout_utbk_sept_1",
-        title = "Simulasi UTBK-SNBT September Session 1",
-        description =
-            "Simulasi UTBK-SNBT dengan tujuh subtes, 160 soal, dan durasi 195 menit. " +
-                "Skor merupakan hasil simulasi, bukan skor resmi UTBK-SNBT.",
-        examLabel = "UTBK-SNBT",
-        type = PackageType.Tryout,
-        score = 140,
-        rank = 12,
-        participants = 12_512,
-        correct = 12,
-        wrong = 5,
-        empty = 3,
-        topicAccuracy = emptyList(),
-        weakestTopic = null,
-        sections =
-            listOf(
-                "Penalaran Umum",
-                "Pengetahuan dan Pemahaman Umum",
-                "Pemahaman Bacaan dan Menulis",
-                "Pengetahuan Kuantitatif",
-                "Literasi Bahasa Indonesia",
-                "Literasi Bahasa Inggris",
-                "Penalaran Matematika",
-            ).map { SectionResult(it, correct = 20, wrong = 20, empty = 5) },
-        completedOn = LocalDate.of(2026, 9, 19),
-        durationSeconds = 1_232,
-    )
-
-private val previewRanking =
-    listOf(
-        HistoryRankingRow(1, "John Stuwart", null, 7_805, 424, false),
-        HistoryRankingRow(2, "Michael T.", null, 8_621, 324, false),
-        HistoryRankingRow(3, "Emily Carter", null, 9_612, 172, false),
-        HistoryRankingRow(4, "Alex Thompson", null, 9_161, 124, false),
-        HistoryRankingRow(5, "Mia Johnson", null, 9_310, 121, false),
-        HistoryRankingRow(12, "Gilang P.", LocalDate.of(2026, 9, 19), 10_280, 104, true),
-    )
+@Composable
+private fun SectionsCard(
+    attempt: HistoryResult,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = GotestTheme.spacing
+    GotestCard(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(spacing.none),
+        verticalSpacing = spacing.none,
+    ) {
+        Text(
+            text = stringResource(R.string.history_detail_sections),
+            modifier = Modifier.fillMaxWidth().background(GotestTheme.colors.bgSubtle).padding(spacing.md),
+            style = MaterialTheme.typography.titleSmall,
+            color = GotestTheme.colors.textPrimary,
+        )
+        attempt.sections.forEach { section ->
+            GotestDivider()
+            SectionRow(section)
+        }
+        GotestDivider()
+        FinalScoreRow(attempt)
+    }
+}
 
 @Composable
-private fun HistoryDetailPreviewHost(uiState: HistoryDetailUiState) {
+private fun SectionRow(
+    section: HistorySection,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    Column(
+        modifier = modifier.fillMaxWidth().padding(GotestTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
+    ) {
+        Text(text = section.name, style = MaterialTheme.typography.labelLarge, color = colors.textPrimary)
+        Row(horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
+            Count(stringResource(R.string.history_detail_correct, section.correct), colors.statusSuccess)
+            Count(stringResource(R.string.history_detail_wrong, section.wrong), colors.statusDanger)
+            Count(stringResource(R.string.history_detail_empty, section.empty), colors.textPrimary)
+        }
+    }
+}
+
+@Composable
+private fun Count(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Text(text = text, modifier = modifier, style = MaterialTheme.typography.bodySmall, color = color)
+}
+
+@Composable
+private fun FinalScoreRow(
+    attempt: HistoryResult,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    Row(
+        modifier = modifier.fillMaxWidth().background(colors.bgSubtle).padding(GotestTheme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
+    ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs)) {
+            Text(
+                text = stringResource(R.string.history_detail_final),
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.textPrimary,
+            )
+            if (attempt.ranked == false) {
+                GotestChip(
+                    text =
+                        stringResource(
+                            if (attempt.disqualified ==
+                                true
+                            ) {
+                                R.string.history_detail_disqualified
+                            } else {
+                                R.string.history_detail_repeat
+                            },
+                        ),
+                    tone = GotestChipTone.Grey,
+                )
+            }
+        }
+        Text(
+            text = attempt.scoreLabel ?: stringResource(R.string.history_detail_score),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.textSecondary,
+        )
+        Text(
+            text = attempt.score.roundToInt().toString(),
+            style = MaterialTheme.typography.labelLarge,
+            color = colors.statusSuccess,
+        )
+    }
+}
+
+@Composable
+private fun RankingCard(
+    ranking: List<HistoryRankingRow>,
+    onMore: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    GotestCard(modifier = modifier.fillMaxWidth(), verticalSpacing = GotestTheme.spacing.md) {
+        Column(verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs)) {
+            Text(
+                text = stringResource(R.string.history_detail_ranking),
+                modifier = Modifier.semantics { heading() },
+                style = MaterialTheme.typography.titleSmall,
+                color = colors.textPrimary,
+            )
+            Text(
+                text = stringResource(R.string.history_detail_ranking_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.textSecondary,
+            )
+        }
+        if (ranking.isEmpty()) {
+            Text(
+                text = stringResource(R.string.history_detail_ranking_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+            )
+        } else {
+            Column {
+                ranking.forEachIndexed { index, row ->
+                    if (index > 0) GotestDivider()
+                    RankingRow(row)
+                }
+            }
+        }
+        GotestButton(
+            text = stringResource(R.string.history_detail_more),
+            onClick = onMore,
+            modifier = Modifier.fillMaxWidth(),
+            variant = GotestButtonVariant.Plain,
+        )
+    }
+}
+
+@Composable
+private fun RankingRow(
+    row: HistoryRankingRow,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    Row(
+        modifier = modifier.fillMaxWidth().padding(vertical = GotestTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
+    ) {
+        RankBadge(row.rank)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = row.name,
+                style = MaterialTheme.typography.labelLarge,
+                color = colors.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text =
+                    listOf(
+                        localDate(row.submittedAt)?.let(GotestFormat::mediumDate)
+                            ?: stringResource(R.string.history_date_missing),
+                        row.durationLabel,
+                    ).joinToString(" • "),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.textSecondary,
+            )
+        }
+        Text(
+            text = stringResource(R.string.history_detail_ranking_score, row.score.roundToInt()),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium,
+            color = if (row.rank <= PODIUM) colors.bgYellow else colors.textPrimary,
+        )
+    }
+}
+
+/** Web `RankBadge`: gold, silver and bronze for the podium, grey after. */
+@Composable
+private fun RankBadge(
+    rank: Int,
+    modifier: Modifier = Modifier,
+) {
+    val colors = GotestTheme.colors
+    val fill =
+        when (rank) {
+            1 -> colors.bgYellow
+            2 -> colors.medalSilver
+            PODIUM -> colors.medalBronze
+            else -> colors.bgGrey
+        }
+    Box(
+        modifier = modifier.size(BADGE_SIZE).background(fill, GotestTheme.shapes.full),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = rank.toString(), style = MaterialTheme.typography.labelMedium, color = colors.textPrimary)
+    }
+}
+
+private const val PODIUM = 3
+private val BADGE_SIZE = 28.dp
+
+private val previewDetail =
+    HistoryDetail(
+        attempt =
+            HistoryResult(
+                id = 1,
+                packageName = "Try Out UTBK-SNBT 3",
+                categoryName = "UTBK-SNBT",
+                mode = "tryout",
+                durationLabel = "95 Menit 12 Detik",
+                score = 612.4,
+                ranked = false,
+                disqualified = false,
+                packageId = 11,
+                sections =
+                    listOf(
+                        HistorySection("Penalaran Umum", correct = 20, wrong = 7, empty = 3),
+                        HistorySection("Literasi Bahasa Indonesia", correct = 18, wrong = 10, empty = 2),
+                    ),
+            ),
+        ranking =
+            listOf(
+                HistoryRankingRow(1, "Nadia Putri", 812.0, "2026-11-10T09:00:00+07:00", "88 Menit 2 Detik"),
+                HistoryRankingRow(2, "Rafi Akbar", 790.6, "2026-11-10T09:10:00+07:00", "90 Menit 40 Detik"),
+                HistoryRankingRow(4, "Gilang Ramadhan", 702.0, null, "93 Menit 1 Detik"),
+            ),
+    )
+
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+private fun HistoryDetailScreenPreview() {
     GotestTheme {
         HistoryDetailScreen(
-            uiState = uiState,
-            onEvent = {},
+            uiState = HistoryDetailUiState(isLoading = false, detail = previewDetail),
             onBack = {},
-            onShare = {},
-            onOpenDiscussion = {},
-            onOpenPackageLeaderboard = {},
+            onRetry = {},
+            onOpenPackageBoard = {},
         )
     }
 }
 
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryDetailScreenSuccessPreview() {
-    HistoryDetailPreviewHost(HistoryDetailUiState.Success(previewResult, previewRanking))
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryDetailScreenLoadingPreview() {
-    HistoryDetailPreviewHost(HistoryDetailUiState.Loading)
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun HistoryDetailScreenEmptyPreview() {
-    HistoryDetailPreviewHost(HistoryDetailUiState.Empty)
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
+@Preview(showBackground = true)
 @Composable
 private fun HistoryDetailScreenErrorPreview() {
-    HistoryDetailPreviewHost(HistoryDetailUiState.Error)
+    GotestTheme {
+        HistoryDetailScreen(
+            uiState = HistoryDetailUiState(isLoading = false, loadFailed = true),
+            onBack = {},
+            onRetry = {},
+            onOpenPackageBoard = {},
+        )
+    }
 }

@@ -101,10 +101,8 @@ import kotlinx.serialization.Serializable
 // Leaderboard
 @Serializable data class PackageLeaderboardDestination(
     val packageId: String,
-)
-
-@Serializable data class PackageLeaderboardSearchDestination(
-    val packageId: String,
+    /** A Latihan package's board (`GET /leaderboard/latihan/{id}`); otherwise a Try Out's. */
+    val practice: Boolean = false,
 )
 
 // Account
@@ -112,7 +110,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object ChangePasswordDestination
 
-@Serializable data object DeleteAccountDestination
+/**
+ * Hapus Akun. [awaitingConsent]: opened from the parental-approval page, where the server refuses /akun
+ * with 403 guardian_consent but still allows DELETE /profil (API-K6 = B), so the child-account check is skipped.
+ */
+@Serializable data class DeleteAccountDestination(
+    val awaitingConsent: Boolean = false,
+)
 
 /** "Nomor WhatsApp" on Profil (DEC-123). */
 @Serializable data object AccountPhoneDestination

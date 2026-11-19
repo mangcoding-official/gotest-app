@@ -81,7 +81,14 @@ fun ExamDetailRoute(
         onStart = { if (pinning.isPinned) viewModel.start() else askPin = true },
         onOpenResult = { attemptId -> onOpenResult(viewModel.code, attemptId) },
         modifier = modifier,
-        pinGuidance = { PinGuidance(state = pinRequest) },
+        pinGuidance = {
+            // An Ujian already running keeps its clock while unpinned (A2b review putaran 3).
+            val running = uiState.detail?.myStatus == MyExamStatus.InProgress
+            PinGuidance(
+                state = pinRequest,
+                refusal = stringResource(if (running) R.string.exam_pin_again else R.string.exam_pin_refused),
+            )
+        },
     )
     if (askPin) {
         GotestDialog(

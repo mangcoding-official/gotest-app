@@ -1,11 +1,13 @@
 package com.gotest.app.feature.account.ui.phone
 
 import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.core.domain.repository.UserRepository
-import com.gotest.app.feature.account.domain.AccountFieldError
-import com.gotest.app.feature.account.domain.AccountSecurityRepository
+import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.account.domain.ProfilePagesRepository
+import com.gotest.app.feature.account.ui.components.fieldMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -75,7 +77,8 @@ sealed interface AccountPhoneUiEvent {
 sealed interface AccountPhoneEffect {
     /** The server's confirmation, such as "Nomor WhatsApp dihapus dari akun.". */
     data class ShowMessage(
-        val message: String,
+        /** Null when the request did not reach the server: the screen says "try again". */
+        val message: String?,
     ) : AccountPhoneEffect
 
     /** Removed while WhatsApp codes are off: nothing is left to do here, as the web closes its modal. */
@@ -88,9 +91,21 @@ class AccountPhoneViewModel
     @Inject
     constructor(
         private val userRepository: UserRepository,
-        private val security: AccountSecurityRepository,
+        private val profilePages: ProfilePagesRepository,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(AccountPhoneUiState())
+        /** The code step survives the screen being recreated (A2e review): the code already went out. */
+        private var restoredStep: PhoneStep? =
+            savedStateHandle.get<String>(KEY_STEP)?.let { name -> PhoneStep.entries.firstOrNull { it.name == name } }
+
+        private val _uiState =
+            MutableStateFlow(
+                AccountPhoneUiState(
+                    phone = savedStateHandle[KEY_PHONE] ?: "",
+                    sentTo = savedStateHandle[KEY_SENT_TO] ?: "",
+                    code = savedStateHandle[KEY_CODE] ?: "",
+                ),
+            )
         val uiState: StateFlow<AccountPhoneUiState> = _uiState.asStateFlow()
 
         private val _effects = Channel<AccountPhoneEffect>(Channel.BUFFERED)
@@ -99,6 +114,14 @@ class AccountPhoneViewModel
         private var loading: Job? = null
 
         init {
+            viewModelScope.launch {
+                _uiState.collect { state ->
+                    savedStateHandle[KEY_STEP] = state.step.name.takeUnless { state.isLoading }
+                    savedStateHandle[KEY_PHONE] = state.phone
+                    savedStateHandle[KEY_SENT_TO] = state.sentTo
+                    savedStateHandle[KEY_CODE] = state.code
+                }
+            }
             load()
         }
 
@@ -155,7 +178,14 @@ class AccountPhoneViewModel
             _uiState.update { it.copy(isLoading = true, loadFailed = false) }
             loading =
                 viewModelScope.launch {
-                    val canAdd = security.isPhoneSignInAvailable()
+                    // `phoneSignIn` of GET /profil; the number itself comes from /akun.
+                    val canAdd =
+                        profilePages
+                            .page()
+                            .getOrElse {
+                                _uiState.update { it.copy(isLoading = false, loadFailed = true) }
+                                return@launch
+                            }.phoneSignIn
                     userRepository
                         .observeProfile()
                         .catch { _uiState.update { it.copy(isLoading = false, loadFailed = true) } }
@@ -166,18 +196,19 @@ class AccountPhoneViewModel
                                     current = profile.phone,
                                     canAdd = canAdd,
                                     canRemove = profile.hasEmail,
-                                    // The first load opens on the saved number, or on adding one.
+                                    // The first load opens where the screen was, else on the number or adding one.
                                     step =
                                         if (it.isLoading) {
-                                            (
-                                                if (profile.phone !=
-                                                    null
-                                                ) {
-                                                    PhoneStep.View
-                                                } else {
-                                                    PhoneStep.Phone
-                                                }
-                                            )
+                                            restoredStep?.also { restoredStep = null }
+                                                ?: (
+                                                    if (profile.phone !=
+                                                        null
+                                                    ) {
+                                                        PhoneStep.View
+                                                    } else {
+                                                        PhoneStep.Phone
+                                                    }
+                                                )
                                         } else {
                                             it.step
                                         },
@@ -191,11 +222,13 @@ class AccountPhoneViewModel
             val state = _uiState.value
             if (!state.canSend) return
             submit {
-                security
+                profilePages
                     .sendPhoneCode(state.phone)
-                    .onSuccess { sentTo ->
+                    .onSuccess { reply ->
+                        // The web names the number as typed (PhoneModal.tsx); the reply's form is the fallback.
+                        val sentTo = state.phone.trim().ifEmpty { reply.phoneCodeSentTo.orEmpty() }
                         _uiState.update { it.copy(step = PhoneStep.Code, sentTo = sentTo, code = "") }
-                    }.onFailure { error -> _uiState.update { it.copy(phoneMessage = error.message) } }
+                    }.onFailure { error -> _uiState.update { it.copy(phoneMessage = error.fieldMessage(PHONE)) } }
             }
         }
 
@@ -203,18 +236,18 @@ class AccountPhoneViewModel
             val state = _uiState.value
             if (!state.canSave) return
             submit {
-                security
+                profilePages
                     .savePhone(state.phone, state.code)
-                    .onSuccess { message ->
+                    .onSuccess { reply ->
                         _uiState.update { it.copy(step = PhoneStep.View, phone = "", code = "") }
-                        _effects.send(AccountPhoneEffect.ShowMessage(message))
+                        reply.message?.let { _effects.send(AccountPhoneEffect.ShowMessage(it)) }
                     }.onFailure { error ->
-                        val field = (error as? AccountFieldError)?.field
+                        val phoneError = (error as? ApiError)?.fieldError(PHONE)
                         _uiState.update {
-                            if (field == "phone") {
-                                it.copy(step = PhoneStep.Phone, phoneMessage = error.message, code = "")
+                            if (phoneError != null) {
+                                it.copy(step = PhoneStep.Phone, phoneMessage = phoneError, code = "")
                             } else {
-                                it.copy(codeMessage = error.message, code = "")
+                                it.copy(codeMessage = error.fieldMessage(CODE), code = "")
                             }
                         }
                     }
@@ -223,9 +256,10 @@ class AccountPhoneViewModel
 
         private fun remove() {
             submit {
-                security
+                profilePages
                     .removePhone()
-                    .onSuccess { message ->
+                    .onSuccess { reply ->
+                        val message = reply.message
                         _uiState.update { it.copy(step = PhoneStep.Phone) }
                         _effects.send(
                             if (_uiState.value.canAdd) {
@@ -236,7 +270,7 @@ class AccountPhoneViewModel
                                 AccountPhoneEffect.Close
                             },
                         )
-                    }.onFailure { error -> _effects.send(AccountPhoneEffect.ShowMessage(error.message.orEmpty())) }
+                    }.onFailure { error -> _effects.send(AccountPhoneEffect.ShowMessage(error.fieldMessage(PHONE))) }
             }
         }
 
@@ -247,5 +281,14 @@ class AccountPhoneViewModel
                 block()
                 _uiState.update { it.copy(isSubmitting = false) }
             }
+        }
+
+        private companion object {
+            const val PHONE = "phone"
+            const val CODE = "code"
+            const val KEY_STEP = "phone.step"
+            const val KEY_PHONE = "phone.number"
+            const val KEY_SENT_TO = "phone.sentTo"
+            const val KEY_CODE = "phone.code"
         }
     }

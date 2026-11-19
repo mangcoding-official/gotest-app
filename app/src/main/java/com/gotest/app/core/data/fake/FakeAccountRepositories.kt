@@ -4,6 +4,7 @@ import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.SubscriptionRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.EWallet
+import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.model.Order
 import com.gotest.app.core.model.OrderPromo
 import com.gotest.app.core.model.OrderStatus
@@ -52,6 +53,7 @@ class FakeAccountStore
                     id = "user_gilang",
                     fullName = "Gilang Permana",
                     email = "gilangpermana@mail.com",
+                    educationLevel = EducationLevel.SmaSmk,
                     avatarUrl = drawableUri("avatar_gilang"),
                     stats =
                         UserStats(
