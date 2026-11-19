@@ -20,7 +20,7 @@
     <string name="plan_empty">Belum ada rencana belajar untukmu di Mitra ini.</string>
     <string name="plan_primary">Rencana utama</string>
     <string name="plan_exam_line">%1$sUjian %2$s · %3$s</string>
-    <string name="plan_exam_target">%1$s · </string>
+    <string name="plan_exam_target">%1$s ·\u0020</string>
     <string name="plan_week_of">Minggu %1$d dari %2$d</string>
     <string name="plan_weeks">%1$d minggu</string>
     <string name="plan_today_from_primary">Tugas hari ini diambil dari rencana utamamu.</string>
