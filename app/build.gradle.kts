@@ -116,6 +116,8 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
+    // Question and passage images from the server (`/storage/...`, T-026 A2b review 5).
+    implementation(libs.coil.network.okhttp)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
@@ -124,6 +126,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)
+    // Question HTML and KaTeX math in a WebView served from app assets (T-026 criterion 6).
+    implementation(libs.androidx.webkit)
     ksp(libs.hilt.compiler)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

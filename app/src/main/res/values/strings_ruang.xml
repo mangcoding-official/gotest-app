@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ruang Mitra and Ujian for students (T-026 A2b). Texts are the web's: resources/js/Pages/Ruang/*,
+     Components/Student/Exam/*, lib/exams.ts. -->
+<resources>
+    <!-- Account menu (StudentTopHeader) -->
+    <string name="ruang_menu_space">Ruang %1$s</string>
+    <string name="ruang_menu_join">Gabung ke kelas</string>
+
+    <!-- Ruang/Show -->
+    <string name="ruang_kicker">Ruang Mitra</string>
+    <string name="ruang_lede">Try Out dan latihan dari Mitra ini. Hasilnya hanya terlihat olehmu dan Mitra ini.</string>
+    <string name="ruang_lede_former">Kamu sudah tidak terdaftar di %1$s. Hasil yang sudah ada tetap bisa dilihat.</string>
+    <string name="ruang_exams_title">Ujian</string>
+    <string name="ruang_exams_text">Ujian terjadwal dari %1$s. Nilainya tampil setelah diperiksa guru.</string>
+    <string name="ruang_exams_text_former">Ujian yang pernah kamu kerjakan di %1$s dan nilainya.</string>
+    <string name="ruang_exams_open">Buka Ujian</string>
+
+    <!-- Status labels (lib/exams.ts) -->
+    <string name="exam_state_scheduled">Terjadwal</string>
+    <string name="exam_state_running">Berjalan</string>
+    <string name="exam_state_closed">Ditutup</string>
+    <string name="exam_status_not_started">Belum dikerjakan</string>
+    <string name="exam_status_in_progress">Sedang dikerjakan</string>
+    <string name="exam_status_submitted">Sudah dikumpulkan</string>
+
+    <!-- Ruang/Exams/Index -->
+    <string name="exam_list_title">Ujian</string>
+    <string name="exam_list_back">Ruang %1$s</string>
+    <string name="exam_list_lede">Ujian dari Mitra ini. Nilainya tampil setelah diperiksa guru, dan hanya terlihat olehmu dan Mitra ini.</string>
+    <string name="exam_list_lede_former">Ujian yang pernah kamu kerjakan di Mitra ini. Nilainya tampil setelah diperiksa guru.</string>
+    <string name="exam_list_empty">Belum ada Ujian dari Mitra ini.</string>
+    <string name="exam_window">%1$s s.d. %2$s</string>
+    <string name="exam_duration">Durasi %1$d menit</string>
+    <string name="exam_grade">Nilai %1$s</string>
+    <string name="exam_grade_hidden">Nilai belum ditampilkan</string>
+    <string name="exam_action_result">Lihat Hasil</string>
+    <string name="exam_action_continue">Lanjutkan</string>
+    <string name="exam_action_open">Buka Ujian</string>
+    <string name="exam_action_detail">Lihat Detail</string>
+
+    <!-- Ruang/Exams/Show -->
+    <string name="exam_detail_back">Ujian %1$s</string>
+    <string name="exam_detail_questions_label">Jumlah soal</string>
+    <string name="exam_detail_questions">%1$d soal</string>
+    <string name="exam_detail_duration_label">Durasi</string>
+    <string name="exam_detail_duration">%1$d menit</string>
+    <string name="exam_detail_opens_label">Dibuka</string>
+    <string name="exam_detail_closes_label">Ditutup</string>
+    <string name="exam_detail_instructions">Petunjuk</string>
+    <string name="exam_detail_rules">Aturan Ujian</string>
+    <string name="exam_detail_stay">Jangan keluar dari halaman ini. Keluar 3 kali, Ujianmu dikumpulkan otomatis.</string>
+    <string name="exam_detail_start">Mulai Ujian</string>
+    <string name="exam_detail_starting">Menyiapkan...</string>
+    <string name="exam_detail_continue">Lanjutkan Ujian</string>
+    <string name="exam_detail_back_to_list">Kembali</string>
+
+    <!-- Screen pinning (API-K8 A): wording decided by Ardy, T-026 A2b-3 and A2b-6 (18 November 2026). -->
+    <string name="exam_pin_title">Sematkan layar</string>
+    <string name="exam_pin_message">Selama layar disematkan, aplikasi lain tidak bisa dibuka. Melepas sematan dihitung pelanggaran.</string>
+    <string name="exam_pin_confirm">Lanjut</string>
+    <string name="exam_pin_refused">Ujian belum dimulai. Sematkan layar untuk mengerjakan Ujian di aplikasi, atau kerjakan lewat gotest.id.</string>
+    <string name="exam_pin_again">Sematkan layar lagi untuk melanjutkan Ujian. Waktu terus berjalan.</string>
+    <string name="exam_pin_guidance">Bila tidak muncul pertanyaan untuk menyematkan, nyalakan Sematkan aplikasi di Pengaturan &gt; Keamanan, lalu coba lagi.</string>
+    <string name="exam_pin_settings">Buka Pengaturan Keamanan</string>
+
+    <!-- Sign-in ending soon (API-K4), wording decided by Ardy, T-026 A2b-7. -->
+    <string name="exam_login_expiry">Masa masukmu di HP ini berakhir %1$s. Keluar lalu masuk lagi sebelum Ujian supaya tidak terputus di tengah Ujian.</string>
+
+    <!-- Shared -->
+    <string name="ruang_cancel">Batal</string>
+    <!-- Ruang/Exams/Work (Work.tsx, ExamRunnerShell.tsx, ExamPaper.tsx) -->
+    <string name="work_kicker">Ujian</string>
+    <string name="work_time_left">Sisa Waktu %1$s</string>
+    <string name="work_exit">Keluar</string>
+    <string name="work_question">Soal %1$d</string>
+    <string name="work_passage_image">Gambar bacaan</string>
+    <string name="work_question_image">Gambar soal %1$d</string>
+    <string name="work_clear">Kosongkan jawaban</string>
+    <string name="work_previous">Sebelumnya</string>
+    <string name="work_next">Selanjutnya</string>
+    <string name="work_submit">Kumpulkan</string>
+    <string name="work_submitting">Mengumpulkan...</string>
+    <string name="work_violations">Pelanggaran %1$d dari %2$d</string>
+    <string name="work_violations_note">Keluar dari halaman ini 2 detik atau lebih dihitung pelanggaran dan terlihat oleh guru.</string>
+    <string name="work_nav_title">Navigasi Soal</string>
+    <string name="work_nav_filled">%1$d/%2$d Terisi</string>
+    <string name="work_nav_answered">Soal %1$d (Sudah dijawab)</string>
+    <string name="work_nav_empty">Soal %1$d (Belum dijawab)</string>
+    <string name="work_nav_unsent">%1$s (Belum tersimpan)</string>
+    <string name="work_connection_lost">Koneksi terputus. Jawaban soal %1$s belum terkirim dan tersimpan di perangkat ini. Jawaban dikirim otomatis saat koneksi kembali.</string>
+    <string name="work_rejected">Jawaban soal %1$s sampai setelah waktu habis, sehingga tidak tersimpan.</string>
+    <string name="work_stale">Sebagian jawaban sudah diganti dari perangkat lain. Muat ulang halaman untuk melihat jawaban terbaru.</string>
+    <string name="work_save_failed">Jawaban belum bisa disimpan. Coba lagi sebentar.</string>
+    <string name="work_time_up">Waktu habis. Jawaban terakhir sedang dikirim, lalu Ujianmu dikumpulkan.</string>
+    <string name="work_stopped">Ujian ini tidak bisa dilanjutkan.</string>
+
+    <!-- Answer areas (ExamItemAnswer.tsx) -->
+    <string name="work_multiple_hint">Pilih semua jawaban yang benar.</string>
+    <string name="work_true_false_hint">Pilih %1$s atau %2$s untuk setiap pernyataan.</string>
+    <string name="work_true_false_partial">%1$d dari %2$d pernyataan terjawab.</string>
+    <string name="work_matching_hint">Pasangkan setiap pernyataan dengan satu jawaban. Satu jawaban hanya untuk satu pernyataan.</string>
+    <string name="work_matching_choices">Pilihan jawaban</string>
+    <string name="work_matching_placeholder">Pilih jawaban</string>
+    <string name="work_matching_pair">Pasangan untuk pernyataan %1$d</string>
+    <string name="work_matching_partial">%1$d dari %2$d pernyataan sudah dipasangkan.</string>
+    <string name="work_short_number_hint">Tulis jawabanmu berupa angka.</string>
+    <string name="work_short_number_placeholder">Contoh: 12,5</string>
+    <string name="work_short_text_hint">Tulis jawabanmu.</string>
+    <string name="work_short_text_placeholder">Jawaban</string>
+    <string name="work_option_image">Gambar pilihan %1$s</string>
+
+    <!-- Violation (Work.tsx) -->
+    <string name="work_violation_title">Pelanggaran ke-%1$d dari %2$d</string>
+    <string name="work_violation_message">Kamu keluar dari halaman Ujian. Pelanggaran ini tercatat dan terlihat guru. Pada pelanggaran ke-%1$d, jawabanmu dikumpulkan otomatis.</string>
+    <string name="work_keep_working">Lanjut Mengerjakan</string>
+
+    <!-- Other device (Work.tsx) -->
+    <string name="work_other_device_title">Ujian ini sedang dibuka di perangkat lain</string>
+    <string name="work_other_device_message">Kamu bisa melanjutkan di perangkat ini. Perangkat lain tidak bisa dipakai lagi untuk Ujian ini, dan waktu tetap berjalan. Jawaban yang belum terkirim dari perangkat lain tidak ikut tersimpan.</string>
+    <string name="work_take_over">Lanjutkan di perangkat ini</string>
+    <string name="work_taking_over">Memindahkan...</string>
+    <string name="work_back_to_list">Kembali ke daftar Ujian</string>
+    <string name="work_take_over_failed">Belum bisa pindah ke perangkat ini. Coba lagi.</string>
+
+    <!-- Submit (Work.tsx) -->
+    <string name="work_submit_title">Kumpulkan Ujian?</string>
+    <string name="work_submit_unanswered">Soal nomor %1$s belum dijawab.</string>
+    <string name="work_submit_all_answered">Semua soal sudah dijawab.</string>
+    <string name="work_submit_note">Setelah dikumpulkan, jawaban tidak bisa diubah lagi. Nilai tampil setelah diperiksa guru.</string>
+    <string name="work_submit_check">Periksa Lagi</string>
+    <string name="work_submit_confirm">Ya, Kumpulkan</string>
+    <string name="work_submit_unsent">Masih ada jawaban yang belum terkirim. Periksa koneksi internet, lalu kumpulkan lagi.</string>
+    <string name="work_submit_failed">Ujian belum bisa dikumpulkan. Coba lagi.</string>
+
+    <!-- Exit (Work.tsx) -->
+    <string name="work_exit_title">Keluar dari Ujian?</string>
+    <string name="work_exit_message">Waktu Ujian tetap berjalan selama kamu keluar. Jawaban yang sudah terkirim tersimpan, dan kamu bisa melanjutkan dari daftar Ujian selama waktunya belum habis.</string>
+    <string name="work_exit_confirm">Keluar ke Daftar Ujian</string>
+    <!-- Ruang/Exams/Result, ExamItemReview -->
+    <string name="result_at">%1$s pukul %2$s</string>
+    <string name="result_time_up">Dikumpulkan otomatis %1$s karena waktu habis.</string>
+    <string name="result_violation">Dikumpulkan otomatis %1$s karena keluar dari halaman Ujian 3 kali.</string>
+    <string name="result_teacher">Dikumpulkan oleh guru %1$s.</string>
+    <string name="result_submitted">Terkumpul %1$s.</string>
+    <string name="result_grade">Nilai</string>
+    <string name="result_not_released">Nilai tampil setelah diperiksa guru.</string>
+    <string name="result_per_item">Hasil per soal</string>
+    <string name="result_key_title">Jawaban dan kunci</string>
+    <string name="result_correct">Benar</string>
+    <string name="result_partial">Sebagian benar</string>
+    <string name="result_wrong">Salah</string>
+    <string name="result_empty">Kosong</string>
+    <string name="result_yours">Jawabanmu</string>
+    <string name="result_key">Kunci</string>
+    <string name="result_accepted">Jawaban benar</string>
+    <string name="result_not_answered">Tidak dijawab</string>
+    <!-- Mitra/JoinWithCode, Mitra/Join -->
+    <string name="join_title">Gabung ke kelas</string>
+    <string name="join_lede">Masukkan kode dari pengajar atau penyelenggaramu untuk bergabung ke kelas atau acaranya.</string>
+    <string name="join_code_helper">Kode terdiri dari 8 huruf dan angka, misalnya dari grup kelasmu.</string>
+    <string name="join_code_label">Kode</string>
+    <string name="join_continue">Lanjut</string>
+    <string name="join_processing">Memproses...</string>
+    <string name="join_class_heading">Kelas %1$s</string>
+    <string name="join_class_heading_plain">Kode kelas</string>
+    <string name="join_class_lede">Bergabung ke %1$s dan kerjakan latihan kelasmu di Gotest.</string>
+    <string name="join_class_lede_plain">Bergabung ke kelasmu di Gotest.</string>
+    <string name="join_class_title">Gabung ke %1$s</string>
+    <string name="join_class_guest_from">Kelas dari %1$s. </string>
+    <string name="join_class_guest">%1$sMasuk lalu tekan Gabung di halaman ini, atau buat akun Gotest untuk langsung bergabung.</string>
+    <string name="join_class_ready">Kamu akan masuk ke kelas ini.</string>
+    <string name="join_class_ready_at">Kamu akan masuk ke kelas ini di %1$s.</string>
+    <string name="join_class_joined">Kamu sudah bergabung</string>
+    <string name="join_class_submit">Gabung</string>
+    <string name="join_open_space">Buka ruang</string>
+    <string name="join_refused_invalid">Kode tidak bisa dipakai</string>
+    <string name="join_refused_inactive">Belum bisa bergabung</string>
+    <string name="join_refused_full">Kursi sudah penuh</string>
+    <string name="join_event_lede">Diselenggarakan oleh %1$s.</string>
+    <string name="join_event_lede_plain">Ikuti Try Out bersama di Gotest.</string>
+    <string name="join_event_invalid_title">Kode tidak ditemukan</string>
+    <string name="join_event_invalid">Periksa lagi kodenya, atau minta kode terbaru ke pengajar atau penyelenggaramu.</string>
+    <string name="join_event_expired_title">Pendaftaran sudah ditutup</string>
+    <string name="join_event_expired">Kode %1$s sudah tidak berlaku.</string>
+    <string name="join_event_full_title">Kuota sudah penuh</string>
+    <string name="join_event_full">Kuota pendaftaran event ini sudah penuh. Hubungi panitianya.</string>
+    <string name="join_event_title">Daftar ke %1$s</string>
+    <string name="join_event_guest">Masuk lalu tekan Daftar di halaman ini, atau buat akun Gotest untuk langsung bergabung.</string>
+    <string name="join_event_ready">Kamu akan bergabung ke ruang %1$s.</string>
+    <string name="join_event_submit">Daftar</string>
+    <!-- An event code of the account's own Mitra (staff role): T-026 A2b-2, decided by Ardy. -->
+    <string name="join_staff_title">Berhasil bergabung</string>
+    <string name="join_staff_message">Buka portal %1$s di gotest.id lewat komputer atau peramban HP.</string>
+    <string name="join_staff_close">Tutup</string>
+    <string name="join_sign_in">Masuk</string>
+    <string name="join_register">Daftar</string>
+
+    <!-- Mitra/Invitation -->
+    <string name="invite_heading">Undangan %1$s</string>
+    <string name="invite_heading_plain">Undangan Gotest</string>
+    <string name="invite_lede_manager">Kelola %1$s dan Try Out Mitra di Gotest.</string>
+    <string name="invite_lede_teacher_family">Buat Try Out untuk anak dan pantau hasilnya di Gotest.</string>
+    <string name="invite_lede_teacher">Buat Try Out untuk kelasmu dan pantau hasil siswamu di Gotest.</string>
+    <string name="invite_lede_student">Kerjakan Try Out dari Mitra dan lihat hasilnya di Gotest.</string>
+    <string name="invite_invalid_title">Undangan tidak ditemukan</string>
+    <string name="invite_invalid">Tautan ini salah atau sudah dibatalkan. Minta tautan baru ke pengirimnya.</string>
+    <string name="invite_used_title">Undangan sudah dipakai</string>
+    <string name="invite_used">Masuk ke akunmu untuk membuka %1$s.</string>
+    <string name="invite_expired_title">Undangan sudah kedaluwarsa</string>
+    <string name="invite_expired">Minta tautan baru ke pengelola %1$s.</string>
+    <string name="invite_join_as">Bergabung sebagai %1$s %2$s</string>
+    <string name="invite_guest_email">Masuk dengan email %1$s, atau daftar dengan email itu untuk langsung bergabung.</string>
+    <string name="invite_guest_phone">Masuk dengan nomor WhatsApp %1$s, atau daftar dengan nomor itu untuk langsung bergabung.</string>
+    <string name="invite_other_title">Akun berbeda</string>
+    <string name="invite_other_email">Undangan ini untuk %1$s. Keluar lalu masuk dengan akun email tersebut.</string>
+    <string name="invite_other_phone">Undangan ini untuk nomor WhatsApp %1$s. Keluar lalu masuk dengan akun yang memakai nomor itu.</string>
+    <string name="invite_sign_out">Keluar</string>
+    <string name="invite_proof">Buktikan dulu bahwa %1$s milikmu. Kami kirim kode 6 angka ke email itu.</string>
+    <string name="invite_send_code">Kirim kode</string>
+    <string name="invite_with_account">Dengan akun %1$s.</string>
+    <string name="invite_accept">Terima Undangan</string>
+    <string name="invite_cancel">Batal</string>
+    <string name="invite_role_manager">pengelola</string>
+    <string name="invite_role_teacher">pengajar</string>
+    <string name="invite_role_teacher_family">orang tua dan tutor</string>
+    <string name="invite_role_student">siswa</string>
+    <string name="invite_role_student_family">anak</string>
+</resources>

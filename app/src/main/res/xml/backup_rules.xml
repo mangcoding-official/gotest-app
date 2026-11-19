@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- API 30 and lower. The session token is encrypted with a key that never leaves this device, so it is not backed up. -->
+<!-- API 30 and lower. The session token and the Ujian device tokens are encrypted with a key that never leaves this device, so they are not backed up. -->
 <full-backup-content>
     <exclude domain="sharedpref" path="gotest_session.xml" />
+    <exclude domain="sharedpref" path="gotest_exam.xml" />
 </full-backup-content>

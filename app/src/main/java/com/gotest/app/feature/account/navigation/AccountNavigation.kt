@@ -34,9 +34,11 @@ import com.gotest.app.navigation.DownloadAccountDataDestination
 import com.gotest.app.navigation.EditProfileDestination
 import com.gotest.app.navigation.HelpDestination
 import com.gotest.app.navigation.HelpTopicDestination
+import com.gotest.app.navigation.JoinWithCodeDestination
 import com.gotest.app.navigation.MainLevelDestination
 import com.gotest.app.navigation.PersonalDataDestination
 import com.gotest.app.navigation.ProfileDestination
+import com.gotest.app.navigation.RuangDestination
 import com.gotest.app.navigation.SettingsDestination
 import com.gotest.app.navigation.SubscriptionDestination
 import com.gotest.app.navigation.UpgradePlanDestination
@@ -50,30 +52,7 @@ private const val ACCOUNT_NOTICE_KEY = "account_notice"
  * Bantuan / Detail Topik.
  */
 fun NavGraphBuilder.accountScreens(navController: NavController) {
-    composable<ProfileDestination> { entry ->
-        ProfileRoute(
-            navigation =
-                ProfileNavigation(
-                    onOpenSettings = { navController.navigate(SettingsDestination) },
-                    onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
-                    onOpenSubscription =
-                        {
-                            navController.navigate(
-                                SubscriptionDestination,
-                            )
-                        }.takeIf { AppFeatures.PAYMENTS },
-                    onEditProfile = { navController.navigate(EditProfileDestination) },
-                    onChangePassword = { navController.navigate(ChangePasswordDestination) },
-                    onOpenHelp = { navController.navigate(HelpDestination) },
-                    onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
-                    onOpenPhone = { navController.navigate(AccountPhoneDestination) },
-                    onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
-                ),
-            notice = entry.accountNotice(),
-            onNoticeConsume = entry::consumeAccountNotice,
-            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
-        )
-    }
+    profileScreen(navController)
     // A child account may not open these screens, whatever leads there (Aturan 11.30, T-018 review 2).
     composable<EditProfileDestination> {
         AdultOnly(onChildAccount = navController::navigateUp) {
@@ -126,6 +105,36 @@ fun NavGraphBuilder.accountScreens(navController: NavController) {
     }
     composable<HelpTopicDestination> {
         HelpTopicRoute(onBack = navController::navigateUp)
+    }
+}
+
+/** Profil, the tab root, with its menu rows (Mitra spaces and "Gabung ke kelas" since T-026 A2b). */
+private fun NavGraphBuilder.profileScreen(navController: NavController) {
+    composable<ProfileDestination> { entry ->
+        ProfileRoute(
+            navigation =
+                ProfileNavigation(
+                    onOpenSettings = { navController.navigate(SettingsDestination) },
+                    onUpgrade = { navController.navigate(UpgradePlanDestination) }.takeIf { AppFeatures.PAYMENTS },
+                    onOpenSubscription =
+                        {
+                            navController.navigate(
+                                SubscriptionDestination,
+                            )
+                        }.takeIf { AppFeatures.PAYMENTS },
+                    onEditProfile = { navController.navigate(EditProfileDestination) },
+                    onChangePassword = { navController.navigate(ChangePasswordDestination) },
+                    onOpenHelp = { navController.navigate(HelpDestination) },
+                    onDeleteAccount = { navController.navigate(DeleteAccountDestination) },
+                    onOpenPhone = { navController.navigate(AccountPhoneDestination) },
+                    onOpenSessions = { navController.navigate(ActiveSessionsDestination) },
+                    onOpenRuang = { code -> navController.navigate(RuangDestination(code)) },
+                    onJoinWithCode = { navController.navigate(JoinWithCodeDestination) },
+                ),
+            notice = entry.accountNotice(),
+            onNoticeConsume = entry::consumeAccountNotice,
+            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
+        )
     }
 }
 
