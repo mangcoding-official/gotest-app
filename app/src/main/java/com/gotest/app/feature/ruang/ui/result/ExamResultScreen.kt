@@ -1,5 +1,6 @@
 package com.gotest.app.feature.ruang.ui.result
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,6 +55,7 @@ fun ExamResultRoute(
         onRetry = viewModel::load,
         onBackToList = { onBackToList(viewModel.code) },
         modifier = modifier,
+        quiz = viewModel.quiz,
     )
 }
 
@@ -63,11 +65,18 @@ fun ExamResultScreen(
     onRetry: () -> Unit,
     onBackToList: () -> Unit,
     modifier: Modifier = Modifier,
+    quiz: Boolean = false,
 ) {
     val page = uiState.page
     RuangScaffold(
-        title = page?.title ?: stringResource(R.string.exam_list_title),
-        subtitle = page?.let { stringResource(R.string.exam_detail_back, it.organization.name) },
+        title = page?.title ?: stringResource(if (quiz) R.string.quiz_kicker else R.string.exam_list_title),
+        subtitle =
+            page?.let {
+                stringResource(
+                    if (quiz) R.string.quiz_result_kicker else R.string.exam_detail_back,
+                    it.organization.name,
+                )
+            },
         onBack = onBackToList,
         modifier = modifier,
     ) { padding ->
@@ -85,7 +94,12 @@ fun ExamResultScreen(
             }
 
             else -> {
-                ResultContent(page = page, onBackToList = onBackToList, modifier = Modifier.padding(padding))
+                ResultContent(
+                    page = page,
+                    quiz = quiz,
+                    onBackToList = onBackToList,
+                    modifier = Modifier.padding(padding),
+                )
             }
         }
     }
@@ -94,6 +108,7 @@ fun ExamResultScreen(
 @Composable
 private fun ResultContent(
     page: ExamResultPage,
+    quiz: Boolean,
     onBackToList: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -107,7 +122,7 @@ private fun ResultContent(
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
         GotestCard(modifier = Modifier.fillMaxWidth()) {
-            page.submittedAt?.let { submittedLine(page.submitReason, it) }?.let { line ->
+            page.submittedAt?.let { submittedLine(page.submitReason, it, quiz) }?.let { line ->
                 Text(text = line, style = MaterialTheme.typography.bodySmall, color = GotestTheme.colors.textSecondary)
             }
             if (page.released) {
@@ -133,9 +148,9 @@ private fun ResultContent(
             }
         }
         if (page.released && page.items.isNotEmpty()) ResultGrid(page.items)
-        if (page.released && page.showAnswerKey) AnswerKeys(page.items)
+        if (page.released && page.showAnswerKey) AnswerKeys(page.items, quiz)
         GotestButton(
-            text = stringResource(R.string.work_back_to_list),
+            text = stringResource(if (quiz) R.string.quiz_back else R.string.work_back_to_list),
             onClick = onBackToList,
             modifier = Modifier.fillMaxWidth(),
             variant = GotestButtonVariant.Plain,
@@ -176,10 +191,13 @@ private fun ResultGrid(items: List<ExamResultItem>) {
 }
 
 @Composable
-private fun AnswerKeys(items: List<ExamResultItem>) {
+private fun AnswerKeys(
+    items: List<ExamResultItem>,
+    quiz: Boolean,
+) {
     GotestCard(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.result_key_title),
+            text = stringResource(if (quiz) R.string.quiz_result_key_title else R.string.result_key_title),
             style = MaterialTheme.typography.titleMedium,
             color = GotestTheme.colors.textPrimary,
         )
@@ -205,7 +223,33 @@ private fun AnswerKeys(items: List<ExamResultItem>) {
                 )
             }
             ExamItemReview(item)
+            // A quiz's short pembahasan per question (K-RB7); an Ujian has none.
+            item.explanation?.takeIf { quiz }?.let { Explanation(it) }
         }
+    }
+}
+
+@Composable
+private fun Explanation(html: String) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(GotestTheme.colors.bgSubtle, MaterialTheme.shapes.small)
+                .padding(GotestTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
+    ) {
+        Text(
+            text = stringResource(R.string.quiz_result_explanation),
+            style = MaterialTheme.typography.labelMedium,
+            color = GotestTheme.colors.textPrimary,
+        )
+        RichText(
+            content = html,
+            isHtml = true,
+            style = MaterialTheme.typography.bodySmall,
+            color = GotestTheme.colors.textPrimary,
+        )
     }
 }
 
@@ -226,11 +270,12 @@ fun ResultChip(result: String?) {
 private fun submittedLine(
     reason: String?,
     submittedAt: String,
+    quiz: Boolean,
 ): String {
     val instant = parseServerTime(submittedAt)
     val at = stringResource(R.string.result_at, dateWib.format(instant), timeWib.format(instant))
     return when (reason) {
-        "time_up" -> stringResource(R.string.result_time_up, at)
+        "time_up" -> stringResource(if (quiz) R.string.quiz_result_time_up else R.string.result_time_up, at)
         "violation" -> stringResource(R.string.result_violation, at)
         "teacher" -> stringResource(R.string.result_teacher, at)
         else -> stringResource(R.string.result_submitted, at)

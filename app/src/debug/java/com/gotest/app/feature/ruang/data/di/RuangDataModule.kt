@@ -2,8 +2,10 @@ package com.gotest.app.feature.ruang.data.di
 
 import com.gotest.app.feature.ruang.data.FakeExamRepository
 import com.gotest.app.feature.ruang.data.FakeRuangRepository
+import com.gotest.app.feature.ruang.data.FakeStudyPlanRepository
 import com.gotest.app.feature.ruang.domain.ExamRepository
 import com.gotest.app.feature.ruang.domain.RuangRepository
+import com.gotest.app.feature.ruang.domain.StudyPlanRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -16,4 +18,6 @@ interface RuangDataModule {
     @Binds fun bindRuangRepository(impl: FakeRuangRepository): RuangRepository
 
     @Binds fun bindExamRepository(impl: FakeExamRepository): ExamRepository
+
+    @Binds fun bindStudyPlanRepository(impl: FakeStudyPlanRepository): StudyPlanRepository
 }

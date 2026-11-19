@@ -19,6 +19,10 @@ import com.gotest.app.feature.ruang.domain.JoinedMitra
 import com.gotest.app.feature.ruang.domain.MitraMembership
 import com.gotest.app.feature.ruang.domain.RuangPage
 import com.gotest.app.feature.ruang.domain.RuangRepository
+import com.gotest.app.feature.ruang.domain.StudyPlanPage
+import com.gotest.app.feature.ruang.domain.StudyPlanRepository
+import com.gotest.app.feature.ruang.domain.TaskRecord
+import com.gotest.app.feature.ruang.domain.TaskStart
 import kotlinx.serialization.json.Json
 import retrofit2.Retrofit
 import javax.inject.Inject
@@ -110,4 +114,43 @@ class ApiExamRepository
             code: String,
             attemptId: Long,
         ): Result<ExamResultPage> = apiCall(json) { api.result(code, attemptId) }
+
+        override suspend fun quizWork(
+            code: String,
+            attemptId: Long,
+            deviceToken: String?,
+        ): Result<ExamWorkPage> = apiCall(json) { api.quizWork(code, attemptId, deviceToken) }
+
+        override suspend fun quizResult(
+            code: String,
+            attemptId: Long,
+        ): Result<ExamResultPage> = apiCall(json) { api.quizResult(code, attemptId) }
+    }
+
+@Singleton
+class ApiStudyPlanRepository
+    @Inject
+    constructor(
+        retrofit: Retrofit,
+        private val json: Json,
+    ) : StudyPlanRepository {
+        private val api = retrofit.create(RuangApi::class.java)
+
+        override suspend fun plan(code: String): Result<StudyPlanPage> = apiCall(json) { api.plan(code) }
+
+        override suspend fun start(
+            code: String,
+            taskId: Long,
+        ): Result<TaskStart> = apiCall(json) { api.startTask(code, taskId) }
+
+        override suspend fun record(
+            code: String,
+            taskId: Long,
+            record: TaskRecord,
+        ): Result<String?> = apiCall(json) { api.recordTask(code, taskId, record).message }
+
+        override suspend fun unrecord(
+            code: String,
+            taskId: Long,
+        ): Result<String?> = apiCall(json) { api.unrecordTask(code, taskId).message }
     }

@@ -7,6 +7,7 @@ import com.gotest.app.feature.ruang.domain.ExamItem
 import com.gotest.app.feature.ruang.domain.ExamResultItem
 import com.gotest.app.feature.ruang.domain.ExamResultPage
 import com.gotest.app.feature.ruang.domain.ExamSchedule
+import com.gotest.app.feature.ruang.domain.ExamWorkPage
 import com.gotest.app.feature.ruang.domain.MitraRef
 import com.gotest.app.feature.ruang.domain.MyExamStatus
 import com.gotest.app.feature.ruang.domain.ScheduleState
@@ -157,6 +158,30 @@ internal class FakeExamSchedules {
         )
     }
 
+    /** A Rencana Belajar quiz result: grade, key, and pembahasan right away (web Ruang/Exams/Result, `mode: quiz`). */
+    fun quizResult(
+        json: Json,
+        context: Context,
+    ): ExamResultPage {
+        val items =
+            json.decodeFromString(
+                FakeExamResultItems.serializer(),
+                context.assets
+                    .open("fake/ujian-hasil.json")
+                    .bufferedReader()
+                    .use { it.readText() },
+            )
+        return ExamResultPage(
+            organization = MitraRef(FakeExamRepository.SMP_NAME, FakeRuangRepository.SMP),
+            title = "",
+            mode = ExamWorkPage.MODE_QUIZ,
+            released = true,
+            grade = QUIZ_GRADE,
+            showAnswerKey = true,
+            items = items.items.map { it.copy(explanation = QUIZ_EXPLANATION) },
+        )
+    }
+
     fun result(
         code: String,
         attemptId: Long,
@@ -226,6 +251,9 @@ internal class FakeExamSchedules {
         const val OTHER_QUESTIONS = 20
         const val OPENED_MINUTES_AGO = 30L
         const val OPEN_HOURS = 3L
+        const val QUIZ_GRADE = 80.0
+        const val QUIZ_EXPLANATION =
+            "<p>Baca lagi soalnya, lalu bandingkan jawabanmu dengan kunci. Pembahasan ini ditulis guru untuk kuis.</p>"
 
         val RULES =
             listOf(

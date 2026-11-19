@@ -18,9 +18,14 @@ import com.gotest.app.feature.ruang.domain.JoinCodePage
 import com.gotest.app.feature.ruang.domain.JoinResult
 import com.gotest.app.feature.ruang.domain.MitraMembership
 import com.gotest.app.feature.ruang.domain.RuangPage
+import com.gotest.app.feature.ruang.domain.StudyPlanPage
+import com.gotest.app.feature.ruang.domain.TaskMessage
+import com.gotest.app.feature.ruang.domain.TaskRecord
+import com.gotest.app.feature.ruang.domain.TaskStart
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -46,7 +51,10 @@ data class InvitationAcceptRequest(
     @SerialName("code") val code: String? = null,
 )
 
-/** API module G routes (API-CONTRACTS "API Android modul G"); the address is the web's plus `/api/v1`. */
+/**
+ * API module G routes (API-CONTRACTS "API Android modul G") and the child's Rencana Belajar (T-031); the address
+ * is the web's plus `/api/v1`.
+ */
 @Suppress("TooManyFunctions") // One function per route of the contract.
 interface RuangApi {
     @GET("api/v1/akun")
@@ -142,6 +150,43 @@ interface RuangApi {
         @Path("code") code: String,
         @Path("attempt") attemptId: Long,
     ): ExamResultPage
+
+    @GET("api/v1/ruang/{code}/kuis/kerjakan/{attempt}")
+    suspend fun quizWork(
+        @Path("code") code: String,
+        @Path("attempt") attemptId: Long,
+        @Header(EXAM_DEVICE) deviceToken: String?,
+    ): ExamWorkPage
+
+    @GET("api/v1/ruang/{code}/kuis/hasil/{attempt}")
+    suspend fun quizResult(
+        @Path("code") code: String,
+        @Path("attempt") attemptId: Long,
+    ): ExamResultPage
+
+    @GET("api/v1/ruang/{code}/rencana")
+    suspend fun plan(
+        @Path("code") code: String,
+    ): StudyPlanPage
+
+    @POST("api/v1/ruang/{code}/tugas/{task}/mulai")
+    suspend fun startTask(
+        @Path("code") code: String,
+        @Path("task") taskId: Long,
+    ): TaskStart
+
+    @PUT("api/v1/ruang/{code}/tugas/{task}/catatan")
+    suspend fun recordTask(
+        @Path("code") code: String,
+        @Path("task") taskId: Long,
+        @Body body: TaskRecord,
+    ): TaskMessage
+
+    @DELETE("api/v1/ruang/{code}/tugas/{task}/catatan")
+    suspend fun unrecordTask(
+        @Path("code") code: String,
+        @Path("task") taskId: Long,
+    ): TaskMessage
 
     companion object {
         /** The Ujian device token, kept per attempt apart from the sign-in token. */

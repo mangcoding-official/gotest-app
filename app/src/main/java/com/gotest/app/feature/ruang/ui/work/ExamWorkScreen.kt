@@ -110,7 +110,7 @@ private fun WorkHeader(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.work_kicker),
+                    text = stringResource(if (page?.isQuiz == true) R.string.quiz_kicker else R.string.work_kicker),
                     style = MaterialTheme.typography.labelSmall,
                     color = GotestTheme.colors.textSecondary,
                 )

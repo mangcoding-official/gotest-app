@@ -83,6 +83,9 @@ class ExamWorkViewModel
         val code: String = checkNotNull(savedStateHandle[ARG_CODE])
         val attemptId: Long = checkNotNull(savedStateHandle[ARG_ATTEMPT])
 
+        /** A Rencana Belajar quiz: the same engine, read from `ruang/{code}/kuis/kerjakan` (T-031). */
+        val quiz: Boolean = savedStateHandle[ARG_QUIZ] ?: false
+
         private val _uiState = MutableStateFlow(ExamWorkUiState(blockIndex = savedStateHandle[KEY_BLOCK] ?: 0))
         val uiState: StateFlow<ExamWorkUiState> = _uiState.asStateFlow()
 
@@ -186,8 +189,8 @@ class ExamWorkViewModel
             // Pinning is the phone's, not the page's: Android tells only changes, so it is kept (A2b review ulang 1).
             _uiState.update { ExamWorkUiState(blockIndex = it.blockIndex, pinned = it.pinned) }
             viewModelScope.launch {
-                repository
-                    .work(code, attemptId, local.deviceToken(attemptId))
+                val token = local.deviceToken(attemptId)
+                (if (quiz) repository.quizWork(code, attemptId, token) else repository.work(code, attemptId, token))
                     .onSuccess(::open)
                     .onFailure { error ->
                         if (error is ApiError && handleRefusal(error)) return@onFailure
@@ -478,6 +481,7 @@ class ExamWorkViewModel
             const val SUBMITTED = "submitted"
             const val ARG_CODE = "code"
             const val ARG_ATTEMPT = "attemptId"
+            const val ARG_QUIZ = "quiz"
             const val KEY_BLOCK = "blockIndex"
         }
     }

@@ -34,11 +34,15 @@ data class MitraMembership(
     }
 }
 
-/** `GET /ruang/{code}`; Try Out, Latihan, plan and progress parts join with A2c and Rencana Belajar. */
+/** `GET /ruang/{code}`; Try Out, Latihan, and their progress join with A2c. */
 @Serializable
 data class RuangPage(
     @SerialName("organization") val organization: MitraRef,
     @SerialName("former") val former: Boolean = false,
+    /** Tugas hari ini from the main plan (Rencana Belajar). */
+    @SerialName("today") val today: TodayTasks = TodayTasks(),
+    /** The child's own progress in the main plan; null without a plan. */
+    @SerialName("planProgress") val planProgress: PlanProgress? = null,
 )
 
 @Serializable

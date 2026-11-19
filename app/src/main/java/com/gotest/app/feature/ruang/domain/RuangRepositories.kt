@@ -79,4 +79,39 @@ interface ExamRepository {
         code: String,
         attemptId: Long,
     ): Result<ExamResultPage>
+
+    /** A Rencana Belajar quiz runs on the Ujian engine (`mode: quiz`) but opens at its own address (T-031). */
+    suspend fun quizWork(
+        code: String,
+        attemptId: Long,
+        deviceToken: String?,
+    ): Result<ExamWorkPage>
+
+    suspend fun quizResult(
+        code: String,
+        attemptId: Long,
+    ): Result<ExamResultPage>
+}
+
+/** Rencana Belajar for the child (T-031): the plan page and the task actions. */
+interface StudyPlanRepository {
+    suspend fun plan(code: String): Result<StudyPlanPage>
+
+    /** Starts or continues a quiz or Gotest Latihan; refusals carry the web's sentence. */
+    suspend fun start(
+        code: String,
+        taskId: Long,
+    ): Result<TaskStart>
+
+    /** Records an external task done; the server's sentence ("Tugas dicatat selesai."). */
+    suspend fun record(
+        code: String,
+        taskId: Long,
+        record: TaskRecord,
+    ): Result<String?>
+
+    suspend fun unrecord(
+        code: String,
+        taskId: Long,
+    ): Result<String?>
 }
