@@ -1,5 +1,6 @@
 package com.gotest.app.feature.ruang.domain
 
+import com.gotest.app.feature.tryout.domain.TryoutSession
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -34,7 +35,7 @@ data class MitraMembership(
     }
 }
 
-/** `GET /ruang/{code}`; Try Out, Latihan, and their progress join with A2c. */
+/** `GET /ruang/{code}` (web Ruang/Show). */
 @Serializable
 data class RuangPage(
     @SerialName("organization") val organization: MitraRef,
@@ -43,6 +44,67 @@ data class RuangPage(
     @SerialName("today") val today: TodayTasks = TodayTasks(),
     /** The child's own progress in the main plan; null without a plan. */
     @SerialName("planProgress") val planProgress: PlanProgress? = null,
+    /** The school's Try Out sessions this student takes part in, newest first (same shape as the catalog's). */
+    @SerialName("sessions") val sessions: List<TryoutSession> = emptyList(),
+    @SerialName("practice") val practice: List<RuangPractice> = emptyList(),
+    @SerialName("progress") val progress: MitraProgress = MitraProgress(),
+)
+
+/** One Latihan sekolah given to the student, or worked on before (web Ruang/Show PracticeCard). */
+@Serializable
+data class RuangPractice(
+    @SerialName("id") val id: Long,
+    @SerialName("name") val name: String,
+    @SerialName("description") val description: String? = null,
+    @SerialName("questionCount") val questionCount: Int = 0,
+    /** `none`, `package`, or `per_question`. */
+    @SerialName("timerMode") val timerMode: String = TIMER_NONE,
+    @SerialName("durationSeconds") val durationSeconds: Int? = null,
+    /** Closed by the Mitra: results and pembahasan stay, no new start. */
+    @SerialName("closed") val closed: Boolean = false,
+    @SerialName("continueAttemptId") val continueAttemptId: Long? = null,
+    @SerialName("canStart") val canStart: Boolean = false,
+    @SerialName("finishedCount") val finishedCount: Int = 0,
+    @SerialName("lastAttemptId") val lastAttemptId: Long? = null,
+    @SerialName("lastScore") val lastScore: Double? = null,
+) {
+    companion object {
+        const val TIMER_NONE = "none"
+        const val TIMER_PACKAGE = "package"
+        const val TIMER_PER_QUESTION = "per_question"
+    }
+}
+
+/** Perkembanganmu in a Mitra space (web Components/Mitra/ProgressView), oldest attempt first. */
+@Serializable
+data class MitraProgress(
+    @SerialName("attempts") val attempts: List<ProgressAttempt> = emptyList(),
+    @SerialName("subjects") val subjects: List<ProgressSubject> = emptyList(),
+)
+
+@Serializable
+data class ProgressAttempt(
+    @SerialName("id") val id: Long,
+    /** `latihan` or `simulasi`. */
+    @SerialName("kind") val kind: String,
+    @SerialName("title") val title: String,
+    @SerialName("submittedAt") val submittedAt: String? = null,
+    @SerialName("correct") val correct: Int = 0,
+    @SerialName("total") val total: Int = 0,
+    @SerialName("percent") val percent: Int = 0,
+    @SerialName("score") val score: Double = 0.0,
+) {
+    companion object {
+        const val KIND_PRACTICE = "latihan"
+    }
+}
+
+@Serializable
+data class ProgressSubject(
+    @SerialName("name") val name: String,
+    @SerialName("correct") val correct: Int = 0,
+    @SerialName("total") val total: Int = 0,
+    @SerialName("percent") val percent: Int = 0,
 )
 
 @Serializable

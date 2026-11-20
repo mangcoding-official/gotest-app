@@ -53,12 +53,13 @@ import kotlin.math.roundToInt
 
 /**
  * [onOpenPackageBoard] gets the package id of a Try Out, or null (the web then opens the Leaderboard page).
- * "Lihat Hasil" and "Buka Pembahasan" wait for the result and explanation screens (T-026 A2c).
+ * [onOpenResult]: "Lihat Hasil" of a Try Out or "Buka Pembahasan" of a Latihan (web HistoryResultModal).
  */
 @Composable
 fun HistoryDetailRoute(
     onBack: () -> Unit,
     onOpenPackageBoard: (Long?) -> Unit,
+    onOpenResult: (HistoryResult) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HistoryDetailViewModel = hiltViewModel(),
 ) {
@@ -69,6 +70,7 @@ fun HistoryDetailRoute(
         onRetry = viewModel::load,
         onOpenPackageBoard = onOpenPackageBoard,
         modifier = modifier,
+        onOpenResult = onOpenResult,
     )
 }
 
@@ -79,6 +81,7 @@ fun HistoryDetailScreen(
     onRetry: () -> Unit,
     onOpenPackageBoard: (Long?) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenResult: (HistoryResult) -> Unit = {},
 ) {
     val detail = uiState.detail
     Column(modifier = modifier.fillMaxSize().background(GotestTheme.colors.bgSubtle)) {
@@ -88,7 +91,7 @@ fun HistoryDetailScreen(
         )
         when {
             detail != null -> {
-                DetailContent(detail = detail, onOpenPackageBoard = onOpenPackageBoard)
+                DetailContent(detail = detail, onOpenPackageBoard = onOpenPackageBoard, onOpenResult = onOpenResult)
             }
 
             uiState.loadFailed -> {
@@ -110,6 +113,7 @@ fun HistoryDetailScreen(
 private fun DetailContent(
     detail: HistoryDetail,
     onOpenPackageBoard: (Long?) -> Unit,
+    onOpenResult: (HistoryResult) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -138,6 +142,14 @@ private fun DetailContent(
             )
         }
         SectionsCard(attempt)
+        GotestButton(
+            text =
+                stringResource(
+                    if (attempt.isTryout) R.string.history_view_result else R.string.history_open_discussion,
+                ),
+            onClick = { onOpenResult(attempt) },
+            modifier = Modifier.fillMaxWidth(),
+        )
         // Only a Try Out has a package ranking (web HistoryResultModal); Latihan shows the summary alone.
         if (attempt.isTryout) {
             RankingCard(ranking = detail.ranking, onMore = { onOpenPackageBoard(attempt.packageId) })

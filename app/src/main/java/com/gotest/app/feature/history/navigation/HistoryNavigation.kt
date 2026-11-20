@@ -8,7 +8,9 @@ import com.gotest.app.feature.history.ui.history.HistoryRoute
 import com.gotest.app.navigation.HistoryDestination
 import com.gotest.app.navigation.HistoryDetailDestination
 import com.gotest.app.navigation.PackageLeaderboardDestination
+import com.gotest.app.navigation.PracticeResultDestination
 import com.gotest.app.navigation.TopLevelDestination
+import com.gotest.app.navigation.TryoutResultDestination
 import com.gotest.app.navigation.navigateToTab
 
 /** Riwayat tab and Detail Hasil. */
@@ -26,6 +28,13 @@ fun NavGraphBuilder.historyScreens(navController: NavController) {
                     navController.navigate(PackageLeaderboardDestination(packageId.toString()))
                 } else {
                     navController.navigateToTab(TopLevelDestination.Leaderboard)
+                }
+            },
+            onOpenResult = { attempt ->
+                if (attempt.isTryout) {
+                    navController.navigate(TryoutResultDestination(attempt.id))
+                } else {
+                    navController.navigate(PracticeResultDestination(attempt.id, attempt.packageName))
                 }
             },
         )

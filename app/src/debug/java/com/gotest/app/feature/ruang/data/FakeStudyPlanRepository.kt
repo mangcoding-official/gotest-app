@@ -2,6 +2,7 @@ package com.gotest.app.feature.ruang.data
 
 import com.gotest.app.core.data.fake.simulateLatency
 import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.practice.data.FakePracticeRepository
 import com.gotest.app.feature.ruang.domain.MitraRef
 import com.gotest.app.feature.ruang.domain.PlanCompletion
 import com.gotest.app.feature.ruang.domain.PlanHead
@@ -54,7 +55,7 @@ internal data class FakeTask(
  * Debug data for the child's Rencana Belajar (T-031; debug builds only, T-026 criterion 8). In SMP 1 Bantargedung
  * Gilang has "Persiapan PTS Semester 1" (main plan, week 2 of 4) and "Persiapan Ujian Akhir" (not started yet).
  * Today: a quiz (six items of the Ujian paper), an external task with a 10-question target, and a video without
- * one; a Gotest Latihan is due tomorrow. Bimbel Cerdas has no plan. Texts are the server's (StudyRoomData,
+ * one; a Gotest Latihan opens in the Latihan screen (RB-1). Bimbel Cerdas has no plan. Texts are the server's (StudyRoomData,
  * StudyChildAccess, StudyTaskRecords, StudyTaskStarts).
  */
 @Singleton
@@ -62,6 +63,7 @@ class FakeStudyPlanRepository
     @Inject
     constructor(
         private val exams: FakeExamRepository,
+        private val practice: FakePracticeRepository,
     ) : StudyPlanRepository {
         private val today: LocalDate = LocalDate.now()
         private val start: LocalDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1)
@@ -95,7 +97,9 @@ class FakeStudyPlanRepository
 
                 RoomTask.TYPE_PRACTICE -> {
                     task.started = true
-                    Result.success(TaskStart(RoomTask.TYPE_PRACTICE, PRACTICE_ATTEMPTS + task.id))
+                    // Each task has its own Latihan Gotest package in the fake, so it opens in the Latihan screen.
+                    val attempt = practice.open(PRACTICE_ATTEMPTS + task.id, PRACTICE_ATTEMPTS + task.id)
+                    Result.success(TaskStart(RoomTask.TYPE_PRACTICE, attempt.id))
                 }
 
                 else -> {
@@ -548,7 +552,7 @@ private fun fakeTasks(
             topic = "Pecahan",
             target = 10,
             minScore = 70.0,
-            workOn = today.plusDays(1),
+            workOn = today,
             dueOn = today.plusDays(2),
         ),
         FakeTask(

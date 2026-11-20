@@ -198,6 +198,46 @@ import kotlinx.serialization.Serializable
     val gameCode: String,
 )
 
+// Latihan (T-026 A2c, API module C): a category, its subtest, the runner, and the pembahasan.
+@Serializable data class PracticeCategoryDestination(
+    val categoryId: Long,
+)
+
+@Serializable data class PracticeSubjectDestination(
+    val categoryId: Long,
+    val subjectId: Long,
+)
+
+/** [packageName] is shown in the runner's head; the attempt itself does not carry it. */
+@Serializable data class PracticeRunnerDestination(
+    val attemptId: Long,
+    val packageName: String = "",
+)
+
+@Serializable data class PracticeResultDestination(
+    val attemptId: Long,
+    val packageName: String = "",
+)
+
+// Try Out (T-026 A2c, API module D): a category, a session, the runner, and the result.
+@Serializable data class TryoutCategoryDestination(
+    val categoryId: Long,
+)
+
+@Serializable data class TryoutSessionDestination(
+    val sessionId: Long,
+)
+
+/** [packageName] is shown in the runner's head; the attempt itself does not carry it. */
+@Serializable data class TryoutRunnerDestination(
+    val attemptId: Long,
+    val packageName: String = "",
+)
+
+@Serializable data class TryoutResultDestination(
+    val attemptId: Long,
+)
+
 // Ruang Mitra and Ujian for students (T-026 A2b, API module G).
 @Serializable data class RuangDestination(
     val code: String,

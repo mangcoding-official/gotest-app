@@ -15,6 +15,39 @@
     <string name="ruang_exams_text_former">Ujian yang pernah kamu kerjakan di %1$s dan nilainya.</string>
     <string name="ruang_exams_open">Buka Ujian</string>
 
+    <!-- Ruang/Show: Try Out, Latihan, Sudah selesai (SessionGroup, PracticeGroup) -->
+    <string name="ruang_tryout_title">Try Out</string>
+    <string name="ruang_tryout_empty">Belum ada Try Out terjadwal dari Mitra ini.</string>
+    <string name="ruang_finished_title">Sudah selesai</string>
+    <string name="ruang_session_window">%1$s s.d. %2$s</string>
+    <string name="ruang_session_score">Skor %1$s</string>
+    <string name="ruang_session_score_rank">Skor %1$s · Peringkat %2$d dari %3$d</string>
+    <string name="ruang_practice_title">Latihan</string>
+    <string name="ruang_practice_empty">Belum ada latihan dari Mitra ini.</string>
+    <string name="ruang_practice_meta">%1$d soal · %2$s</string>
+    <string name="ruang_practice_meta_closed">%1$d soal · %2$s · Sudah ditutup Mitra</string>
+    <string name="ruang_practice_minutes">%1$d menit</string>
+    <string name="ruang_practice_per_question">Waktu per soal</string>
+    <string name="ruang_practice_untimed">Tanpa batas waktu</string>
+    <string name="ruang_practice_last">Nilai terakhir %1$s</string>
+    <string name="ruang_practice_last_count">Nilai terakhir %1$s · %2$d kali dikerjakan</string>
+    <string name="ruang_practice_continue">Lanjutkan</string>
+
+    <!-- Perkembanganmu (Components/Mitra/ProgressView) -->
+    <string name="ruang_progress_percent_title">Persentase jawaban benar</string>
+    <string name="ruang_progress_average">Rata-rata %1$d%% dari %2$d pengerjaan</string>
+    <string name="ruang_progress_chart">Grafik persentase jawaban benar</string>
+    <string name="ruang_progress_subjects">Per subtes</string>
+    <string name="ruang_progress_subject_line">%1$d%% · %2$d/%3$d benar</string>
+    <string name="ruang_progress_history">Riwayat pengerjaan</string>
+    <string name="ruang_progress_col_done">Selesai</string>
+    <string name="ruang_progress_col_activity">Kegiatan</string>
+    <string name="ruang_progress_col_correct">Benar</string>
+    <string name="ruang_progress_col_score">Nilai</string>
+    <string name="ruang_progress_kind_practice">Latihan</string>
+    <string name="ruang_progress_kind_tryout">Try Out</string>
+    <string name="ruang_progress_fraction">%1$d/%2$d</string>
+
     <!-- Status labels (lib/exams.ts) -->
     <string name="exam_state_scheduled">Terjadwal</string>
     <string name="exam_state_running">Berjalan</string>

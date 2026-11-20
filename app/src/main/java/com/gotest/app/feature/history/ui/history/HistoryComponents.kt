@@ -31,6 +31,8 @@ import com.gotest.app.core.designsystem.component.GotestTrackedProgress
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.GotestFormat
+import com.gotest.app.core.ui.StudentStatTiles
+import com.gotest.app.core.ui.categoryTone
 import com.gotest.app.feature.history.domain.HistoryCategory
 import com.gotest.app.feature.history.domain.HistoryFilters
 import com.gotest.app.feature.history.domain.HistoryMode
@@ -59,58 +61,12 @@ internal fun groupByMonth(results: List<HistoryResult>): List<Pair<YearMonth?, L
         .groupBy { result -> localDate(result.submittedAt)?.let(YearMonth::from) }
         .toList()
 
-/** Web `categoryBadgeClass`: SMA green, UTBK/SNBT blue, others violet. */
-internal fun categoryTone(name: String): GotestChipTone {
-    val value = name.lowercase()
-    return when {
-        "sma" in value -> GotestChipTone.Green
-        "utbk" in value || "snbt" in value -> GotestChipTone.Blue
-        else -> GotestChipTone.Violet
-    }
-}
-
 /** Web `StudentStatCards`: Soal Dikerjakan, Akurasi Jawaban, Paket Selesai. */
 @Composable
 internal fun HistoryStatTiles(
     stats: HistoryStats,
     modifier: Modifier = Modifier,
-) {
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
-        StatTile(
-            GotestFormat.number(stats.questionsDone),
-            stringResource(R.string.history_stat_questions),
-            Modifier.weight(1f),
-        )
-        StatTile(
-            stringResource(R.string.history_percent, stats.accuracy),
-            stringResource(R.string.history_stat_accuracy),
-            Modifier.weight(1f),
-        )
-        StatTile(
-            GotestFormat.number(stats.packagesDone),
-            stringResource(R.string.history_stat_packages),
-            Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun StatTile(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-) {
-    GotestCard(
-        modifier = modifier,
-        contentPadding =
-            androidx.compose.foundation.layout
-                .PaddingValues(GotestTheme.spacing.md),
-        verticalSpacing = GotestTheme.spacing.xs,
-    ) {
-        Text(text = value, style = MaterialTheme.typography.headlineSmall, color = GotestTheme.colors.textPrimary)
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = GotestTheme.colors.textSecondary)
-    }
-}
+) = StudentStatTiles(stats.questionsDone, stats.accuracy, stats.packagesDone, modifier)
 
 /** Web `HistoryPanel` filters: search, package type, level, order; nothing changes until "Filter". */
 @Composable

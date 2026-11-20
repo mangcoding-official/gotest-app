@@ -88,7 +88,6 @@ fun PlanRoute(
             ),
         modifier = modifier,
         taskState = taskState,
-        practiceOpens = taskNavigation.onOpenPractice != null,
     )
 }
 
@@ -105,7 +104,6 @@ fun PlanScreen(
     actions: PlanActions,
     modifier: Modifier = Modifier,
     taskState: TaskActionState = TaskActionState(),
-    practiceOpens: Boolean = false,
 ) {
     val page = uiState.page
     RuangScaffold(
@@ -129,7 +127,6 @@ fun PlanScreen(
                     page = page,
                     taskState = taskState,
                     actions = actions,
-                    practiceOpens = practiceOpens,
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -144,7 +141,6 @@ private fun PlanContent(
     page: StudyPlanPage,
     taskState: TaskActionState,
     actions: PlanActions,
-    practiceOpens: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -192,7 +188,6 @@ private fun PlanContent(
                     family = uiState.family,
                     taskState = taskState,
                     onTaskEvent = actions.onTaskEvent,
-                    practiceOpens = practiceOpens,
                 )
             }
         }
@@ -325,7 +320,6 @@ private fun WeekCard(
     family: Boolean,
     taskState: TaskActionState,
     onTaskEvent: (TaskEvent) -> Unit,
-    practiceOpens: Boolean,
 ) {
     val colors = GotestTheme.colors
     GotestCard(
@@ -378,7 +372,6 @@ private fun WeekCard(
                     family = family,
                     state = taskState,
                     onEvent = onTaskEvent,
-                    practiceOpens = practiceOpens,
                 )
             }
         }

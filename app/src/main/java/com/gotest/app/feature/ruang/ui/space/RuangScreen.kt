@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,10 +29,14 @@ import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.ObserveAsEvents
+import com.gotest.app.feature.ruang.domain.MitraProgress
 import com.gotest.app.feature.ruang.domain.MitraRef
 import com.gotest.app.feature.ruang.domain.PlanHead
 import com.gotest.app.feature.ruang.domain.PlanProgress
+import com.gotest.app.feature.ruang.domain.ProgressAttempt
+import com.gotest.app.feature.ruang.domain.ProgressSubject
 import com.gotest.app.feature.ruang.domain.RuangPage
+import com.gotest.app.feature.ruang.domain.RuangPractice
 import com.gotest.app.feature.ruang.domain.TodayTasks
 import com.gotest.app.feature.ruang.ui.components.RuangScaffold
 import com.gotest.app.feature.ruang.ui.tasks.PlanProgressSummary
@@ -44,12 +49,22 @@ import com.gotest.app.feature.ruang.ui.tasks.TopicList
 import com.gotest.app.feature.ruang.ui.tasks.handle
 import com.gotest.app.feature.ruang.ui.tasks.previewProgress
 import com.gotest.app.feature.ruang.ui.tasks.previewTasks
+import com.gotest.app.feature.tryout.domain.TryoutSession
+
+/** Where the Try Out and Latihan parts of the space lead. */
+data class RuangLinks(
+    val onOpenExams: (code: String) -> Unit,
+    val onOpenPlan: (code: String) -> Unit,
+    val onOpenPractice: (attemptId: Long, packageName: String) -> Unit,
+    val onOpenPracticeResult: (attemptId: Long, packageName: String) -> Unit,
+    val onOpenSession: (sessionId: Long) -> Unit,
+    val onOpenTryoutResult: (attemptId: Long) -> Unit,
+)
 
 @Composable
 fun RuangRoute(
     onBack: () -> Unit,
-    onOpenExams: (String) -> Unit,
-    onOpenPlan: (String) -> Unit,
+    links: RuangLinks,
     taskNavigation: TaskNavigation,
     modifier: Modifier = Modifier,
     viewModel: RuangViewModel = hiltViewModel(),
@@ -62,6 +77,12 @@ fun RuangRoute(
         onPauseOrDispose { }
     }
     ObserveAsEvents(viewModel.tasks.effects) { taskNavigation.handle(viewModel.code, it) }
+    ObserveAsEvents(viewModel.effects) { effect ->
+        when (effect) {
+            is RuangEffect.OpenPractice -> links.onOpenPractice(effect.attemptId, effect.packageName)
+            is RuangEffect.OpenPracticeResult -> links.onOpenPracticeResult(effect.attemptId, effect.packageName)
+        }
+    }
     RuangScreen(
         uiState = uiState,
         taskState = taskState,
@@ -69,12 +90,21 @@ fun RuangRoute(
             RuangActions(
                 onRetry = viewModel::retry,
                 onBack = onBack,
-                onOpenExams = { onOpenExams(viewModel.code) },
-                onOpenPlan = { onOpenPlan(viewModel.code) },
+                onOpenExams = { links.onOpenExams(viewModel.code) },
+                onOpenPlan = { links.onOpenPlan(viewModel.code) },
                 onTaskEvent = viewModel.tasks::onEvent,
+                onPractice = viewModel::onPractice,
+                // A finished session opens its result, the others the session page (web SessionGroup).
+                onOpenSession = { session ->
+                    val attemptId = session.attemptId
+                    if (session.attemptDone && attemptId != null) {
+                        links.onOpenTryoutResult(attemptId)
+                    } else {
+                        links.onOpenSession(session.id)
+                    }
+                },
             ),
         modifier = modifier,
-        practiceOpens = taskNavigation.onOpenPractice != null,
     )
 }
 
@@ -84,6 +114,8 @@ data class RuangActions(
     val onOpenExams: () -> Unit,
     val onOpenPlan: () -> Unit = {},
     val onTaskEvent: (TaskEvent) -> Unit = {},
+    val onPractice: (RuangPractice, PracticeAction) -> Unit = { _, _ -> },
+    val onOpenSession: (TryoutSession) -> Unit = {},
 )
 
 @Composable
@@ -92,7 +124,6 @@ fun RuangScreen(
     actions: RuangActions,
     modifier: Modifier = Modifier,
     taskState: TaskActionState = TaskActionState(),
-    practiceOpens: Boolean = false,
 ) {
     val page = uiState.page
     RuangScaffold(
@@ -116,7 +147,6 @@ fun RuangScreen(
                     page = page,
                     taskState = taskState,
                     actions = actions,
-                    practiceOpens = practiceOpens,
                     modifier = Modifier.padding(padding),
                 )
             }
@@ -131,7 +161,6 @@ private fun RuangContent(
     page: RuangPage,
     taskState: TaskActionState,
     actions: RuangActions,
-    practiceOpens: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -161,11 +190,35 @@ private fun RuangContent(
                 family = uiState.family,
                 taskState = taskState,
                 actions = actions,
-                practiceOpens = practiceOpens,
             )
         }
         if (uiState.hasExams) ExamsCard(name = name, former = page.former, onOpenExams = actions.onOpenExams)
-        page.planProgress?.let { ProgressCard(progress = it, onOpenPlan = actions.onOpenPlan) }
+        val (finished, upcoming) = page.sessions.partition { it.state == TryoutSession.CLOSED }
+        if (!page.former) {
+            SessionGroup(
+                title = stringResource(R.string.ruang_tryout_title),
+                sessions = upcoming,
+                onOpen = actions.onOpenSession,
+                empty = stringResource(R.string.ruang_tryout_empty),
+            )
+        }
+        if (page.practice.isNotEmpty() || !page.former) {
+            PracticeGroup(
+                packages = page.practice,
+                state = PracticeCardState(page.former, uiState.startingPracticeId, uiState.practiceError),
+                onAction = actions.onPractice,
+            )
+        }
+        if (finished.isNotEmpty()) {
+            SessionGroup(
+                title = stringResource(R.string.ruang_finished_title),
+                sessions = finished,
+                onOpen = actions.onOpenSession,
+            )
+        }
+        if (page.progress.attempts.isNotEmpty() || page.planProgress != null) {
+            ProgressCard(plan = page.planProgress, progress = page.progress, onOpenPlan = actions.onOpenPlan)
+        }
     }
 }
 
@@ -177,7 +230,6 @@ private fun TodayCard(
     family: Boolean,
     taskState: TaskActionState,
     actions: RuangActions,
-    practiceOpens: Boolean,
 ) {
     GotestCard(modifier = Modifier.fillMaxWidth()) {
         CardHeader(
@@ -198,7 +250,6 @@ private fun TodayCard(
                     family = family,
                     state = taskState,
                     onEvent = actions.onTaskEvent,
-                    practiceOpens = practiceOpens,
                 )
             }
         }
@@ -257,10 +308,11 @@ private fun ExamsCard(
     }
 }
 
-/** Perkembanganmu: the plan part (Try Out and Latihan progress join with A2c). */
+/** Perkembanganmu: the plan part, then the Try Out and Latihan progress of this Mitra (web Ruang/Show). */
 @Composable
 private fun ProgressCard(
-    progress: PlanProgress,
+    plan: PlanProgress?,
+    progress: MitraProgress,
     onOpenPlan: () -> Unit,
 ) {
     GotestCard(modifier = Modifier.fillMaxWidth()) {
@@ -269,6 +321,18 @@ private fun ProgressCard(
             style = MaterialTheme.typography.titleMedium,
             color = GotestTheme.colors.textPrimary,
         )
+        plan?.let { PlanPart(it, onOpenPlan) }
+        if (plan != null && progress.attempts.isNotEmpty()) HorizontalDivider(color = GotestTheme.colors.borderSubtle)
+        MitraProgressView(progress)
+    }
+}
+
+@Composable
+private fun PlanPart(
+    progress: PlanProgress,
+    onOpenPlan: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = progress.plan.title,
@@ -302,6 +366,55 @@ private val previewPage =
         organization = MitraRef("SMP 1 Bantargedung", "SMP1BTG"),
         today = TodayTasks(PlanHead(31, "Persiapan PTS Semester 1"), previewTasks()),
         planProgress = previewProgress(),
+        practice =
+            listOf(
+                RuangPractice(
+                    601,
+                    "Latihan Pecahan Kelas 8",
+                    "Latihan pecahan untuk persiapan PTS.",
+                    5,
+                    canStart = true,
+                ),
+                RuangPractice(
+                    602,
+                    "Latihan Aljabar Kelas 8",
+                    null,
+                    5,
+                    RuangPractice.TIMER_PACKAGE,
+                    600,
+                    canStart = true,
+                    finishedCount = 2,
+                    lastAttemptId = 903,
+                    lastScore = 60.0,
+                ),
+            ),
+        progress =
+            MitraProgress(
+                attempts =
+                    listOf(
+                        ProgressAttempt(
+                            904,
+                            "latihan",
+                            "Latihan Bilangan Bulat",
+                            "2026-10-02T08:10:00Z",
+                            2,
+                            5,
+                            40,
+                            40.0,
+                        ),
+                        ProgressAttempt(
+                            953,
+                            "simulasi",
+                            "Try Out Tengah Semester",
+                            "2026-10-11T02:40:00Z",
+                            13,
+                            20,
+                            65,
+                            640.0,
+                        ),
+                    ),
+                subjects = listOf(ProgressSubject("Matematika", 8, 15, 53)),
+            ),
     )
 
 @Preview(showBackground = true, heightDp = 1600)

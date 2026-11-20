@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.gotest.app.core.config.AppFeatures
+import com.gotest.app.feature.practice.navigation.practiceNavigation
 import com.gotest.app.feature.studypackage.ui.packagelist.PackageListRoute
 import com.gotest.app.feature.studypackage.ui.practicedetail.PracticeDetailRoute
 import com.gotest.app.feature.studypackage.ui.savedpackages.SavedPackagesRoute
@@ -11,6 +12,7 @@ import com.gotest.app.feature.studypackage.ui.studypackage.StudyPackageRoute
 import com.gotest.app.feature.studypackage.ui.subjectlist.SubjectListRoute
 import com.gotest.app.feature.studypackage.ui.topiclist.TopicListRoute
 import com.gotest.app.feature.studypackage.ui.tryoutdetail.TryoutDetailRoute
+import com.gotest.app.feature.tryout.navigation.tryoutNavigation
 import com.gotest.app.navigation.ExamDestination
 import com.gotest.app.navigation.ExamResultDestination
 import com.gotest.app.navigation.PackageListDestination
@@ -40,6 +42,8 @@ fun NavGraphBuilder.studyPackageScreens(navController: NavController) {
             onCategoryClick = { categoryId -> navController.navigate(SubjectListDestination(categoryId)) },
             onTryoutClick = openTryout,
             onActivityClick = { attemptId -> navController.navigate(ExamResultDestination(attemptId)) },
+            practiceNavigation = navController.practiceNavigation(),
+            tryoutNavigation = navController.tryoutNavigation(),
         )
     }
     composable<PackageListDestination> {
