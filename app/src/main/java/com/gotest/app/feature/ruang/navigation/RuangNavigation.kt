@@ -14,6 +14,7 @@ import com.gotest.app.feature.ruang.ui.join.JoinCodeRoute
 import com.gotest.app.feature.ruang.ui.join.JoinWithCodeRoute
 import com.gotest.app.feature.ruang.ui.plan.PlanRoute
 import com.gotest.app.feature.ruang.ui.result.ExamResultRoute
+import com.gotest.app.feature.ruang.ui.space.RuangLinks
 import com.gotest.app.feature.ruang.ui.space.RuangRoute
 import com.gotest.app.feature.ruang.ui.tasks.TaskNavigation
 import com.gotest.app.feature.ruang.ui.work.ExamWorkRoute
@@ -22,9 +23,13 @@ import com.gotest.app.navigation.InvitationDestination
 import com.gotest.app.navigation.JoinCodeDestination
 import com.gotest.app.navigation.JoinWithCodeDestination
 import com.gotest.app.navigation.LoginDestination
+import com.gotest.app.navigation.PracticeResultDestination
+import com.gotest.app.navigation.PracticeRunnerDestination
 import com.gotest.app.navigation.RegisterDestination
 import com.gotest.app.navigation.RencanaDestination
 import com.gotest.app.navigation.RuangDestination
+import com.gotest.app.navigation.TryoutResultDestination
+import com.gotest.app.navigation.TryoutSessionDestination
 import com.gotest.app.navigation.UjianDetailDestination
 import com.gotest.app.navigation.UjianListDestination
 import com.gotest.app.navigation.UjianResultDestination
@@ -35,8 +40,7 @@ fun NavGraphBuilder.ruangScreens(navController: NavController) {
     composable<RuangDestination> {
         RuangRoute(
             onBack = navController::navigateUp,
-            onOpenExams = { code -> navController.navigate(UjianListDestination(code)) },
-            onOpenPlan = { code -> navController.navigate(RencanaDestination(code)) },
+            links = navController.ruangLinks(),
             taskNavigation = navController.taskNavigation(),
         )
     }
@@ -156,11 +160,25 @@ private fun NavController.openJoined(joined: JoinedMitra) {
     }
 }
 
+/** Where the Ujian, Rencana, Try Out, and Latihan parts of the Mitra space lead (A2c). */
+private fun NavController.ruangLinks() =
+    RuangLinks(
+        onOpenExams = { code -> navigate(UjianListDestination(code)) },
+        onOpenPlan = { code -> navigate(RencanaDestination(code)) },
+        onOpenPractice = { id, name -> navigate(PracticeRunnerDestination(id, name)) },
+        onOpenPracticeResult = { id, name -> navigate(PracticeResultDestination(id, name)) },
+        onOpenSession = { id -> navigate(TryoutSessionDestination(id)) },
+        onOpenTryoutResult = { id -> navigate(TryoutResultDestination(id)) },
+    )
+
 /** Where a Rencana Belajar task leads (T-031 "`target` di aksi tugas"). */
 private fun NavController.taskNavigation() =
     TaskNavigation(
         onOpenQuiz = { code, attemptId -> navigate(UjianWorkDestination(code, attemptId, quiz = true)) },
         onOpenQuizResult = { code, attemptId -> navigate(UjianResultDestination(code, attemptId, quiz = true)) },
+        // A Gotest Latihan task opens the Latihan screens (RB-1).
+        onOpenPractice = { attemptId -> navigate(PracticeRunnerDestination(attemptId)) },
+        onOpenPracticeResult = { attemptId -> navigate(PracticeResultDestination(attemptId)) },
     )
 
 private const val STUDENT = "siswa"

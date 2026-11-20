@@ -17,6 +17,12 @@ interface PracticeRepository {
         timerEnabled: Boolean?,
     ): Result<PracticeAttempt>
 
+    /** Latihan sekolah in a Mitra space: the school's plan gives access, no personal Premium or quota. */
+    suspend fun startInRuang(
+        code: String,
+        packageId: Long,
+    ): Result<PracticeAttempt>
+
     suspend fun attempt(attemptId: Long): Result<PracticeAttempt>
 
     suspend fun activate(

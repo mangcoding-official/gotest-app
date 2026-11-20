@@ -27,6 +27,12 @@ interface PracticeApi {
         @Body body: StartRequest,
     ): AttemptEnvelope
 
+    @POST("api/v1/ruang/{code}/latihan/{examPackage}")
+    suspend fun startInRuang(
+        @Path("code") code: String,
+        @Path("examPackage") packageId: Long,
+    ): AttemptEnvelope
+
     @GET("api/v1/attempts/{attempt}")
     suspend fun attempt(
         @Path("attempt") attemptId: Long,

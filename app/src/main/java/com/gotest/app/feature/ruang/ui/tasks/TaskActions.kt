@@ -19,12 +19,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Where a task leads; a Gotest Latihan has no screen in the app until A2c, so those are null for now. */
+/** Where a task leads: a quiz to the Ujian screens of the Mitra, a Gotest Latihan to the Latihan screens (RB-1). */
 data class TaskNavigation(
     val onOpenQuiz: (code: String, attemptId: Long) -> Unit,
     val onOpenQuizResult: (code: String, attemptId: Long) -> Unit,
-    val onOpenPractice: ((attemptId: Long) -> Unit)? = null,
-    val onOpenPracticeResult: ((attemptId: Long) -> Unit)? = null,
+    val onOpenPractice: (attemptId: Long) -> Unit,
+    val onOpenPracticeResult: (attemptId: Long) -> Unit,
 )
 
 enum class RecordMode { Score, Count, None }
@@ -286,7 +286,7 @@ private fun RecordForm.changed(event: TaskEvent.FormChange) =
         note = event.note ?: note,
     )
 
-/** Opens what a task effect asks for; a Gotest Latihan does nothing until its screen exists (A2c). */
+/** Opens what a task effect asks for. */
 fun TaskNavigation.handle(
     code: String,
     effect: TaskEffect,
@@ -294,7 +294,7 @@ fun TaskNavigation.handle(
     when (effect) {
         is TaskEffect.OpenQuiz -> onOpenQuiz(code, effect.attemptId)
         is TaskEffect.OpenQuizResult -> onOpenQuizResult(code, effect.attemptId)
-        is TaskEffect.OpenPractice -> onOpenPractice?.invoke(effect.attemptId)
-        is TaskEffect.OpenPracticeResult -> onOpenPracticeResult?.invoke(effect.attemptId)
+        is TaskEffect.OpenPractice -> onOpenPractice(effect.attemptId)
+        is TaskEffect.OpenPracticeResult -> onOpenPracticeResult(effect.attemptId)
     }
 }

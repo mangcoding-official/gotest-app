@@ -33,6 +33,7 @@
     <string name="history_type_practice">Latihan</string>
     <string name="history_accuracy">Akurasi</string>
     <string name="history_view_result">Lihat Hasil</string>
+    <string name="history_open_discussion">Buka Pembahasan</string>
     <string name="history_open_failed">Hasil belum dapat dibuka. Periksa koneksi lalu coba lagi.</string>
 
     <!-- CSV export: not on the web (the browser downloads it); wording proposed in T-026 A2e-1. -->

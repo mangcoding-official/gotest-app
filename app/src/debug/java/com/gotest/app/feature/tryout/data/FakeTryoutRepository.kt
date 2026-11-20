@@ -11,9 +11,11 @@ import com.gotest.app.feature.practice.domain.CatalogCategory
 import com.gotest.app.feature.practice.domain.RecentAttempt
 import com.gotest.app.feature.practice.domain.ScoringProfile
 import com.gotest.app.feature.practice.domain.StudentStats
+import com.gotest.app.feature.ruang.data.FakeRuangRepository
 import com.gotest.app.feature.tryout.domain.LeaderboardRow
 import com.gotest.app.feature.tryout.domain.SessionLeaderboard
 import com.gotest.app.feature.tryout.domain.SessionLeaderboardEntry
+import com.gotest.app.feature.tryout.domain.SessionPartner
 import com.gotest.app.feature.tryout.domain.SessionSection
 import com.gotest.app.feature.tryout.domain.TryoutActiveSection
 import com.gotest.app.feature.tryout.domain.TryoutAttempt
@@ -62,7 +64,7 @@ class FakeTryoutRepository
             call {
                 Result.success(
                     TryoutCatalogPage(
-                        sessions = sessions.map(::withAttempt),
+                        sessions = sessions.filter { it.partner == null }.map(::withAttempt),
                         serverNow = Instant.now().toString(),
                         categories = listOf(CatalogCategory(1, "UTBK-SNBT", null)),
                         packages = packages.map(::withProgress),
@@ -152,10 +154,9 @@ class FakeTryoutRepository
             call {
                 val current = attempts[attemptId]?.apply { closeIfLate() }
                 when {
-                    current == null && attemptId == FakeTryoutData.DONE_ATTEMPT -> {
-                        Result.success(
-                            FakeTryoutData.doneResult(),
-                        )
+                    // Also the Try Out of Riwayat (FakeHistoryPagesRepository: ids from 100, every third).
+                    current == null && (attemptId in FakeTryoutData.DONE_ATTEMPTS || attemptId in historyTryouts) -> {
+                        Result.success(FakeTryoutData.doneResult(attemptId))
                     }
 
                     current == null || current.running || current.status == TryoutAttempt.STATUS_CANCELLED -> {
@@ -252,6 +253,10 @@ class FakeTryoutRepository
             return item.copy(continueAttemptId = running?.id)
         }
 
+        /** The school's sessions in a Mitra space, newest first, as RuangPageData lists them. */
+        internal fun ruangSessions(code: String): List<TryoutSession> =
+            sessions.filter { it.partner?.code == code }.sortedByDescending { it.startsAt }.map(::withAttempt)
+
         private fun withAttempt(session: TryoutSession): TryoutSession {
             val attempt =
                 attempts.values.firstOrNull { it.sessionId == session.id }?.apply { closeIfLate() } ?: return session
@@ -264,6 +269,8 @@ class FakeTryoutRepository
                 submittedAt = if (done) Instant.now().toString() else null,
             )
         }
+
+        private val historyTryouts = (100L until 160L step 3).toSet()
 
         private suspend fun <T> call(block: () -> Result<T>): Result<T> {
             simulateLatency()
@@ -501,6 +508,9 @@ internal object FakeTryoutData {
     val SECTION_TITLES = listOf("Penalaran Umum", "Literasi Bahasa Indonesia", "Penalaran Matematika")
     const val DONE_ATTEMPT = 951L
 
+    /** Finished attempts without a fake attempt behind them: the package's, and two sessions'. */
+    val DONE_ATTEMPTS = setOf(DONE_ATTEMPT, 952L, 953L)
+
     private val sections =
         listOf(
             TryoutSectionInfo(1, SECTION_TITLES[0], 2, 5),
@@ -646,14 +656,73 @@ internal object FakeTryoutData {
                 totalParticipants = 174,
                 sections = sessionSections,
             ),
+        ) + schoolSessions(now, sessionSections)
+    }
+
+    /** SMP 1 Bantargedung's own sessions; its participants are chosen by the school (DEC-088). */
+    private fun schoolSessions(
+        now: Instant,
+        sessionSections: List<SessionSection>,
+    ): List<TryoutSession> {
+        val school = SessionPartner("SMP 1 Bantargedung", FakeRuangRepository.SMP)
+        return listOf(
+            TryoutSession(
+                411,
+                "Try Out PTS Kelas 8",
+                null,
+                301,
+                "Try Out UTBK-SNBT 1",
+                state = TryoutSession.RUNNING,
+                startsAt = now.minus(15, ChronoUnit.MINUTES).toString(),
+                endsAt = now.plus(3, ChronoUnit.HOURS).toString(),
+                registeredCount = 32,
+                registered = true,
+                partner = school,
+                sections = sessionSections,
+            ),
+            TryoutSession(
+                412,
+                "Try Out Akhir Semester",
+                null,
+                301,
+                "Try Out UTBK-SNBT 1",
+                state = TryoutSession.SCHEDULED,
+                startsAt = now.plus(7, ChronoUnit.DAYS).toString(),
+                endsAt = now.plus(7, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS).toString(),
+                registeredCount = 32,
+                registered = true,
+                partner = school,
+                sections = sessionSections,
+            ),
+            TryoutSession(
+                413,
+                "Try Out Tengah Semester",
+                null,
+                301,
+                "Try Out UTBK-SNBT 1",
+                state = TryoutSession.CLOSED,
+                startsAt = "2026-10-11T01:00:00Z",
+                endsAt = "2026-10-11T03:00:00Z",
+                registeredCount = 32,
+                registered = true,
+                attemptId = 953,
+                attemptDone = true,
+                score = 640.0,
+                submittedAt = "2026-10-11T02:40:00Z",
+                rank = 4,
+                totalParticipants = 31,
+                partner = school,
+                sections = sessionSections,
+            ),
         )
     }
 
-    fun doneResult() =
+    fun doneResult(id: Long = DONE_ATTEMPT) =
         TryoutResult(
-            id = DONE_ATTEMPT,
-            packageId = 302,
-            packageName = "Try Out UTBK-SNBT 0",
+            id = id,
+            // The two session results are of the sessions' package.
+            packageId = if (id == DONE_ATTEMPT) 302 else 301,
+            packageName = if (id == DONE_ATTEMPT) "Try Out UTBK-SNBT 0" else "Try Out UTBK-SNBT 1",
             status = "submitted",
             score = 612.0,
             scoreLabel = "Skor Try Out",

@@ -33,6 +33,11 @@ class ApiPracticeRepository
             timerEnabled: Boolean?,
         ): Result<PracticeAttempt> = apiCall(json) { api.start(packageId, StartRequest(timerEnabled)).attempt }
 
+        override suspend fun startInRuang(
+            code: String,
+            packageId: Long,
+        ): Result<PracticeAttempt> = apiCall(json) { api.startInRuang(code, packageId).attempt }
+
         override suspend fun attempt(attemptId: Long): Result<PracticeAttempt> =
             apiCall(json) { api.attempt(attemptId).attempt }
 

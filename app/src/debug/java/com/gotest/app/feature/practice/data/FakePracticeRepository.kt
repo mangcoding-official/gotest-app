@@ -21,6 +21,8 @@ import com.gotest.app.feature.practice.domain.RecentAttempt
 import com.gotest.app.feature.practice.domain.ReviewItem
 import com.gotest.app.feature.practice.domain.StartAccess
 import com.gotest.app.feature.practice.domain.StudentStats
+import com.gotest.app.feature.ruang.data.FakeRuangRepository
+import com.gotest.app.feature.ruang.domain.RuangPractice
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.time.Instant
@@ -47,8 +49,10 @@ class FakePracticeRepository
         private var practiceUsed = 1
 
         init {
-            // The finished attempts behind the catalog's "Lihat Pembahasan" and Aktifitas.
-            FakePracticeData.finished.forEach { (id, packageId) ->
+            // The finished attempts behind the catalog's "Lihat Pembahasan" and Aktifitas, Latihan sekolah, and
+            // the Latihan of Riwayat (FakeHistoryPagesRepository, ids from 100, every third a Try Out).
+            val history = HISTORY_IDS.filter { (it - HISTORY_FIRST) % 3 != 0L }.associateWith { 101L }
+            (FakePracticeData.finished + FakeSchoolPractice.finished + history).forEach { (id, packageId) ->
                 attempts[id] =
                     FakePracticeAttempt(id, packageId, PracticeAttempt.TIMER_NONE, false, null).apply {
                         FakePracticeData.questions.forEachIndexed { index, question ->
@@ -128,6 +132,63 @@ class FakePracticeRepository
                     }
                 }
             }
+
+        override suspend fun startInRuang(
+            code: String,
+            packageId: Long,
+        ): Result<PracticeAttempt> =
+            call {
+                val given =
+                    FakeSchoolPractice.packages.any { (owner, item) ->
+                        owner == code && item.id == packageId &&
+                            !item.closed
+                    }
+                if (given && code == FakeRuangRepository.SMP) Result.success(open(packageId).snapshot()) else notFound()
+            }
+
+        /** The running attempt of [packageId], or a new one: Latihan sekolah and the Latihan Gotest of a plan task. */
+        internal fun open(
+            packageId: Long,
+            id: Long? = null,
+        ): FakePracticeAttempt {
+            attempts.values.firstOrNull { it.packageId == packageId && it.running }?.let { return it }
+            val timer = FakePracticeData.timerOf(packageId)
+            val deadline =
+                if (timer ==
+                    PracticeAttempt.TIMER_PACKAGE
+                ) {
+                    Instant.now().plusSeconds(PACKAGE_SECONDS)
+                } else {
+                    null
+                }
+            val fresh =
+                FakePracticeAttempt(
+                    id?.takeUnless { it in attempts } ?: nextId++,
+                    packageId,
+                    timer,
+                    timer != PracticeAttempt.TIMER_NONE,
+                    deadline,
+                )
+            attempts[fresh.id] = fresh
+            return fresh
+        }
+
+        /** The Latihan cards of a Mitra space as RuangPageData builds them; a student who left starts nothing. */
+        internal fun ruangCards(code: String): List<RuangPractice> =
+            FakeSchoolPractice.packages
+                .filter { (owner, _) -> owner == code }
+                .map { (_, item) ->
+                    val own = attempts.values.filter { it.packageId == item.id }
+                    val running = own.firstOrNull { it.running }
+                    val last = own.filterNot { it.running }.maxByOrNull { it.id }
+                    item.copy(
+                        continueAttemptId = running?.id?.takeUnless { item.closed },
+                        canStart = code == FakeRuangRepository.SMP && !item.closed && running == null,
+                        finishedCount = own.count { !it.running },
+                        lastAttemptId = last?.id,
+                        lastScore = last?.score(),
+                    )
+                }
 
         override suspend fun attempt(attemptId: Long): Result<PracticeAttempt> =
             call { attempts[attemptId]?.let { Result.success(it.snapshot()) } ?: notFound() }
@@ -210,6 +271,8 @@ class FakePracticeRepository
         companion object {
             const val FINISHED = "Latihan ini sudah selesai sehingga jawaban tidak dapat diubah."
             private const val FIRST_ATTEMPT = 1001L
+            private const val HISTORY_FIRST = 100L
+            private val HISTORY_IDS = HISTORY_FIRST until HISTORY_FIRST + 60
             private const val FREE_PRACTICE = 3
             private const val PACKAGE_SECONDS = 10L * 60
             private const val PERCENT = 100
@@ -444,7 +507,7 @@ internal object FakePracticeData {
 
     fun timerOf(packageId: Long): String =
         when (packageId) {
-            102L -> PracticeAttempt.TIMER_PACKAGE
+            102L, 602L -> PracticeAttempt.TIMER_PACKAGE
             103L -> PracticeAttempt.TIMER_PER_QUESTION
             else -> PracticeAttempt.TIMER_NONE
         }
@@ -554,4 +617,20 @@ internal object FakePracticeData {
     }
 
     val questions: List<FakeQuestion> = FakePracticeQuestions.all
+}
+
+/** Latihan sekolah of SMP 1 Bantargedung and of Bimbel Cerdas (left), with the Mitra's code. */
+internal object FakeSchoolPractice {
+    val packages =
+        listOf(
+            FakeRuangRepository.SMP to
+                RuangPractice(601, "Latihan Pecahan Kelas 8", "Latihan pecahan untuk persiapan PTS.", 5),
+            FakeRuangRepository.SMP to
+                RuangPractice(602, "Latihan Aljabar Kelas 8", null, 5, RuangPractice.TIMER_PACKAGE, 600),
+            FakeRuangRepository.SMP to RuangPractice(603, "Latihan Bilangan Bulat", null, 5, closed = true),
+            FakeRuangRepository.BIMBEL to RuangPractice(604, "Latihan Persamaan Linear", null, 5),
+        )
+
+    /** Attempt id to package id of the finished ones. */
+    val finished = mapOf(903L to 602L, 904L to 603L, 905L to 604L)
 }

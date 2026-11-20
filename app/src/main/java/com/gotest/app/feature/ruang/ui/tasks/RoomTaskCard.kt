@@ -40,7 +40,6 @@ import com.gotest.app.feature.ruang.ui.components.formatGrade
  * One Rencana Belajar task in the child's Mitra space (web RoomTaskCard): what it is, its status, and one action:
  * Mulai or Lanjutkan a quiz or a Gotest Latihan, see its result, or record an external task. A task that cannot be
  * worked on yet says why. [family]: "dicatat orang tua" in a Mitra Keluarga, "dicatat guru" elsewhere.
- * [practiceOpens]: a Gotest Latihan has a screen to go to (A2c); without one its button is left out.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -50,7 +49,6 @@ fun RoomTaskCard(
     state: TaskActionState,
     onEvent: (TaskEvent) -> Unit,
     modifier: Modifier = Modifier,
-    practiceOpens: Boolean = false,
 ) {
     val spacing = GotestTheme.spacing
     val colors = GotestTheme.colors
@@ -104,7 +102,6 @@ fun RoomTaskCard(
         TaskButton(
             task = task,
             starting = state.startingId == task.id,
-            practiceOpens = practiceOpens,
             onEvent = onEvent,
         )
     }
@@ -114,12 +111,9 @@ fun RoomTaskCard(
 private fun TaskButton(
     task: RoomTask,
     starting: Boolean,
-    practiceOpens: Boolean,
     onEvent: (TaskEvent) -> Unit,
 ) {
     val action = task.action ?: return
-    val practice = task.type == RoomTask.TYPE_PRACTICE || action.target.type == RoomTaskTarget.PRACTICE_RESULT
-    if (practice && !practiceOpens) return
     val (label, variant) =
         when (action.kind) {
             RoomTaskAction.START, RoomTaskAction.CONTINUE -> {

@@ -67,9 +67,12 @@ class PlanViewModel
             _uiState.update { it.copy(chosenId = planId) }
         }
 
-        /** Back from a quiz or after a record: the page again, keeping what is on screen meanwhile. */
+        /**
+         * Back from a quiz or a Latihan, or after a record: the page again, keeping what is on screen meanwhile. A
+         * request still on its way is cancelled and sent again, so the page shows the newest state.
+         */
         fun refresh() {
-            if (_uiState.value.page == null || request?.isActive == true) return
+            if (_uiState.value.page == null) return
             fetch()
         }
 

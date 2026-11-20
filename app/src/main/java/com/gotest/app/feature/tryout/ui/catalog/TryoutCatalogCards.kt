@@ -202,7 +202,7 @@ fun sessionStateLabel(state: String): Int =
         else -> R.string.session_state_closed
     }
 
-private fun sessionTone(state: String): GotestChipTone =
+internal fun sessionTone(state: String): GotestChipTone =
     when (state) {
         TryoutSession.RUNNING -> GotestChipTone.Green
         TryoutSession.SCHEDULED -> GotestChipTone.Violet

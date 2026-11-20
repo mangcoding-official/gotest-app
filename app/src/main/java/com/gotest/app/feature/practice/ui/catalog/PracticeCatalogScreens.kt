@@ -569,7 +569,7 @@ private fun sheetLabel(
     }
 
 @Composable
-private fun problemText(problem: StartProblem): String =
+internal fun problemText(problem: StartProblem): String =
     when (problem) {
         is StartProblem.Server -> problem.message
         StartProblem.Offline -> stringResource(R.string.runner_offline)

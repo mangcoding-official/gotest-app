@@ -2,14 +2,19 @@ package com.gotest.app.feature.ruang.data
 
 import com.gotest.app.core.data.fake.simulateLatency
 import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.practice.data.FakePracticeRepository
 import com.gotest.app.feature.ruang.domain.EmailProof
 import com.gotest.app.feature.ruang.domain.InvitationPage
 import com.gotest.app.feature.ruang.domain.JoinCodePage
 import com.gotest.app.feature.ruang.domain.JoinedMitra
 import com.gotest.app.feature.ruang.domain.MitraMembership
+import com.gotest.app.feature.ruang.domain.MitraProgress
 import com.gotest.app.feature.ruang.domain.MitraRef
+import com.gotest.app.feature.ruang.domain.ProgressAttempt
+import com.gotest.app.feature.ruang.domain.ProgressSubject
 import com.gotest.app.feature.ruang.domain.RuangPage
 import com.gotest.app.feature.ruang.domain.RuangRepository
+import com.gotest.app.feature.tryout.data.FakeTryoutRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,13 +24,16 @@ import javax.inject.Singleton
  * `KELAS8A` (class code, ready), `PENUH01` (full), `EVENT01` (event code, ready); anything else is not
  * found. Invitation tokens: `undangan-siap`, `undangan-kode` (needs the email code `123456`),
  * `undangan-terpakai`. Texts are the server's (JoinCodePages, InvitationPages). Tugas hari ini and the
- * plan progress come from [FakeStudyPlanRepository].
+ * plan progress come from [FakeStudyPlanRepository], Latihan sekolah from [FakePracticeRepository], and the school's
+ * Try Out sessions from [FakeTryoutRepository].
  */
 @Singleton
 class FakeRuangRepository
     @Inject
     constructor(
         private val plans: FakeStudyPlanRepository,
+        private val practice: FakePracticeRepository,
+        private val tryouts: FakeTryoutRepository,
     ) : RuangRepository {
         private val members =
             mutableListOf(
@@ -58,9 +66,74 @@ class FakeRuangRepository
                     former = member.former,
                     today = plans.today(code),
                     planProgress = plans.progressOf(code),
+                    sessions = tryouts.ruangSessions(code),
+                    practice = practice.ruangCards(code),
+                    progress = progressOf(code),
                 ),
             )
         }
+
+        /** Perkembanganmu from the finished Latihan sekolah and Try Out of the fake, oldest first. */
+        private fun progressOf(code: String): MitraProgress =
+            if (code == SMP) {
+                MitraProgress(
+                    attempts =
+                        listOf(
+                            ProgressAttempt(
+                                904,
+                                "latihan",
+                                "Latihan Bilangan Bulat",
+                                "2026-10-02T08:10:00Z",
+                                2,
+                                5,
+                                40,
+                                40.0,
+                            ),
+                            ProgressAttempt(
+                                953,
+                                "simulasi",
+                                "Try Out Tengah Semester",
+                                "2026-10-11T02:40:00Z",
+                                13,
+                                20,
+                                65,
+                                640.0,
+                            ),
+                            ProgressAttempt(
+                                903,
+                                "latihan",
+                                "Latihan Aljabar Kelas 8",
+                                "2026-11-14T09:30:00Z",
+                                3,
+                                5,
+                                60,
+                                60.0,
+                            ),
+                        ),
+                    subjects =
+                        listOf(
+                            ProgressSubject("Matematika", 8, 15, 53),
+                            ProgressSubject("Penalaran Umum", 10, 15, 67),
+                        ),
+                )
+            } else {
+                MitraProgress(
+                    attempts =
+                        listOf(
+                            ProgressAttempt(
+                                905,
+                                "latihan",
+                                "Latihan Persamaan Linear",
+                                "2026-08-20T07:00:00Z",
+                                3,
+                                5,
+                                60,
+                                60.0,
+                            ),
+                        ),
+                    subjects = listOf(ProgressSubject("Matematika", 3, 5, 60)),
+                )
+            }
 
         override suspend fun lookupCode(typed: String): Result<String> {
             simulateLatency()
