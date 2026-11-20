@@ -90,8 +90,8 @@
     <string name="runner_question_image">Ilustrasi soal</string>
     <string name="runner_option_image">Pilihan %1$s</string>
     <string name="runner_statement_progress">%1$d dari %2$d pernyataan terjawab</string>
-    <string name="runner_statement_incomplete"> · jawaban belum lengkap.</string>
-    <string name="runner_statement_complete"> · jawaban lengkap.</string>
+    <string name="runner_statement_incomplete">\u0020· jawaban belum lengkap.</string>
+    <string name="runner_statement_complete">\u0020· jawaban lengkap.</string>
     <string name="runner_statement_hint">Pilih satu Jawaban (%1$s) untuk setiap pernyataan. Skor penuh hanya diberikan bila seluruh pernyataan tepat.</string>
     <string name="runner_multiple_hint">Pilih semua jawaban yang tepat. Skor penuh hanya diberikan bila pilihan Anda tepat sama dengan seluruh kunci.</string>
     <string name="runner_label_true">Benar</string>
@@ -100,9 +100,9 @@
     <string name="runner_practice_time_up">Waktu latihan habis.</string>
     <string name="runner_question_time_up">Waktu untuk soal ini habis.</string>
     <string name="runner_question_skipped">Soal ini sudah dilewati.</string>
-    <string name="runner_go_next"> Lanjut ke soal berikutnya.</string>
-    <string name="runner_finish_to_see"> Selesaikan latihan untuk melihat hasil.</string>
-    <string name="runner_pick_other"> Pilih soal lain untuk melanjutkan.</string>
+    <string name="runner_go_next">\u0020Lanjut ke soal berikutnya.</string>
+    <string name="runner_finish_to_see">\u0020Selesaikan latihan untuk melihat hasil.</string>
+    <string name="runner_pick_other">\u0020Pilih soal lain untuk melanjutkan.</string>
     <string name="runner_timed_out_notice">Waktu soal %1$d habis. Lanjut ke soal berikutnya.</string>
     <string name="runner_cannot_show">Soal belum dapat ditampilkan.</string>
     <string name="runner_retry">Coba Lagi</string>
@@ -132,8 +132,8 @@
     <string name="runner_see_result">Lihat Hasil</string>
     <string name="runner_exit_title">Keluar dari Latihan?</string>
     <string name="runner_exit_message">Jawaban yang sudah dipilih tersimpan otomatis. Anda dapat melanjutkan latihan ini nanti dari halaman Paket Latihan.</string>
-    <string name="runner_exit_question_timer"> Waktu soal yang sedang dibuka tetap berjalan selama Anda keluar.</string>
-    <string name="runner_exit_package_timer"> Waktu latihan tetap berjalan selama Anda keluar.</string>
+    <string name="runner_exit_question_timer">\u0020Waktu soal yang sedang dibuka tetap berjalan selama Anda keluar.</string>
+    <string name="runner_exit_package_timer">\u0020Waktu latihan tetap berjalan selama Anda keluar.</string>
     <string name="runner_keep_working">Lanjut Mengerjakan</string>
     <string name="runner_save_exit">Simpan &amp; Lanjutkan Nanti</string>
     <string name="runner_finish_see">Selesaikan &amp; Lihat Hasil</string>
@@ -153,7 +153,7 @@
     <string name="review_total">%1$s %2$s</string>
     <string name="review_display_score">Benar %1$d dari %2$d soal</string>
     <string name="review_disqualified">Dikeluarkan dari peringkat oleh tim Gotest</string>
-    <string name="review_scale"> · skala 0–%1$s</string>
+    <string name="review_scale">\u0020· skala 0–%1$s</string>
     <string name="review_nav_item">Soal %1$d (%2$s)</string>
     <string name="review_item_score">Nilai %1$s/%2$s</string>
     <string name="review_answer_first">Jawab soal ini untuk melihat pembahasan. Jawaban di sini tidak mengubah hasil latihan Anda.</string>

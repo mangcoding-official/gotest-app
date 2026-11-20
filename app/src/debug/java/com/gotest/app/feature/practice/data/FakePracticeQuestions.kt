@@ -29,11 +29,11 @@ internal object FakePracticeQuestions {
                 topic = "Penalaran Kuantitatif",
                 content =
                     QuestionContent(
-                        prompt = "<p>Jika \\(2x + 3 = 11\\), maka nilai \\(x^2\\) adalah ....</p>",
+                        prompt = "<p>Jika $2x + 3 = 11$, maka nilai \$x^2$ adalah ....</p>",
                         options = options("4", "8", "16", "22", "64"),
                     ),
                 correct = AnswerData(selectedOption = 2),
-                explanation = "<p>\\(2x = 8\\), jadi \\(x = 4\\) dan \\(x^2 = 16\\).</p>",
+                explanation = "<p>$2x = 8$, jadi \$x = 4$ dan \$x^2 = 16$.</p>",
             ),
             FakeQuestion(
                 id = 5002,
@@ -105,7 +105,7 @@ internal object FakePracticeQuestions {
                         options = options("30", "36", "48", "60"),
                     ),
                 correct = AnswerData(selectedOption = 2),
-                explanation = "<p>Setiap bilangan dikali 2, jadi \\(24 \\times 2 = 48\\).</p>",
+                explanation = "<p>Setiap bilangan dikali 2, jadi $24 \\times 2 = 48$.</p>",
             ),
         )
 }
