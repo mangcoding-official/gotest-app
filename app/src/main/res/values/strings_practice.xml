@@ -130,6 +130,9 @@
     <string name="runner_finished_timer">Waktu habis sebelum jawaban soal %1$d tersimpan, sehingga pilihan terakhir itu tidak dinilai.</string>
     <string name="runner_finished_manual">Latihan sudah diselesaikan sebelum jawaban soal %1$d tersimpan, sehingga pilihan terakhir itu tidak dinilai.</string>
     <string name="runner_see_result">Lihat Hasil</string>
+    <!-- 410 cancelled or 403 not_member: the body is the server's sentence (Ardy's review of A2c). -->
+    <string name="runner_stopped_title">Latihan ini tidak bisa dilanjutkan.</string>
+    <string name="runner_stopped_back">Kembali</string>
     <string name="runner_exit_title">Keluar dari Latihan?</string>
     <string name="runner_exit_message">Jawaban yang sudah dipilih tersimpan otomatis. Anda dapat melanjutkan latihan ini nanti dari halaman Paket Latihan.</string>
     <string name="runner_exit_question_timer">\u0020Waktu soal yang sedang dibuka tetap berjalan selama Anda keluar.</string>

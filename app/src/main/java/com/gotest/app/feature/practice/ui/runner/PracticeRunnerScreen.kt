@@ -71,8 +71,18 @@ fun PracticeRunnerRoute(
             PracticeRunnerEffect.Leave -> onLeave()
         }
     }
-    // Leaving asks first, as the web's leave guard does.
-    BackHandler { viewModel.onEvent(PracticeRunnerEvent.ShowDialog(RunnerDialog.Exit)) }
+    // Leaving asks first, as the web's leave guard does; a stopped Latihan has nothing left to save.
+    BackHandler {
+        viewModel.onEvent(
+            if (uiState.stopped !=
+                null
+            ) {
+                PracticeRunnerEvent.Leave
+            } else {
+                PracticeRunnerEvent.ShowDialog(RunnerDialog.Exit)
+            },
+        )
+    }
     PracticeRunnerScreen(
         uiState = uiState,
         packageName = packageName,
@@ -504,6 +514,18 @@ private fun RunnerDialogs(
     onEvent: (PracticeRunnerEvent) -> Unit,
 ) {
     val dismiss = { onEvent(PracticeRunnerEvent.ShowDialog(RunnerDialog.None)) }
+    uiState.stopped?.let { reason ->
+        val leave = { onEvent(PracticeRunnerEvent.Leave) }
+        RunnerDialogCard(title = stringResource(R.string.runner_stopped_title), onDismiss = leave) {
+            if (reason.isNotBlank()) Body(reason)
+            GotestButton(
+                text = stringResource(R.string.runner_stopped_back),
+                onClick = leave,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        return
+    }
     uiState.finishedAfterRejection?.let { number ->
         RunnerDialogCard(title = stringResource(R.string.runner_finished_title), onDismiss = {
             onEvent(PracticeRunnerEvent.OpenResult)

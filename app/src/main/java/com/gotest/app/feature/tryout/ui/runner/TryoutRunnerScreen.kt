@@ -73,7 +73,12 @@ fun TryoutRunnerRoute(
             TryoutRunnerEffect.Leave -> onLeave()
         }
     }
-    BackHandler { viewModel.onEvent(TryoutRunnerEvent.ShowDialog(TryoutDialog.Exit)) }
+    // A stopped Try Out has nothing left to save: back leaves at once.
+    BackHandler {
+        viewModel.onEvent(
+            if (uiState.stopped != null) TryoutRunnerEvent.Leave else TryoutRunnerEvent.ShowDialog(TryoutDialog.Exit),
+        )
+    }
     TryoutRunnerScreen(uiState = uiState, packageName = packageName, onEvent = viewModel::onEvent, modifier = modifier)
 }
 
@@ -526,6 +531,18 @@ private fun RunnerDialogs(
     onEvent: (TryoutRunnerEvent) -> Unit,
 ) {
     val dismiss = { onEvent(TryoutRunnerEvent.ShowDialog(TryoutDialog.None)) }
+    uiState.stopped?.let { reason ->
+        val leave = { onEvent(TryoutRunnerEvent.Leave) }
+        DialogCard(title = stringResource(R.string.trun_stopped_title), onDismiss = leave) {
+            if (reason.isNotBlank()) Body(reason)
+            GotestButton(
+                text = stringResource(R.string.trun_stopped_back),
+                onClick = leave,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        return
+    }
     when (uiState.dialog) {
         TryoutDialog.Action -> {
             ActionDialog(uiState = uiState, packageName = packageName, onEvent = onEvent, onDismiss = dismiss)

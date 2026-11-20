@@ -358,7 +358,10 @@ class TryoutCatalogViewModel
             private const val SECOND = 1_000L
             private const val UNPROCESSABLE = 422
 
-            /** Web `requestMessage`: a 422 says why, no connection says so, anything else the fallback. */
+            /**
+             * Web `requestMessage`: a 422 says why, no connection says so. A 403 (`premium_only`, `quota_used`) or
+             * 429 `busy` says the server's sentence too (Ardy's review of A2c, item 3); anything else the fallback.
+             */
             fun problemOf(error: Throwable): TryoutProblem =
                 when {
                     error !is ApiError -> {
@@ -373,10 +376,16 @@ class TryoutCatalogViewModel
                         )
                     }
 
+                    error.status in SAYS_WHY && error.message.isNotBlank() -> {
+                        TryoutProblem.Server(error.message)
+                    }
+
                     else -> {
                         TryoutProblem.Fallback
                     }
                 }
+
+            private val SAYS_WHY = setOf(ApiError.FORBIDDEN, 429)
 
             /** Web SessionDetail `start`: the server's message for any refusal, otherwise the fallback. */
             fun sessionProblem(error: Throwable): TryoutProblem =

@@ -79,6 +79,8 @@ data class TryoutRunnerUiState(
     val isBeginning: Boolean = false,
     val dialog: TryoutDialog = TryoutDialog.None,
     val secondsLeft: Long? = null,
+    /** Cancelled (410) or no longer a member (403): the server's sentence, nothing more to do. */
+    val stopped: String? = null,
 ) {
     val section: TryoutActiveSection? get() = attempt?.activeSection
     val items: List<TryoutItem> get() = section?.items.orEmpty()
@@ -88,6 +90,9 @@ data class TryoutRunnerUiState(
     val nextItem: TryoutItem? get() = if (currentIndex >= 0) items.getOrNull(currentIndex + 1) else null
     val isLastQuestion: Boolean get() = currentIndex >= 0 && currentIndex == items.lastIndex
     val timeUp: Boolean get() = secondsLeft == 0L
+
+    /** Answers and ragu-ragu may change: the attempt is read, time is left, and it was not stopped. */
+    val canChange: Boolean get() = attempt != null && !timeUp && stopped == null
     val sectionIndex: Int get() = attempt?.sections?.indexOfFirst { it.id == section?.id } ?: -1
     val isLastSection: Boolean get() =
         attempt?.let { sectionIndex < 0 || sectionIndex == it.sections.lastIndex }
@@ -148,14 +153,23 @@ class TryoutRunnerViewModel
         private var poller: Job? = null
         private var ticker: Job? = null
 
+        /** The Try Out is over for this screen (result, leave, or refused): no more reads. */
+        private var ended = false
+        private var resumedBefore = false
+
         init {
             viewModelScope.launch { load() }
         }
 
+        /** The screen is shown: read once when it comes back, then every 15 seconds, as the web does. */
         fun onResume() {
             poller?.cancel()
+            if (ended) return
+            val comingBack = resumedBefore
+            resumedBefore = true
             poller =
                 viewModelScope.launch {
+                    if (comingBack) load()
                     while (isActive) {
                         delay(POLL_MS)
                         load()
@@ -168,13 +182,15 @@ class TryoutRunnerViewModel
         }
 
         private suspend fun load() {
+            if (ended) return
             val sequence = ++loadSequence
             val requestedAt = elapsed.elapsedMs()
             val result = repository.attempt(attemptId)
-            if (sequence != loadSequence) return
+            if (sequence != loadSequence || ended) return
             result
                 .onSuccess { apply(it, requestedAt) }
                 .onFailure { error ->
+                    if (stopBy(error)) return@onFailure
                     _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
                 }
         }
@@ -184,6 +200,8 @@ class TryoutRunnerViewModel
             requestedAt: Long,
         ) {
             if (!next.running) {
+                // Once: the reads stop, so the time-up reader never sends it again (Ardy's review of A2c, item 6).
+                end()
                 _effects.trySend(
                     if (next.status ==
                         TryoutAttempt.STATUS_CANCELLED
@@ -310,7 +328,7 @@ class TryoutRunnerViewModel
         private fun persist(value: AnswerValue) {
             val state = _uiState.value
             val item = state.activeItem
-            if (state.attempt == null || item == null || state.timeUp) return
+            if (!state.canChange || item == null) return
             drafts[item.id] = value
             _uiState.update {
                 it.copy(answers = it.answers + (item.id to value), hasUnsaved = true, isSaving = true, message = null)
@@ -321,9 +339,10 @@ class TryoutRunnerViewModel
         /** One save at a time; the latest value of the item goes (web `pendingSaveQueue`). */
         private suspend fun save(item: TryoutItem) {
             val latest = drafts[item.id]
-            if (latest != null) {
+            if (latest != null && !ended) {
                 val result = repository.answer(attemptId, item.id, answerPayload(item.question.questionType, latest))
                 val error = result.exceptionOrNull()
+                if (stopBy(error)) return
                 val permanent = error is ApiError && error.status in PERMANENT
                 if (result.isSuccess || permanent) {
                     if (drafts[item.id] === latest) drafts.remove(item.id)
@@ -401,11 +420,12 @@ class TryoutRunnerViewModel
         private fun toggleFlag() {
             val state = _uiState.value
             val item = state.activeItem
-            if (state.attempt == null || item == null || state.timeUp) return
+            if (!state.canChange || item == null) return
             val next = !(state.flags[item.id] ?: false)
             _uiState.update { it.copy(flags = it.flags + (item.id to next)) }
             viewModelScope.launch {
                 repository.flag(attemptId, item.id, next).onFailure { error ->
+                    if (stopBy(error)) return@onFailure
                     _uiState.update {
                         it.copy(
                             flags = it.flags + (item.id to !next),
@@ -429,7 +449,9 @@ class TryoutRunnerViewModel
                         _uiState.update { it.copy(selectedItemId = null) }
                         apply(next, requestedAt)
                     }.onFailure { error ->
-                        _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
+                        if (!stopBy(error)) {
+                            _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
+                        }
                     }
                 _uiState.update { it.copy(isBeginning = false) }
             }
@@ -449,7 +471,9 @@ class TryoutRunnerViewModel
                             _uiState.update { it.copy(selectedItemId = null, message = null) }
                             apply(next, requestedAt)
                         }.onFailure { error ->
-                            _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
+                            if (!stopBy(error)) {
+                                _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
+                            }
                         }
                 }
                 _uiState.update { it.copy(isFinishing = false) }
@@ -465,6 +489,7 @@ class TryoutRunnerViewModel
                 repository
                     .submit(attemptId)
                     .onSuccess { next ->
+                        end()
                         _effects.send(
                             if (next.status ==
                                 TryoutAttempt.STATUS_CANCELLED
@@ -475,10 +500,41 @@ class TryoutRunnerViewModel
                             },
                         )
                     }.onFailure { error ->
-                        _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
+                        if (!stopBy(error)) {
+                            _uiState.update { it.copy(message = requestMessage(error, TryoutMessage.StatusFailed)) }
+                        }
                     }
                 _uiState.update { it.copy(isFinishing = false) }
             }
+        }
+
+        /** Nothing more happens on this screen: the reads and the clock stop. */
+        private fun end() {
+            ended = true
+            poller?.cancel()
+            ticker?.cancel()
+        }
+
+        /**
+         * 410 `cancelled` (DEC-081, DEC-118) or 403 `not_member` (T-040): the attempt cannot go on. Stop everything
+         * and show the server's sentence; the student can only leave (Ardy's review of A2c, items 1 and 2).
+         */
+        private fun stopBy(error: Throwable?): Boolean {
+            if (error !is ApiError || error.status !in GONE) return false
+            end()
+            drafts.clear()
+            _uiState.update {
+                it.copy(
+                    stopped = error.message,
+                    message = null,
+                    dialog = TryoutDialog.None,
+                    hasUnsaved = false,
+                    isSaving = false,
+                    isFinishing = false,
+                    isBeginning = false,
+                )
+            }
+            return true
         }
 
         companion object {
@@ -489,8 +545,12 @@ class TryoutRunnerViewModel
             private const val TICK_SLACK_MS = 10L
             private const val CLOSE_SLACK_MS = 250L
             private const val UNPROCESSABLE = 422
-            private val PERMANENT = setOf(403, 404, 409, 422)
+            private val PERMANENT = setOf(404, 409, 422)
 
+            /** Refusals that end the attempt for this student: cancelled (410) or no longer a member (403). */
+            private val GONE = setOf(ApiError.FORBIDDEN, 410)
+
+            /** A 422 says why, a 403 or 410 says the server's sentence, no connection says so. */
             fun requestMessage(
                 error: Throwable?,
                 fallback: TryoutMessage,
@@ -498,6 +558,7 @@ class TryoutRunnerViewModel
                 when {
                     error !is ApiError -> TryoutMessage.Offline
                     error.status == UNPROCESSABLE -> firstMessage(error)?.let(TryoutMessage::Server) ?: fallback
+                    error.status in GONE && error.message.isNotBlank() -> TryoutMessage.Server(error.message)
                     else -> fallback
                 }
 

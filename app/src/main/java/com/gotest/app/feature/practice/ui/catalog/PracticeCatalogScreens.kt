@@ -442,8 +442,9 @@ private fun startAccess(
             SheetAccess(false, stringResource(R.string.practice_premium_note), R.string.practice_premium_only, true)
         }
 
+        // `/akun` not read (it failed): Mulai stays on and the server says why if it refuses (A2c review, item 4).
         free == null -> {
-            SheetAccess(uiState.access?.access?.active ?: false, null, null, false)
+            SheetAccess(uiState.access?.access?.active ?: true, null, null, false)
         }
 
         left > 0 -> {

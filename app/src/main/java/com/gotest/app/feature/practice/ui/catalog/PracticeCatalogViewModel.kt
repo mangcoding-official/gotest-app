@@ -50,7 +50,7 @@ data class CategoryGroup(
 
 /** Why a start failed, as the web's `requestMessage` words it. */
 sealed interface StartProblem {
-    /** A 422 with the server's own sentence. */
+    /** A 422, 403, or 429 with the server's own sentence. */
     data class Server(
         val message: String,
     ) : StartProblem
@@ -242,7 +242,11 @@ class PracticeCatalogViewModel
             const val ARG_CATEGORY = "categoryId"
             const val ARG_SUBJECT = "subjectId"
 
-            /** Web `requestMessage`: a 422 says why; no connection says so; anything else the fallback. */
+            /**
+             * Web `requestMessage`: a 422 says why; no connection says so. A 403 (`premium_only`, `quota_used`,
+             * `not_member`) or 429 `busy` says the server's sentence too (Ardy's review of A2c, item 3); anything
+             * else the fallback.
+             */
             fun startError(error: Throwable): StartProblem =
                 when {
                     error !is ApiError -> {
@@ -257,12 +261,17 @@ class PracticeCatalogViewModel
                         )
                     }
 
+                    error.status in SAYS_WHY && error.message.isNotBlank() -> {
+                        StartProblem.Server(error.message)
+                    }
+
                     else -> {
                         StartProblem.Fallback
                     }
                 }
 
             private const val UNPROCESSABLE = 422
+            private val SAYS_WHY = setOf(ApiError.FORBIDDEN, 429)
         }
     }
 

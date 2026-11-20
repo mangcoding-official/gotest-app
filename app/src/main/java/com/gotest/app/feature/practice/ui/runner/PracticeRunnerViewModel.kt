@@ -74,6 +74,8 @@ data class PracticeRunnerUiState(
     /** The Latihan ended while an answer was on its way: which question lost it. */
     val finishedAfterRejection: Int? = null,
     val secondsLeft: Long? = null,
+    /** Cancelled by the Gotest team (410) or no longer a member (403): the server's sentence, nothing more to do. */
+    val stopped: String? = null,
 ) {
     val items: List<PracticeItem> get() = attempt?.items.orEmpty()
     val activeItem: PracticeItem? get() = items.firstOrNull { it.id == selectedItemId }
@@ -135,6 +137,10 @@ class PracticeRunnerViewModel
         private var activationTarget: Long? = null
         private var rejectedAnswer: Int? = null
         private var submitting = false
+
+        /** The Latihan is over for this screen (result opened, cancelled, or refused): no more reads. */
+        private var ended = false
+        private var resumedBefore = false
         private var clock: ExamClock? = null
 
         /** When the last attempt read was sent: `server_now` counts from here, as the web's `clockAnchor`. */
@@ -147,11 +153,15 @@ class PracticeRunnerViewModel
             viewModelScope.launch { loadAttempt() }
         }
 
-        /** The screen is shown: read the attempt every 15 seconds, as the web does. */
+        /** The screen is shown: read once when it comes back, then every 15 seconds, as the web does. */
         fun onResume() {
             poller?.cancel()
+            if (ended) return
+            val comingBack = resumedBefore
+            resumedBefore = true
             poller =
                 viewModelScope.launch {
+                    if (comingBack) loadAttempt()
                     while (isActive) {
                         delay(POLL_MS)
                         loadAttempt()
@@ -164,26 +174,33 @@ class PracticeRunnerViewModel
         }
 
         private suspend fun loadAttempt() {
+            if (ended) return
             // Only the latest read may change the screen, so a slow one never overwrites a newer state.
             val sequence = ++loadSequence
             val requestedAt = elapsed.elapsedMs()
             val result = repository.attempt(attemptId)
-            if (sequence != loadSequence) return
+            if (sequence != loadSequence || ended) return
             result
                 .onSuccess { next -> if (next.running) show(next, requestedAt) else finished() }
                 .onFailure { error ->
+                    if (stopBy(error)) return@onFailure
                     loadErrorShown = true
                     _uiState.update { it.copy(message = requestMessage(error, RunnerMessage.LoadFailed)) }
                 }
         }
 
-        /** The Latihan ended: explain a lost answer first, otherwise open the result. */
-        private suspend fun finished() {
+        /**
+         * The Latihan ended: explain a lost answer first, otherwise open the result, once. The reads stop here, so
+         * the time-up reader never sends the result again (Ardy's review of A2c, item 6). `trySend`, because the
+         * reader calling this is cancelled by [end].
+         */
+        private fun finished() {
+            end()
             val lost = rejectedAnswer
             if (lost != null) {
                 _uiState.update { it.copy(finishedAfterRejection = lost) }
             } else {
-                _effects.send(PracticeRunnerEffect.OpenResult)
+                _effects.trySend(PracticeRunnerEffect.OpenResult)
             }
         }
 
@@ -275,6 +292,7 @@ class PracticeRunnerViewModel
                     .onSuccess { question ->
                         if (activationTarget == itemId) _uiState.update { it.copy(question = question) }
                     }.onFailure { error ->
+                        if (stopBy(error)) return@onFailure
                         if (activationTarget == itemId) {
                             _uiState.update {
                                 it.copy(
@@ -378,6 +396,7 @@ class PracticeRunnerViewModel
                 PracticeRunnerEvent.ConfirmSubmit -> submit()
                 PracticeRunnerEvent.SaveAndExit -> saveAndExit()
                 PracticeRunnerEvent.OpenResult -> _effects.trySend(PracticeRunnerEffect.OpenResult)
+                PracticeRunnerEvent.Leave -> _effects.trySend(PracticeRunnerEffect.Leave)
                 else -> Unit
             }
         }
@@ -386,7 +405,7 @@ class PracticeRunnerViewModel
             val state = _uiState.value
             val item = state.activeItem
             val question = state.question
-            val open = state.questionReady && !state.itemClosed && !state.timeUp
+            val open = state.questionReady && !state.itemClosed && !state.timeUp && state.stopped == null
             if (item == null || question == null || !open) return
             drafts[item.questionId] = Draft(value, question.questionType ?: item.questionType, item.displayOrder)
             _uiState.update { it.copy(answers = it.answers + (item.questionId to value), message = null) }
@@ -425,9 +444,21 @@ class PracticeRunnerViewModel
         }
 
         private suspend fun flush(questionId: Long): Boolean {
-            val draft = drafts[questionId] ?: return true
+            val draft = drafts[questionId]
+            return when {
+                ended -> false
+                draft == null -> true
+                else -> send(questionId, draft)
+            }
+        }
+
+        private suspend fun send(
+            questionId: Long,
+            draft: Draft,
+        ): Boolean {
             val result = repository.answer(attemptId, questionId, answerPayload(draft.questionType, draft.value))
             val error = result.exceptionOrNull()
+            if (stopBy(error)) return false
             val permanent = error is ApiError && error.status in PERMANENT
             when {
                 result.isSuccess || permanent -> {
@@ -505,14 +536,45 @@ class PracticeRunnerViewModel
                 }
                 repository
                     .submit(attemptId)
-                    .onSuccess { _effects.send(PracticeRunnerEffect.OpenResult) }
-                    .onFailure { error ->
+                    .onSuccess {
+                        end()
+                        _effects.send(PracticeRunnerEffect.OpenResult)
+                    }.onFailure { error ->
                         submitting = false
+                        if (stopBy(error)) return@onFailure
                         _uiState.update {
                             it.copy(isSubmitting = false, message = requestMessage(error, RunnerMessage.SubmitFailed))
                         }
                     }
             }
+        }
+
+        /** Nothing more happens on this screen: the reads and both clocks stop. */
+        private fun end() {
+            ended = true
+            poller?.cancel()
+            ticker?.cancel()
+            closer?.cancel()
+        }
+
+        /**
+         * 410 `cancelled` (DEC-118) or 403 `not_member` (T-039): the attempt cannot go on. Stop everything and show the
+         * server's sentence; the student can only leave (Ardy's review of A2c, items 1 and 2).
+         */
+        private fun stopBy(error: Throwable?): Boolean {
+            if (error !is ApiError || error.status !in GONE) return false
+            end()
+            drafts.clear()
+            _uiState.update {
+                it.copy(
+                    stopped = error.message,
+                    message = null,
+                    dialog = RunnerDialog.None,
+                    isSaving = false,
+                    isSubmitting = false,
+                )
+            }
+            return true
         }
 
         private fun saveAndExit() {
@@ -530,10 +592,16 @@ class PracticeRunnerViewModel
             private const val COUNTDOWN_LEAD_MS = 500L
             private const val TICK_SLACK_MS = 10L
             private const val CLOSE_SLACK_MS = 250L
-            private val PERMANENT = setOf(403, 404, 409, 422)
+            private val PERMANENT = setOf(404, 409, 422)
+
+            /** Refusals that end the attempt for this student: cancelled (410) or no longer a member (403). */
+            private val GONE = setOf(ApiError.FORBIDDEN, 410)
             private const val UNPROCESSABLE = 422
 
-            /** Web `requestMessage`: a 422 says why, no connection says so, anything else the fallback. */
+            /**
+             * Web `requestMessage`: a 422 says why, no connection says so, anything else the fallback. A 403 or 410
+             * says the server's sentence too (the web redirects with it instead).
+             */
             fun requestMessage(
                 error: Throwable?,
                 fallback: RunnerMessage,
@@ -541,6 +609,7 @@ class PracticeRunnerViewModel
                 when {
                     error !is ApiError -> RunnerMessage.Offline
                     error.status == UNPROCESSABLE -> firstMessage(error)?.let(RunnerMessage::Server) ?: fallback
+                    error.status in GONE && error.message.isNotBlank() -> RunnerMessage.Server(error.message)
                     else -> fallback
                 }
 
@@ -595,4 +664,7 @@ sealed interface PracticeRunnerEvent {
     data object SaveAndExit : PracticeRunnerEvent
 
     data object OpenResult : PracticeRunnerEvent
+
+    /** "Kembali" once the Latihan was stopped: leave without saving anything. */
+    data object Leave : PracticeRunnerEvent
 }

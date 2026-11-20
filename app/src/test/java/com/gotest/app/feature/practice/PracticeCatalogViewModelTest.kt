@@ -116,8 +116,27 @@ class PracticeCatalogViewModelTest {
             assertFalse(sheet?.isStarting ?: true)
             assertEquals(StartProblem.Server("Paket ini tidak dapat dikerjakan ulang."), sheet?.error)
 
-            // Gratis quota or Premium (403) has no sentence of its own on the web's sheet.
+            // Gratis quota, Premium (403), or busy (429): the server's sentence too (A2c review, item 3).
             repository.startReply = Result.failure(ApiError(403, "Kuota habis.", "quota_used"))
+            vm.start()
+            runCurrent()
+            assertEquals(
+                StartProblem.Server("Kuota habis."),
+                vm.uiState.value.sheet
+                    ?.error,
+            )
+
+            repository.startReply =
+                Result.failure(ApiError(429, "Permintaan sebelumnya masih diproses. Coba lagi sebentar.", "busy"))
+            vm.start()
+            runCurrent()
+            assertEquals(
+                StartProblem.Server("Permintaan sebelumnya masih diproses. Coba lagi sebentar."),
+                vm.uiState.value.sheet
+                    ?.error,
+            )
+
+            repository.startReply = Result.failure(ApiError(500, "Terjadi kesalahan.", "server"))
             vm.start()
             runCurrent()
             assertEquals(

@@ -330,8 +330,9 @@ internal fun tryoutAccess(
             )
         }
 
+        // `/akun` not read (it failed): Mulai stays on and the server says why if it refuses (A2c review, item 4).
         quota == null -> {
-            TryoutAccess(known?.access?.active ?: false, null, null, false, null)
+            TryoutAccess(known?.access?.active ?: true, null, null, false, null)
         }
 
         quota.left > 0 -> {

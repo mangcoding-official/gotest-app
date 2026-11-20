@@ -149,6 +149,9 @@
     <string name="trun_exit_leave_not_started">Kembali ke Dashboard, mulai nanti</string>
     <string name="trun_exit_end">Akhiri seluruh Try Out</string>
     <string name="trun_end_title">Akhiri seluruh Try Out sekarang?</string>
+    <!-- 410 cancelled or 403 not_member: the body is the server's sentence (Ardy's review of A2c). -->
+    <string name="trun_stopped_title">Try Out ini tidak bisa dilanjutkan.</string>
+    <string name="trun_stopped_back">Kembali</string>
     <string name="trun_end_cancels">Subtes pertama belum dimulai, jadi Try Out ini dibatalkan tanpa hasil dan tidak masuk Riwayat maupun peringkat. Anda dapat memulainya lagi dari halaman Paket Try Out.</string>
     <string name="trun_end_locks">%1$d subtes yang belum selesai akan dikunci. Hasil dihitung dari jawaban yang sudah tersimpan dan Try Out ini tidak dapat dilanjutkan lagi.</string>
     <string name="trun_end_locks_empty">%1$d subtes yang belum selesai akan dikunci dan %2$d soal pada subtes ini dianggap kosong. Hasil dihitung dari jawaban yang sudah tersimpan dan Try Out ini tidak dapat dilanjutkan lagi.</string>

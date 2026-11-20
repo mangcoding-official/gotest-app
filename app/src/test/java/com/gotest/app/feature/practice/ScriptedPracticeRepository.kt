@@ -24,6 +24,7 @@ internal class ScriptedPracticeRepository : PracticeRepository {
     val answers = mutableListOf<Pair<Long, AnswerData>>()
     val activated = mutableListOf<Long>()
     var submitCalls = 0
+    var attemptCalls = 0
 
     override suspend fun catalog(): Result<PracticeCatalogPage> = catalogReply
 
@@ -45,7 +46,10 @@ internal class ScriptedPracticeRepository : PracticeRepository {
         return startReply
     }
 
-    override suspend fun attempt(attemptId: Long): Result<PracticeAttempt> = attemptReply
+    override suspend fun attempt(attemptId: Long): Result<PracticeAttempt> {
+        attemptCalls++
+        return attemptReply
+    }
 
     override suspend fun activate(
         attemptId: Long,

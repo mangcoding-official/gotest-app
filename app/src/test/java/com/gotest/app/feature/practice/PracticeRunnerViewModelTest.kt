@@ -18,8 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -27,6 +30,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -56,9 +60,12 @@ class PracticeRunnerViewModelTest {
             ),
     )
 
-    private fun TestScope.viewModel(first: PracticeAttempt = attempt()): PracticeRunnerViewModel {
+    private fun TestScope.viewModel(first: PracticeAttempt = attempt()): PracticeRunnerViewModel =
+        viewModelReading(Result.success(first))
+
+    private fun TestScope.viewModelReading(first: Result<PracticeAttempt>): PracticeRunnerViewModel {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        repository.attemptReply = Result.success(first)
+        repository.attemptReply = first
         return PracticeRunnerViewModel(
             SavedStateHandle(mapOf(PracticeRunnerViewModel.ARG_ATTEMPT to ATTEMPT)),
             repository,
@@ -164,7 +171,112 @@ class PracticeRunnerViewModelTest {
             vm.viewModelScope.cancel()
         }
 
+    @Test
+    fun aLatihanCancelledByTheTeamStopsWithTheServerSentenceAndOnlyLeaves() =
+        runTest {
+            val vm = viewModel()
+            repository.answerReply = Result.failure(ApiError(410, CANCELLED, "cancelled"))
+
+            vm.onEvent(PracticeRunnerEvent.SelectOption(1))
+            runCurrent()
+            assertEquals(CANCELLED, vm.uiState.value.stopped)
+            assertNull(vm.uiState.value.message)
+            assertFalse(vm.uiState.value.isSaving)
+
+            // Nothing more is read or saved, and leaving needs no save.
+            val reads = repository.attemptCalls
+            vm.onResume()
+            advanceTimeBy(60_000)
+            runCurrent()
+            vm.onEvent(PracticeRunnerEvent.SelectOption(2))
+            runCurrent()
+            assertEquals(reads, repository.attemptCalls)
+            assertEquals(1, repository.answers.size)
+
+            vm.onEvent(PracticeRunnerEvent.Leave)
+            assertEquals(PracticeRunnerEffect.Leave, vm.effects.first())
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun aStudentNoLongerInTheMitraSeesWhyOnReadingAndOnSubmit() =
+        runTest {
+            val early = viewModelReading(Result.failure(ApiError(403, NOT_MEMBER, "not_member")))
+            assertEquals(NOT_MEMBER, early.uiState.value.stopped)
+            early.viewModelScope.cancel()
+
+            val later = viewModel()
+            repository.submitReply = Result.failure(ApiError(403, NOT_MEMBER, "not_member"))
+            later.onEvent(PracticeRunnerEvent.ConfirmSubmit)
+            runCurrent()
+            assertEquals(NOT_MEMBER, later.uiState.value.stopped)
+            assertFalse(later.uiState.value.isSubmitting)
+            later.viewModelScope.cancel()
+        }
+
+    @Test
+    fun aRefusalOtherThan422StillSaysTheServerSentenceFor403And410() {
+        val message =
+            PracticeRunnerViewModel.requestMessage(
+                ApiError(410, CANCELLED, "cancelled"),
+                RunnerMessage.LoadFailed,
+            )
+        assertEquals(RunnerMessage.Server(CANCELLED), message)
+        assertEquals(
+            RunnerMessage.LoadFailed,
+            PracticeRunnerViewModel.requestMessage(
+                ApiError(500, "Terjadi kesalahan.", "server"),
+                RunnerMessage.LoadFailed,
+            ),
+        )
+    }
+
+    @Test
+    fun comingBackToTheScreenReadsTheAttemptAtOnce() =
+        runTest {
+            val vm = viewModel()
+            val reads = repository.attemptCalls
+
+            // First shown: the read on opening is enough.
+            vm.onResume()
+            runCurrent()
+            assertEquals(reads, repository.attemptCalls)
+
+            vm.onPause()
+            vm.onResume()
+            runCurrent()
+            assertEquals(reads + 1, repository.attemptCalls)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun whenTimeIsUpTheResultOpensOnceAndTheReadsStop() =
+        runTest {
+            val timed =
+                attempt().copy(
+                    timerMode = PracticeAttempt.TIMER_PACKAGE,
+                    timerEnabled = true,
+                    deadlineAt = "2026-11-20T03:00:30Z",
+                )
+            val vm = viewModel(timed)
+            val effects = mutableListOf<PracticeRunnerEffect>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.effects.collect { effects += it } }
+            repository.attemptReply = Result.success(attempt(status = "auto_submitted"))
+
+            advanceTimeBy(40_000)
+            runCurrent()
+            val reads = repository.attemptCalls
+            advanceTimeBy(10_000)
+            runCurrent()
+
+            assertEquals(listOf(PracticeRunnerEffect.OpenResult), effects)
+            assertEquals(reads, repository.attemptCalls)
+            vm.viewModelScope.cancel()
+        }
+
     private companion object {
         const val ATTEMPT = 1201L
+        const val CANCELLED = "Pengerjaan ini dibatalkan oleh tim Gotest. Kamu bisa memulai paket ini lagi."
+        const val NOT_MEMBER = "Kamu bukan lagi siswa Mitra ini, sehingga Latihan tidak bisa dilanjutkan."
     }
 }

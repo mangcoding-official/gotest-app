@@ -14,6 +14,8 @@ import com.gotest.app.feature.tryout.domain.TryoutRepository
 import com.gotest.app.feature.tryout.domain.TryoutResult
 import com.gotest.app.feature.tryout.domain.TryoutSectionSummary
 import com.gotest.app.feature.tryout.domain.TryoutSessionPage
+import com.gotest.app.feature.tryout.ui.catalog.TryoutCatalogViewModel
+import com.gotest.app.feature.tryout.ui.catalog.TryoutProblem
 import com.gotest.app.feature.tryout.ui.runner.TryoutDialog
 import com.gotest.app.feature.tryout.ui.runner.TryoutMessage
 import com.gotest.app.feature.tryout.ui.runner.TryoutRunnerEffect
@@ -25,8 +27,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -50,12 +55,16 @@ class TryoutRunnerViewModelTest {
         var submitReply: Result<TryoutAttempt> = Result.failure(IOException())
         val answers = mutableListOf<Pair<Long, AnswerData>>()
         val finished = mutableListOf<Long?>()
+        var reads = 0
 
         override suspend fun catalog(): Result<TryoutCatalogPage> = Result.failure(IOException())
 
         override suspend fun start(packageId: Long): Result<TryoutAttempt> = Result.failure(IOException())
 
-        override suspend fun attempt(attemptId: Long): Result<TryoutAttempt> = attemptReply
+        override suspend fun attempt(attemptId: Long): Result<TryoutAttempt> {
+            reads++
+            return attemptReply
+        }
 
         override suspend fun begin(attemptId: Long): Result<TryoutAttempt> = beginReply
 
@@ -300,7 +309,112 @@ class TryoutRunnerViewModelTest {
             vm.viewModelScope.cancel()
         }
 
+    @Test
+    fun aTryOutCancelledByTheTeamStopsWithTheServerSentenceAndOnlyLeaves() =
+        runTest {
+            val vm = viewModel(inSection(1))
+            repository.answerReply = Result.failure(ApiError(410, CANCELLED, "cancelled"))
+
+            vm.onEvent(TryoutRunnerEvent.SelectOption(1))
+            runCurrent()
+            assertEquals(CANCELLED, vm.uiState.value.stopped)
+            assertFalse(vm.uiState.value.hasUnsaved)
+            assertEquals(null, vm.uiState.value.message)
+
+            val reads = repository.reads
+            vm.onResume()
+            advanceTimeBy(60_000)
+            runCurrent()
+            vm.onEvent(TryoutRunnerEvent.ToggleFlag)
+            vm.onEvent(TryoutRunnerEvent.SelectOption(2))
+            runCurrent()
+            assertEquals(reads, repository.reads)
+            assertEquals(1, repository.answers.size)
+            assertEquals(false, vm.uiState.value.flags[11L])
+
+            vm.onEvent(TryoutRunnerEvent.Leave)
+            assertEquals(TryoutRunnerEffect.Leave, vm.effects.first())
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun aStudentNoLongerInTheMitraSeesWhyOnFinishingASection() =
+        runTest {
+            val vm = viewModel(inSection(1))
+            repository.finishReply = Result.failure(ApiError(403, NOT_MEMBER, "not_member"))
+
+            vm.onEvent(TryoutRunnerEvent.ShowDialog(TryoutDialog.Action))
+            vm.onEvent(TryoutRunnerEvent.ConfirmAction)
+            runCurrent()
+
+            assertEquals(NOT_MEMBER, vm.uiState.value.stopped)
+            assertEquals(TryoutDialog.None, vm.uiState.value.dialog)
+            assertFalse(vm.uiState.value.isFinishing)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun refusalsSayTheServerSentence() {
+        assertEquals(
+            TryoutMessage.Server(NOT_MEMBER),
+            TryoutRunnerViewModel.requestMessage(ApiError(403, NOT_MEMBER, "not_member"), TryoutMessage.StatusFailed),
+        )
+        // Mulai paket and Daftar/Batal sesi (A2c review, item 3).
+        assertEquals(
+            TryoutProblem.Server(QUOTA),
+            TryoutCatalogViewModel.problemOf(ApiError(403, QUOTA, "quota_used")),
+        )
+        assertEquals(
+            TryoutProblem.Server(BUSY),
+            TryoutCatalogViewModel.problemOf(ApiError(429, BUSY, "busy")),
+        )
+        assertEquals(
+            TryoutProblem.Fallback,
+            TryoutCatalogViewModel.problemOf(ApiError(500, "Terjadi kesalahan.", "server")),
+        )
+    }
+
+    @Test
+    fun comingBackToTheScreenReadsTheAttemptAtOnce() =
+        runTest {
+            val vm = viewModel(inSection(1))
+            val reads = repository.reads
+
+            vm.onResume()
+            runCurrent()
+            assertEquals(reads, repository.reads)
+
+            vm.onPause()
+            vm.onResume()
+            runCurrent()
+            assertEquals(reads + 1, repository.reads)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun whenTimeIsUpTheResultOpensOnceAndTheReadsStop() =
+        runTest {
+            val vm = viewModel(inSection(2))
+            val effects = mutableListOf<TryoutRunnerEffect>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.effects.collect { effects += it } }
+            repository.attemptReply = Result.success(inSection(2).copy(status = "submitted"))
+
+            advanceTimeBy(310_000)
+            runCurrent()
+            val reads = repository.reads
+            advanceTimeBy(10_000)
+            runCurrent()
+
+            assertEquals(listOf(TryoutRunnerEffect.OpenResult), effects)
+            assertEquals(reads, repository.reads)
+            vm.viewModelScope.cancel()
+        }
+
     private companion object {
         const val ATTEMPT = 1401L
+        const val CANCELLED = "Pengerjaan ini dibatalkan oleh tim Gotest. Kamu bisa memulai paket ini lagi."
+        const val NOT_MEMBER = "Kamu bukan lagi siswa Mitra ini, sehingga Try Out tidak bisa dilanjutkan."
+        const val QUOTA = "Kuota Try Out gratis bulan ini sudah habis. Coba lagi bulan depan atau gunakan Premium."
+        const val BUSY = "Permintaan sebelumnya masih diproses. Coba lagi sebentar."
     }
 }
