@@ -49,13 +49,14 @@ class FakePracticeRepository
         init {
             // The finished attempts behind the catalog's "Lihat Pembahasan" and Aktifitas.
             FakePracticeData.finished.forEach { (id, packageId) ->
-                attempts[id] = FakePracticeAttempt(id, packageId, PracticeAttempt.TIMER_NONE, false, null).apply {
-                    FakePracticeData.questions.forEachIndexed { index, question ->
-                        if (index % 2 == 0) answers[question.id] = question.correct
+                attempts[id] =
+                    FakePracticeAttempt(id, packageId, PracticeAttempt.TIMER_NONE, false, null).apply {
+                        FakePracticeData.questions.forEachIndexed { index, question ->
+                            if (index % 2 == 0) answers[question.id] = question.correct
+                        }
+                        status = "submitted"
+                        submittedAt = Instant.parse("2026-11-14T09:30:00Z")
                     }
-                    status = "submitted"
-                    submittedAt = Instant.parse("2026-11-14T09:30:00Z")
-                }
             }
         }
 
@@ -76,7 +77,11 @@ class FakePracticeRepository
                 Result.success(
                     StartAccess(
                         access = AccountAccess("active"),
-                        freePlan = FreePlan(practice = FreeQuota(practiceUsed, FREE_PRACTICE), tryout = FreeQuota(0, 2)),
+                        freePlan =
+                            FreePlan(
+                                practice = FreeQuota(practiceUsed, FREE_PRACTICE),
+                                tryout = FreeQuota(0, 2),
+                            ),
                     ),
                 )
             }
@@ -221,7 +226,8 @@ class FakePracticeRepository
             fun <T> validation(
                 field: String,
                 message: String,
-            ): Result<T> = Result.failure(ApiError(UNPROCESSABLE, message, "validation", mapOf(field to listOf(message))))
+            ): Result<T> =
+                Result.failure(ApiError(UNPROCESSABLE, message, "validation", mapOf(field to listOf(message))))
 
             fun <T> notFound(): Result<T> = refuse(NOT_FOUND, "not_found", "Data tidak ditemukan.")
         }
@@ -314,10 +320,27 @@ internal class FakePracticeAttempt(
         if (index < 0) return FakePracticeRepository.notFound()
         val itemId = itemIds[index]
         return when {
-            itemId in timedOut -> FakePracticeRepository.validation("answer", "Waktu untuk soal ini telah habis.")
-            itemId in skipped -> FakePracticeRepository.validation("answer", "Soal ini sudah dilewati sehingga jawabannya tidak dapat diubah.")
-            itemId !in opened -> FakePracticeRepository.validation("answer", "Buka soal ini terlebih dahulu sebelum menjawab.")
-            else -> Result.success(Unit).also { answers[questionId] = answer }
+            itemId in timedOut -> {
+                FakePracticeRepository.validation("answer", "Waktu untuk soal ini telah habis.")
+            }
+
+            itemId in skipped -> {
+                FakePracticeRepository.validation(
+                    "answer",
+                    "Soal ini sudah dilewati sehingga jawabannya tidak dapat diubah.",
+                )
+            }
+
+            itemId !in opened -> {
+                FakePracticeRepository.validation(
+                    "answer",
+                    "Buka soal ini terlebih dahulu sebelum menjawab.",
+                )
+            }
+
+            else -> {
+                Result.success(Unit).also { answers[questionId] = answer }
+            }
         }
     }
 
@@ -427,41 +450,105 @@ internal object FakePracticeData {
         }
 
     fun packages(): List<PracticePackage> {
-        val reasoning = com.gotest.app.feature.practice.domain.CatalogSubject(11, "Penalaran Umum", null)
+        val reasoning =
+            com.gotest.app.feature.practice.domain
+                .CatalogSubject(11, "Penalaran Umum", null)
         val quantitative =
-            com.gotest.app.feature.practice.domain.CatalogSubject(12, "Pengetahuan Kuantitatif", null)
-        val math = com.gotest.app.feature.practice.domain.CatalogSubject(21, "Matematika", null)
+            com.gotest.app.feature.practice.domain
+                .CatalogSubject(12, "Pengetahuan Kuantitatif", null)
+        val math =
+            com.gotest.app.feature.practice.domain
+                .CatalogSubject(21, "Matematika", null)
         val composition =
-            listOf(com.gotest.app.feature.practice.domain.PackageComposition("Penalaran Umum", 5, "Campuran"))
+            listOf(
+                com.gotest.app.feature.practice.domain
+                    .PackageComposition("Penalaran Umum", 5, "Campuran"),
+            )
         val noTimer = "Paket ini dapat dikerjakan tanpa Timer"
         return listOf(
             PracticePackage(
-                101, "Latihan Penalaran Umum 1", "Lima soal penalaran untuk pemanasan.", 1, "UTBK-SNBT",
-                timerLabel = noTimer, composition = composition, subjects = listOf(reasoning), topicIds = listOf(1, 2),
+                101,
+                "Latihan Penalaran Umum 1",
+                "Lima soal penalaran untuk pemanasan.",
+                1,
+                "UTBK-SNBT",
+                timerLabel = noTimer,
+                composition = composition,
+                subjects = listOf(reasoning),
+                topicIds = listOf(1, 2),
             ),
             PracticePackage(
-                102, "Latihan Penalaran Umum 2", null, 1, "UTBK-SNBT", timerLabel = "Waktu total: 10 menit",
-                timerOptional = true, composition = composition, subjects = listOf(reasoning), topicIds = listOf(1),
+                102,
+                "Latihan Penalaran Umum 2",
+                null,
+                1,
+                "UTBK-SNBT",
+                timerLabel = "Waktu total: 10 menit",
+                timerOptional = true,
+                composition = composition,
+                subjects = listOf(reasoning),
+                topicIds = listOf(1),
             ),
             PracticePackage(
-                103, "Latihan Kuantitatif Cepat", null, 1, "UTBK-SNBT", timerLabel = "Waktu per soal: 1 menit",
-                subjects = listOf(quantitative), topicIds = listOf(3, 4, 5),
-                composition = listOf(com.gotest.app.feature.practice.domain.PackageComposition("Pengetahuan Kuantitatif", 5, "Sedang")),
+                103,
+                "Latihan Kuantitatif Cepat",
+                null,
+                1,
+                "UTBK-SNBT",
+                timerLabel = "Waktu per soal: 1 menit",
+                subjects = listOf(quantitative),
+                topicIds = listOf(3, 4, 5),
+                composition =
+                    listOf(
+                        com.gotest.app.feature.practice.domain
+                            .PackageComposition("Pengetahuan Kuantitatif", 5, "Sedang"),
+                    ),
             ),
             PracticePackage(
-                104, "Latihan Penalaran Umum 3", null, 1, "UTBK-SNBT", completed = true, timerLabel = noTimer,
-                composition = composition, subjects = listOf(reasoning), topicIds = listOf(2), allowRetry = false,
-                lastAttemptId = 901, finishedCount = 1, lastFinishedAt = "2026-11-14T09:30:00Z", lastScore = 60.0,
+                104,
+                "Latihan Penalaran Umum 3",
+                null,
+                1,
+                "UTBK-SNBT",
+                completed = true,
+                timerLabel = noTimer,
+                composition = composition,
+                subjects = listOf(reasoning),
+                topicIds = listOf(2),
+                allowRetry = false,
+                lastAttemptId = 901,
+                finishedCount = 1,
+                lastFinishedAt = "2026-11-14T09:30:00Z",
+                lastScore = 60.0,
                 lastScoreLabel = "Nilai",
             ),
             PracticePackage(
-                105, "Latihan Kuantitatif Lanjutan", null, 1, "UTBK-SNBT", premium = true, premiumLocked = true,
-                timerLabel = noTimer, subjects = listOf(quantitative), topicIds = listOf(4),
+                105,
+                "Latihan Kuantitatif Lanjutan",
+                null,
+                1,
+                "UTBK-SNBT",
+                premium = true,
+                premiumLocked = true,
+                timerLabel = noTimer,
+                subjects = listOf(quantitative),
+                topicIds = listOf(4),
             ),
             PracticePackage(
-                201, "Latihan Matematika TKA", null, 2, "TKA SMA", completed = true, timerLabel = noTimer,
-                subjects = listOf(math), topicIds = listOf(7, 8), lastAttemptId = 902, finishedCount = 1,
-                lastFinishedAt = "2026-11-15T03:10:00Z", lastScore = 80.0, lastScoreLabel = "Nilai",
+                201,
+                "Latihan Matematika TKA",
+                null,
+                2,
+                "TKA SMA",
+                completed = true,
+                timerLabel = noTimer,
+                subjects = listOf(math),
+                topicIds = listOf(7, 8),
+                lastAttemptId = 902,
+                finishedCount = 1,
+                lastFinishedAt = "2026-11-15T03:10:00Z",
+                lastScore = 80.0,
+                lastScoreLabel = "Nilai",
             ),
         )
     }

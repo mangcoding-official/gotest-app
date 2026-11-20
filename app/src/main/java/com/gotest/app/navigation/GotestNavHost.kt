@@ -14,6 +14,7 @@ import com.gotest.app.feature.history.navigation.historyScreens
 import com.gotest.app.feature.home.navigation.homeScreens
 import com.gotest.app.feature.leaderboard.navigation.leaderboardScreens
 import com.gotest.app.feature.multiplayer.navigation.multiplayerScreens
+import com.gotest.app.feature.practice.navigation.practiceScreens
 import com.gotest.app.feature.ruang.navigation.ruangScreens
 import com.gotest.app.feature.studypackage.navigation.studyPackageScreens
 import com.gotest.app.feature.upgrade.navigation.upgradeScreens
@@ -35,6 +36,7 @@ fun GotestNavHost(
         homeScreens(navController)
         examScreens(navController)
         studyPackageScreens(navController)
+        practiceScreens(navController)
         historyScreens(navController)
         leaderboardScreens(navController)
         // Hidden until the web has them (AppFeatures): not in the graph at all.

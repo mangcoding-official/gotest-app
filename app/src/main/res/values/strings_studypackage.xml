@@ -2,7 +2,7 @@
 <resources>
     <!-- Paket (tab root): Kategori Latihan / Tryout -->
     <string name="studypackage_practice_title">Paket Latihan</string>
-    <string name="studypackage_practice_subtitle">Latihan soal untuk mengasah pemahaman dan akurasi.</string>
+    <string name="studypackage_practice_subtitle">Latihan soal untuk mengasah pemahaman dan meningkatkan akurasi.</string>
     <string name="studypackage_tryout_title">Paket Tryout</string>
     <string name="studypackage_tryout_subtitle">Ikuti simulasi ujian dan ukur kemampuanmu.</string>
     <string name="studypackage_tab_practice">Paket Latihan</string>

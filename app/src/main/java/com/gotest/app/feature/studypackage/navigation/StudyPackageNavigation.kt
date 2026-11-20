@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.gotest.app.core.config.AppFeatures
+import com.gotest.app.feature.practice.navigation.practiceNavigation
 import com.gotest.app.feature.studypackage.ui.packagelist.PackageListRoute
 import com.gotest.app.feature.studypackage.ui.practicedetail.PracticeDetailRoute
 import com.gotest.app.feature.studypackage.ui.savedpackages.SavedPackagesRoute
@@ -40,6 +41,7 @@ fun NavGraphBuilder.studyPackageScreens(navController: NavController) {
             onCategoryClick = { categoryId -> navController.navigate(SubjectListDestination(categoryId)) },
             onTryoutClick = openTryout,
             onActivityClick = { attemptId -> navController.navigate(ExamResultDestination(attemptId)) },
+            practiceNavigation = navController.practiceNavigation(),
         )
     }
     composable<PackageListDestination> {

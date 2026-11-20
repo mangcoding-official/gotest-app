@@ -56,7 +56,12 @@ internal object FakePracticeQuestions {
                 content =
                     QuestionContent(
                         prompt = "<p>Tentukan benar atau salah setiap pernyataan berikut.</p>",
-                        statements = options("Semua persegi adalah persegi panjang.", "Setiap bilangan genap habis dibagi 4.", "Jumlah sudut segitiga adalah 180°."),
+                        statements =
+                            options(
+                                "Semua persegi adalah persegi panjang.",
+                                "Setiap bilangan genap habis dibagi 4.",
+                                "Jumlah sudut segitiga adalah 180°.",
+                            ),
                         answerLabels = options("Benar", "Salah"),
                     ),
                 correct = AnswerData(statementAnswers = listOf(0, 1, 0)),

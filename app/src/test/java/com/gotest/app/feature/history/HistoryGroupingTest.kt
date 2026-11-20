@@ -1,8 +1,8 @@
 package com.gotest.app.feature.history
 
 import com.gotest.app.core.designsystem.component.GotestChipTone
+import com.gotest.app.core.ui.categoryTone
 import com.gotest.app.feature.history.domain.HistoryResult
-import com.gotest.app.feature.history.ui.history.categoryTone
 import com.gotest.app.feature.history.ui.history.groupByMonth
 import org.junit.Assert.assertEquals
 import org.junit.Test

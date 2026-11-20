@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Latihan (T-026 A2c, API module C). Texts are the web's: Pages/Practice/*, Components/Student/Packages/
+     (PracticeCatalog, CatalogCards, ActivityPanel, PracticeStartModal, format.ts), lib/freePlan.ts,
+     Components/Student/ExamRunnerShell.tsx, Components/QuestionResponse.tsx, Components/Student/Exam/helpers.ts. -->
+<resources>
+    <!-- PracticeCatalog -->
+    <string name="practice_title">Paket Latihan</string>
+    <string name="practice_lede">Latihan soal untuk mengasah pemahaman dan meningkatkan akurasi.</string>
+    <string name="practice_all_levels">Semua Jenjang</string>
+    <string name="practice_empty">Belum ada paket latihan yang tersedia saat ini.</string>
+    <string name="practice_category_text">Latihan soal %1$s per subtes.</string>
+    <string name="practice_category_subjects">%1$d Subtes</string>
+    <string name="practice_category_packages">%1$d Paket latihan</string>
+    <string name="practice_category_lede">Pilih subtes untuk melihat paket latihan %1$s.</string>
+    <string name="practice_subject_text">Latihan soal %1$s untuk mengasah pemahaman.</string>
+    <string name="practice_subject_topics">%1$d Topik</string>
+    <string name="practice_subject_done">Dikerjakan</string>
+    <string name="practice_subject_done_of">%1$d dari %2$d</string>
+    <string name="practice_subject_lede">Paket latihan %1$s untuk %2$s.</string>
+    <string name="practice_general_subject">Umum</string>
+    <string name="practice_general_subject_text">Paket latihan campuran tanpa subtes khusus.</string>
+    <string name="practice_package_topics">%1$d Topik</string>
+    <string name="practice_package_done">Dikerjakan</string>
+    <string name="practice_package_done_at">Dikerjakan Pada</string>
+    <string name="practice_package_score">%1$s: %2$s</string>
+    <string name="practice_score_fallback">Skor</string>
+    <string name="practice_none">-</string>
+    <string name="practice_premium">Premium</string>
+
+    <!-- Card and sheet buttons -->
+    <string name="practice_start">Mulai Latihan</string>
+    <string name="practice_continue">Lanjutkan Latihan</string>
+    <string name="practice_again">Latihan Lagi</string>
+    <string name="practice_review">Lihat Pembahasan</string>
+    <string name="practice_premium_only">Khusus Premium</string>
+    <string name="practice_starting">Memulai...</string>
+    <string name="practice_close">Tutup</string>
+
+    <!-- ActivityPanel -->
+    <string name="practice_activity_title">Aktivitas Terkini</string>
+    <string name="practice_activity_lede">Hasil pengerjaan terbaru kamu.</string>
+    <string name="practice_activity_all_levels">Semua jenjang</string>
+    <string name="practice_activity_date_all">Tanggal Penyelesaian</string>
+    <string name="practice_activity_date_7d">7 hari terakhir</string>
+    <string name="practice_activity_date_30d">30 hari terakhir</string>
+    <string name="practice_activity_date_year">Tahun ini</string>
+    <string name="practice_activity_filter">Filter</string>
+    <string name="practice_activity_done_on">Diselesaikan %1$s</string>
+    <string name="practice_activity_not_yet">Belum tersedia</string>
+    <string name="practice_activity_score">%1$s : %2$d</string>
+    <string name="practice_activity_open">Lihat Hasil</string>
+    <string name="practice_activity_empty_title">Belum ada Aktifitas</string>
+    <string name="practice_activity_empty_copy">Kerjakan latihan untuk melihat Aktifitas disini.</string>
+
+    <!-- PracticeStartModal -->
+    <string name="practice_start_lede">Kerjakan paket ini untuk mengukur kemampuanmu.</string>
+    <string name="practice_composition">Komposisi Soal</string>
+    <string name="practice_composition_subject">Subject / Subtes</string>
+    <string name="practice_composition_count">Jumlah</string>
+    <string name="practice_composition_difficulty">Kesulitan</string>
+    <string name="practice_composition_questions">%1$d Soal</string>
+    <string name="practice_timer_setting">Pengaturan Waktu</string>
+    <string name="practice_use_timer">Gunakan timer</string>
+    <string name="practice_use_timer_note">Pilihan ini tidak dapat diubah setelah latihan dimulai.</string>
+    <string name="practice_once_only">Paket ini hanya dapat dikerjakan satu kali. Kamu masih bisa membuka pembahasannya.</string>
+    <string name="practice_start_failed">Paket belum dapat dimulai. Silakan coba lagi.</string>
+    <string name="practice_premium_note">Paket ini khusus Premium.</string>
+    <string name="practice_quota_left">Paket Gratis: sisa %1$d dari %2$d Latihan hari ini.</string>
+    <string name="practice_quota_used">Kuota Latihan gratis hari ini sudah habis. Coba lagi besok atau gunakan Premium.</string>
+    <string name="practice_quota_used_label">Kuota Latihan hari ini habis</string>
+
+    <!-- Practice/Runner, ExamRunnerShell -->
+    <string name="runner_kicker">Latihan Soal</string>
+    <string name="runner_time_left">Sisa Waktu %1$s</string>
+    <string name="runner_question_time_left">Sisa Waktu Soal %1$s</string>
+    <string name="runner_exit">Keluar</string>
+    <string name="runner_topics">Topik</string>
+    <string name="runner_nav_title">Navigasi Soal</string>
+    <string name="runner_nav_filled">%1$d/%2$d Terisi</string>
+    <string name="runner_nav_answered">Soal %1$d (Sudah dijawab)</string>
+    <string name="runner_nav_locked">Soal %1$d (Terkunci)</string>
+    <string name="runner_nav_empty">Soal %1$d (Belum dijawab)</string>
+    <string name="runner_finish_practice">Selesaikan Latihan</string>
+    <string name="runner_finishing">Menyelesaikan...</string>
+    <string name="runner_previous">Sebelumnya</string>
+    <string name="runner_next">Selanjutnya</string>
+    <string name="runner_advance">Lanjut ke Soal Berikutnya</string>
+    <string name="runner_finish">Selesai</string>
+    <string name="runner_question">Soal %1$d</string>
+    <string name="runner_question_image">Ilustrasi soal</string>
+    <string name="runner_option_image">Pilihan %1$s</string>
+    <string name="runner_statement_progress">%1$d dari %2$d pernyataan terjawab</string>
+    <string name="runner_statement_incomplete"> · jawaban belum lengkap.</string>
+    <string name="runner_statement_complete"> · jawaban lengkap.</string>
+    <string name="runner_statement_hint">Pilih satu Jawaban (%1$s) untuk setiap pernyataan. Skor penuh hanya diberikan bila seluruh pernyataan tepat.</string>
+    <string name="runner_multiple_hint">Pilih semua jawaban yang tepat. Skor penuh hanya diberikan bila pilihan Anda tepat sama dengan seluruh kunci.</string>
+    <string name="runner_label_true">Benar</string>
+    <string name="runner_label_false">Salah</string>
+    <string name="runner_linear_note">Soal dikerjakan berurutan. Soal yang sudah dilewati tidak dapat dibuka kembali.</string>
+    <string name="runner_practice_time_up">Waktu latihan habis.</string>
+    <string name="runner_question_time_up">Waktu untuk soal ini habis.</string>
+    <string name="runner_question_skipped">Soal ini sudah dilewati.</string>
+    <string name="runner_go_next"> Lanjut ke soal berikutnya.</string>
+    <string name="runner_finish_to_see"> Selesaikan latihan untuk melihat hasil.</string>
+    <string name="runner_pick_other"> Pilih soal lain untuk melanjutkan.</string>
+    <string name="runner_timed_out_notice">Waktu soal %1$d habis. Lanjut ke soal berikutnya.</string>
+    <string name="runner_cannot_show">Soal belum dapat ditampilkan.</string>
+    <string name="runner_retry">Coba Lagi</string>
+    <string name="runner_preparing">Menyiapkan soal latihan...</string>
+    <string name="runner_load_failed">Gagal memuat status latihan.</string>
+    <string name="runner_open_failed">Soal belum dapat dibuka.</string>
+    <string name="runner_save_failed">Jawaban belum tersimpan. Periksa koneksi lalu coba lagi.</string>
+    <string name="runner_answer_refused">Jawaban soal %1$d tidak tersimpan. %2$s</string>
+    <string name="runner_answer_refused_fallback">Jawaban tidak dapat disimpan.</string>
+    <string name="runner_submit_failed">Latihan belum dapat diselesaikan.</string>
+    <string name="runner_offline">Koneksi terputus. Periksa internet Anda lalu coba lagi.</string>
+    <string name="runner_skip_title">Lewati soal ini?</string>
+    <string name="runner_skip_message">Soal ini belum dijawab. Jika Anda lanjut, soal ini dikunci dan dihitung kosong. Soal yang sudah dilewati tidak dapat dibuka kembali.</string>
+    <string name="runner_skip_back">Kembali ke Soal</string>
+    <string name="runner_skip_confirm">Lewati &amp; Lanjut</string>
+    <string name="runner_submit_title">Selesaikan Latihan</string>
+    <string name="runner_submit_unanswered_title">Perhatian: Masih ada %1$d soal yang belum dijawab!</string>
+    <string name="runner_submit_unanswered">Anda baru mengisi %1$d dari %2$d soal. Soal yang belum dijawab dihitung kosong.</string>
+    <string name="runner_submit_message">Apakah Anda yakin ingin menyelesaikan sesi latihan ini dan melihat pembahasannya? Seluruh jawaban yang telah Anda pilih akan langsung dinilai.</string>
+    <string name="runner_submit_check">Periksa Kembali</string>
+    <string name="runner_submit_cancel">Batal</string>
+    <string name="runner_submit_confirm">Ya, Selesaikan</string>
+    <string name="runner_processing">Memproses...</string>
+    <string name="runner_finished_title">Latihan selesai</string>
+    <string name="runner_finished_timer">Waktu habis sebelum jawaban soal %1$d tersimpan, sehingga pilihan terakhir itu tidak dinilai.</string>
+    <string name="runner_finished_manual">Latihan sudah diselesaikan sebelum jawaban soal %1$d tersimpan, sehingga pilihan terakhir itu tidak dinilai.</string>
+    <string name="runner_see_result">Lihat Hasil</string>
+    <string name="runner_exit_title">Keluar dari Latihan?</string>
+    <string name="runner_exit_message">Jawaban yang sudah dipilih tersimpan otomatis. Anda dapat melanjutkan latihan ini nanti dari halaman Paket Latihan.</string>
+    <string name="runner_exit_question_timer"> Waktu soal yang sedang dibuka tetap berjalan selama Anda keluar.</string>
+    <string name="runner_exit_package_timer"> Waktu latihan tetap berjalan selama Anda keluar.</string>
+    <string name="runner_keep_working">Lanjut Mengerjakan</string>
+    <string name="runner_save_exit">Simpan &amp; Lanjutkan Nanti</string>
+    <string name="runner_finish_see">Selesaikan &amp; Lihat Hasil</string>
+
+    <!-- Practice/Result, PembahasanPage, Pembahasan/ReviewCard, QuestionOptionReview, Pembahasan/helpers -->
+    <string name="review_kicker">Pembahasan</string>
+    <string name="review_back">Kembali</string>
+    <string name="review_load_failed">Hasil latihan belum dapat dimuat. Silakan kembali dan coba lagi.</string>
+    <string name="review_loading">Memuat pembahasan...</string>
+    <string name="review_nav_count">%1$d Soal</string>
+    <string name="review_legend">Keterangan</string>
+    <string name="review_score_title">Skor</string>
+    <string name="review_correct">Benar</string>
+    <string name="review_wrong">Salah</string>
+    <string name="review_empty">Kosong</string>
+    <string name="review_score_default_title">Nilai</string>
+    <string name="review_total">%1$s %2$s</string>
+    <string name="review_display_score">Benar %1$d dari %2$d soal</string>
+    <string name="review_disqualified">Dikeluarkan dari peringkat oleh tim Gotest</string>
+    <string name="review_scale"> · skala 0–%1$s</string>
+    <string name="review_nav_item">Soal %1$d (%2$s)</string>
+    <string name="review_item_score">Nilai %1$s/%2$s</string>
+    <string name="review_answer_first">Jawab soal ini untuk melihat pembahasan. Jawaban di sini tidak mengubah hasil latihan Anda.</string>
+    <string name="review_reveal">Lihat pembahasan</string>
+    <string name="review_answer_during">Jawaban saat pembahasan</string>
+    <string name="review_answer_yours">Jawaban Anda</string>
+    <string name="review_answer_line">%1$s: %2$s</string>
+    <string name="review_answer_correct_line">Jawaban benar: %1$s</string>
+    <string name="review_answer_during_title">Jawaban saat pembahasan :</string>
+    <string name="review_answer_yours_title">Jawaban Anda :</string>
+    <string name="review_answer_correct_title">Jawaban benar :</string>
+    <string name="review_explanation">Pembahasan</string>
+    <string name="review_explanation_missing">Pembahasan belum tersedia untuk soal ini.</string>
+    <string name="review_not_answered">Tidak dijawab</string>
+    <string name="review_dash">—</string>
+    <string name="review_statement_number">Pernyataan %1$d</string>
+    <string name="review_options">Pilihan jawaban</string>
+    <string name="review_options_multiple">(Pilihan Ganda Kompleks)</string>
+    <string name="review_badge_right_picked">Benar Dipilih</string>
+    <string name="review_badge_wrong_picked">Salah Dipilih</string>
+    <string name="review_badge_key_missed">Kunci Tidak Dipilih</string>
+    <string name="review_yours_right">Jawaban Anda (Benar)</string>
+    <string name="review_yours_wrong">Jawaban Anda (Salah)</string>
+    <string name="review_key_missed">Kunci Jawaban (Tidak dipilih)</string>
+    <string name="review_yours_and_key">Jawaban Anda &amp; Kunci</string>
+    <string name="review_key">Kunci Jawaban</string>
+</resources>

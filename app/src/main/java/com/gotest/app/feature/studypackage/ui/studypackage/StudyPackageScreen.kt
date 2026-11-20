@@ -31,6 +31,8 @@ import com.gotest.app.core.designsystem.component.GotestTopAppBarStyle
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.PackageType
+import com.gotest.app.feature.practice.ui.catalog.PracticeCatalogFront
+import com.gotest.app.feature.practice.ui.catalog.PracticeNavigation
 import com.gotest.app.feature.studypackage.ui.components.JenjangDropdown
 import com.gotest.app.feature.studypackage.ui.components.StudyPackagePreviewData
 
@@ -41,6 +43,7 @@ fun StudyPackageRoute(
     onCategoryClick: (categoryId: String) -> Unit,
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
+    practiceNavigation: PracticeNavigation,
     modifier: Modifier = Modifier,
     viewModel: StudyPackageViewModel = hiltViewModel(),
 ) {
@@ -54,6 +57,7 @@ fun StudyPackageRoute(
         onTryoutClick = onTryoutClick,
         onActivityClick = onActivityClick,
         modifier = modifier,
+        practiceContent = { PracticeCatalogFront(navigation = practiceNavigation) },
     )
 }
 
@@ -71,6 +75,7 @@ fun StudyPackageScreen(
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
     modifier: Modifier = Modifier,
+    practiceContent: @Composable () -> Unit = {},
 ) {
     val spacing = GotestTheme.spacing
     val isPractice = uiState.selectedTab == PackageType.Practice
@@ -120,13 +125,18 @@ fun StudyPackageScreen(
             GotestCard(modifier = Modifier.fillMaxWidth()) {
                 StudyPackageControls(uiState = uiState, onEvent = onEvent)
             }
-            StudyPackageBody(
-                uiState = uiState,
-                onRetry = { onEvent(StudyPackageUiEvent.Retry) },
-                onCategoryClick = onCategoryClick,
-                onTryoutClick = onTryoutClick,
-                onActivityClick = onActivityClick,
-            )
+            // Paket Latihan comes from the API (T-026 A2c, web Practice/Index).
+            if (isPractice) {
+                practiceContent()
+            } else {
+                StudyPackageBody(
+                    uiState = uiState,
+                    onRetry = { onEvent(StudyPackageUiEvent.Retry) },
+                    onCategoryClick = onCategoryClick,
+                    onTryoutClick = onTryoutClick,
+                    onActivityClick = onActivityClick,
+                )
+            }
         }
     }
 }
@@ -154,11 +164,14 @@ private fun StudyPackageControls(
             selectedIndex = tabs.indexOf(uiState.selectedTab),
             onSelect = { onEvent(StudyPackageUiEvent.TabSelected(tabs[it])) },
         )
-        JenjangDropdown(
-            options = options.map { it.name },
-            selectedIndex = options.indexOfFirst { it.id == uiState.selectedJenjangId }.takeIf { it >= 0 },
-            onSelect = { index -> onEvent(StudyPackageUiEvent.JenjangSelected(index?.let { options[it].id })) },
-        )
+        // Paket Latihan has its own "Semua Jenjang" in its catalog (web PracticeCatalog).
+        if (uiState.selectedTab != PackageType.Practice) {
+            JenjangDropdown(
+                options = options.map { it.name },
+                selectedIndex = options.indexOfFirst { it.id == uiState.selectedJenjangId }.takeIf { it >= 0 },
+                onSelect = { index -> onEvent(StudyPackageUiEvent.JenjangSelected(index?.let { options[it].id })) },
+            )
+        }
     }
 }
 
