@@ -12,6 +12,7 @@ import com.gotest.app.feature.studypackage.ui.studypackage.StudyPackageRoute
 import com.gotest.app.feature.studypackage.ui.subjectlist.SubjectListRoute
 import com.gotest.app.feature.studypackage.ui.topiclist.TopicListRoute
 import com.gotest.app.feature.studypackage.ui.tryoutdetail.TryoutDetailRoute
+import com.gotest.app.feature.tryout.navigation.tryoutNavigation
 import com.gotest.app.navigation.ExamDestination
 import com.gotest.app.navigation.ExamResultDestination
 import com.gotest.app.navigation.PackageListDestination
@@ -42,6 +43,7 @@ fun NavGraphBuilder.studyPackageScreens(navController: NavController) {
             onTryoutClick = openTryout,
             onActivityClick = { attemptId -> navController.navigate(ExamResultDestination(attemptId)) },
             practiceNavigation = navController.practiceNavigation(),
+            tryoutNavigation = navController.tryoutNavigation(),
         )
     }
     composable<PackageListDestination> {

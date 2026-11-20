@@ -17,6 +17,7 @@ import com.gotest.app.feature.multiplayer.navigation.multiplayerScreens
 import com.gotest.app.feature.practice.navigation.practiceScreens
 import com.gotest.app.feature.ruang.navigation.ruangScreens
 import com.gotest.app.feature.studypackage.navigation.studyPackageScreens
+import com.gotest.app.feature.tryout.navigation.tryoutScreens
 import com.gotest.app.feature.upgrade.navigation.upgradeScreens
 
 /** Every destination from the design audit, registered by its feature's `xxxScreens()` builder. */
@@ -37,6 +38,7 @@ fun GotestNavHost(
         examScreens(navController)
         studyPackageScreens(navController)
         practiceScreens(navController)
+        tryoutScreens(navController)
         historyScreens(navController)
         leaderboardScreens(navController)
         // Hidden until the web has them (AppFeatures): not in the graph at all.

@@ -36,6 +36,7 @@ import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.ObserveAsEvents
 import com.gotest.app.core.ui.StudentStatTiles
 import com.gotest.app.core.ui.categoryTone
+import com.gotest.app.feature.practice.domain.CatalogCategory
 import com.gotest.app.feature.practice.domain.PracticePackage
 import com.gotest.app.feature.practice.domain.RecentAttempt
 import com.gotest.app.feature.ruang.ui.components.RuangScaffold
@@ -115,10 +116,17 @@ fun PracticeCatalogFront(
                 StudentStatTiles(page.stats.questionsDone, page.stats.accuracy, page.stats.packagesDone)
                 FrontPanel(uiState = uiState, onOpenCategory = navigation.onOpenCategory)
                 ActivityPanel(
-                    uiState = uiState,
-                    onDraftCategory = viewModel::onDraftActivityCategory,
-                    onDraftDate = viewModel::onDraftDateFilter,
-                    onApply = viewModel::applyActivityFilter,
+                    filters =
+                        ActivityFilters(
+                            categories = page.categories,
+                            draftCategory = uiState.draftActivityCategory,
+                            draftDate = uiState.draftDateFilter,
+                            onDraftCategory = viewModel::onDraftActivityCategory,
+                            onDraftDate = viewModel::onDraftDateFilter,
+                            onApply = viewModel::applyActivityFilter,
+                        ),
+                    attempts = uiState.activity,
+                    emptyCopy = stringResource(R.string.practice_activity_empty_copy),
                     onView = navigation.onOpenHistory,
                 )
             }
@@ -166,7 +174,7 @@ private fun JumpSelect(
 }
 
 @Composable
-private fun Heading(
+internal fun Heading(
     title: String,
     lede: String,
 ) {
@@ -306,49 +314,54 @@ private fun EmptyLevel() {
     )
 }
 
+/** The filters of Aktivitas Terkini: drafts until "Filter" is pressed (web ActivityPanel). */
+data class ActivityFilters(
+    val categories: List<CatalogCategory>,
+    val draftCategory: String?,
+    val draftDate: DateFilter,
+    val onDraftCategory: (String?) -> Unit,
+    val onDraftDate: (DateFilter) -> Unit,
+    val onApply: () -> Unit,
+)
+
 /** Aktivitas Terkini: filters applied with "Filter", then the latest results (web ActivityPanel). */
 @Composable
-private fun ActivityPanel(
-    uiState: PracticeCatalogUiState,
-    onDraftCategory: (String?) -> Unit,
-    onDraftDate: (DateFilter) -> Unit,
-    onApply: () -> Unit,
+internal fun ActivityPanel(
+    filters: ActivityFilters,
+    attempts: List<RecentAttempt>,
+    emptyCopy: String,
     onView: (Long) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val categories = uiState.page?.categories.orEmpty()
+    val categories = filters.categories
     val dates = DateFilter.entries
-    GotestCard(modifier = Modifier.fillMaxWidth()) {
+    GotestCard(modifier = modifier.fillMaxWidth()) {
         Heading(stringResource(R.string.practice_activity_title), stringResource(R.string.practice_activity_lede))
         JenjangDropdown(
             options = categories.map { it.name },
-            selectedIndex = categories.indexOfFirst { it.name == uiState.draftActivityCategory }.takeIf { it >= 0 },
-            onSelect = { index -> onDraftCategory(index?.let { categories[it].name }) },
+            selectedIndex = categories.indexOfFirst { it.name == filters.draftCategory }.takeIf { it >= 0 },
+            onSelect = { index -> filters.onDraftCategory(index?.let { categories[it].name }) },
             allOptionLabel = stringResource(R.string.practice_activity_all_levels),
         )
         JenjangDropdown(
             options = dates.drop(1).map { stringResource(dateLabel(it)) },
-            selectedIndex = dates.indexOf(uiState.draftDateFilter).takeIf { it > 0 }?.minus(1),
-            onSelect = { index -> onDraftDate(index?.let { dates[it + 1] } ?: DateFilter.All) },
+            selectedIndex = dates.indexOf(filters.draftDate).takeIf { it > 0 }?.minus(1),
+            onSelect = { index -> filters.onDraftDate(index?.let { dates[it + 1] } ?: DateFilter.All) },
             allOptionLabel = stringResource(R.string.practice_activity_date_all),
         )
         GotestButton(
             text = stringResource(R.string.practice_activity_filter),
-            onClick = onApply,
+            onClick = filters.onApply,
             modifier = Modifier.fillMaxWidth(),
             variant = GotestButtonVariant.Plain,
         )
-        val attempts = uiState.activity
         if (attempts.isEmpty()) {
             Text(
                 text = stringResource(R.string.practice_activity_empty_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = GotestTheme.colors.textPrimary,
             )
-            Text(
-                text = stringResource(R.string.practice_activity_empty_copy),
-                style = MaterialTheme.typography.bodySmall,
-                color = GotestTheme.colors.textSecondary,
-            )
+            Text(text = emptyCopy, style = MaterialTheme.typography.bodySmall, color = GotestTheme.colors.textSecondary)
         } else {
             attempts.forEach { attempt -> ActivityRow(attempt = attempt, onView = { onView(attempt.id) }) }
         }

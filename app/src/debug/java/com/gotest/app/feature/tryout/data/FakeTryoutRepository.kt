@@ -67,7 +67,17 @@ class FakeTryoutRepository
                         categories = listOf(CatalogCategory(1, "UTBK-SNBT", null)),
                         packages = packages.map(::withProgress),
                         recentAttempts =
-                            listOf(RecentAttempt(950, "Try Out UTBK-SNBT 0", null, "UTBK-SNBT", 612.0, null, "2026-11-12T08:00:00Z")),
+                            listOf(
+                                RecentAttempt(
+                                    950,
+                                    "Try Out UTBK-SNBT 0",
+                                    null,
+                                    "UTBK-SNBT",
+                                    612.0,
+                                    null,
+                                    "2026-11-12T08:00:00Z",
+                                ),
+                            ),
                         stats = StudentStats(questionsDone = 480, accuracy = 68, packagesDone = 19),
                     ),
                 )
@@ -80,10 +90,24 @@ class FakeTryoutRepository
                     return@start Result.success(it.snapshot())
                 }
                 when {
-                    item.premiumLocked -> refuse(FORBIDDEN, "premium_only", "Paket ini khusus Premium.")
-                    item.windowState == TryoutWindow.STATE_UPCOMING -> validation("package", "Try Out ini dibuka pada ${FakeTryoutData.wib(item.window?.opensAt)} WIB.")
-                    item.resultOnlyId != null -> validation("package", "Paket ini tidak dapat dikerjakan ulang.")
-                    else -> Result.success(newAttempt(packageId, inSession = false).snapshot())
+                    item.premiumLocked -> {
+                        refuse(FORBIDDEN, "premium_only", "Paket ini khusus Premium.")
+                    }
+
+                    item.windowState == TryoutWindow.STATE_UPCOMING -> {
+                        validation(
+                            "package",
+                            "Try Out ini dibuka pada ${FakeTryoutData.wib(item.window?.opensAt)} WIB.",
+                        )
+                    }
+
+                    item.resultOnlyId != null -> {
+                        validation("package", "Paket ini tidak dapat dikerjakan ulang.")
+                    }
+
+                    else -> {
+                        Result.success(newAttempt(packageId, inSession = false).snapshot())
+                    }
                 }
             }
 
@@ -128,9 +152,21 @@ class FakeTryoutRepository
             call {
                 val current = attempts[attemptId]?.apply { closeIfLate() }
                 when {
-                    current == null && attemptId == FakeTryoutData.DONE_ATTEMPT -> Result.success(FakeTryoutData.doneResult())
-                    current == null || current.running || current.status == TryoutAttempt.STATUS_CANCELLED -> notFound()
-                    else -> Result.success(current.result(packages.firstOrNull { it.id == current.packageId }?.name.orEmpty()))
+                    current == null && attemptId == FakeTryoutData.DONE_ATTEMPT -> {
+                        Result.success(
+                            FakeTryoutData.doneResult(),
+                        )
+                    }
+
+                    current == null || current.running || current.status == TryoutAttempt.STATUS_CANCELLED -> {
+                        notFound()
+                    }
+
+                    else -> {
+                        Result.success(
+                            current.result(packages.firstOrNull { it.id == current.packageId }?.name.orEmpty()),
+                        )
+                    }
                 }
             }
 
@@ -144,7 +180,11 @@ class FakeTryoutRepository
             call {
                 val index = sessions.indexOfFirst { it.id == sessionId }.takeIf { it >= 0 } ?: return@call notFound()
                 val session = sessions[index]
-                if (session.state != TryoutSession.SCHEDULED) return@call validation("session", "Pendaftaran sesi sudah ditutup.")
+                if (session.state !=
+                    TryoutSession.SCHEDULED
+                ) {
+                    return@call validation("session", "Pendaftaran sesi sudah ditutup.")
+                }
                 sessions[index] = session.copy(registered = true, registeredCount = session.registeredCount + 1)
                 Result.success("Anda terdaftar pada sesi ini. Kembali saat sesi dimulai untuk mengerjakan.")
             }
@@ -153,7 +193,8 @@ class FakeTryoutRepository
             call {
                 val index = sessions.indexOfFirst { it.id == sessionId }.takeIf { it >= 0 } ?: return@call notFound()
                 val session = sessions[index]
-                sessions[index] = session.copy(registered = false, registeredCount = (session.registeredCount - 1).coerceAtLeast(0))
+                sessions[index] =
+                    session.copy(registered = false, registeredCount = (session.registeredCount - 1).coerceAtLeast(0))
                 Result.success("Pendaftaran sesi dibatalkan.")
             }
 
@@ -170,7 +211,11 @@ class FakeTryoutRepository
         override suspend fun sessionLeaderboard(sessionId: Long): Result<SessionLeaderboard> =
             call {
                 val session = sessions.firstOrNull { it.id == sessionId } ?: return@call notFound()
-                if (session.state != TryoutSession.CLOSED) return@call Result.success(SessionLeaderboard(availableAt = session.endsAt))
+                if (session.state !=
+                    TryoutSession.CLOSED
+                ) {
+                    return@call Result.success(SessionLeaderboard(availableAt = session.endsAt))
+                }
                 Result.success(FakeTryoutData.leaderboard())
             }
 
@@ -208,7 +253,8 @@ class FakeTryoutRepository
         }
 
         private fun withAttempt(session: TryoutSession): TryoutSession {
-            val attempt = attempts.values.firstOrNull { it.sessionId == session.id }?.apply { closeIfLate() } ?: return session
+            val attempt =
+                attempts.values.firstOrNull { it.sessionId == session.id }?.apply { closeIfLate() } ?: return session
             val done = !attempt.running
             return session.copy(
                 attemptId = attempt.id,
@@ -246,7 +292,8 @@ class FakeTryoutRepository
             fun <T> validation(
                 field: String,
                 message: String,
-            ): Result<T> = Result.failure(ApiError(UNPROCESSABLE, message, "validation", mapOf(field to listOf(message))))
+            ): Result<T> =
+                Result.failure(ApiError(UNPROCESSABLE, message, "validation", mapOf(field to listOf(message))))
 
             fun <T> notFound(): Result<T> = refuse(NOT_FOUND, "not_found", "Data tidak ditemukan.")
         }
@@ -283,7 +330,11 @@ internal class FakeTryoutAttempt(
 
     fun begin() {
         closeIfLate()
-        if (running && activeIndex < 0) statuses.indexOf(TryoutSectionSummary.PENDING).takeIf { it >= 0 }?.let(::startSection)
+        if (running &&
+            activeIndex < 0
+        ) {
+            statuses.indexOf(TryoutSectionSummary.PENDING).takeIf { it >= 0 }?.let(::startSection)
+        }
     }
 
     private fun startSection(index: Int) {
@@ -308,12 +359,17 @@ internal class FakeTryoutAttempt(
         flagged: Boolean,
     ): Result<Unit> {
         closeIfLate()
-        if (!running || !activeItem(itemId)) return FakeTryoutRepository.validation("question", "Section soal ini sudah dikunci.")
+        if (!running ||
+            !activeItem(itemId)
+        ) {
+            return FakeTryoutRepository.validation("question", "Section soal ini sudah dikunci.")
+        }
         if (flagged) flags += itemId else flags -= itemId
         return Result.success(Unit)
     }
 
-    private fun activeItem(itemId: Long): Boolean = activeIndex >= 0 && sectionItems[activeIndex].any { itemIds[it] == itemId }
+    private fun activeItem(itemId: Long): Boolean =
+        activeIndex >= 0 && sectionItems[activeIndex].any { itemIds[it] == itemId }
 
     fun finishSection(sectionId: Long?) {
         closeIfLate()
@@ -353,7 +409,14 @@ internal class FakeTryoutAttempt(
             inSession = inSession,
             serverNow = Instant.now().toString(),
             activeSection = if (running && index >= 0) activeSection(index) else null,
-            nextSection = if (running && index < 0) summaries.firstOrNull { it.status == TryoutSectionSummary.PENDING } else null,
+            nextSection =
+                if (running &&
+                    index < 0
+                ) {
+                    summaries.firstOrNull { it.status == TryoutSectionSummary.PENDING }
+                } else {
+                    null
+                },
             sections = summaries,
         )
     }
@@ -386,7 +449,8 @@ internal class FakeTryoutAttempt(
 
     private fun correct(index: Int): Boolean = answers[itemIds[index]] == questions[index].correct
 
-    fun score(): Double = (questions.indices.count(::correct) * SCALE / questions.size).toDouble().roundToInt().toDouble()
+    fun score(): Double =
+        (questions.indices.count(::correct) * SCALE / questions.size).toDouble().roundToInt().toDouble()
 
     fun result(packageName: String): TryoutResult {
         val perQuestion = SCALE.toDouble() / questions.size
@@ -451,53 +515,156 @@ internal object FakeTryoutData {
             LeaderboardRow(3, "Salsa Maharani", 790.0, "2026-11-13T07:15:00Z", 4_600),
         )
 
-    private const val RULE = "Timer wajib per subtes. Subtes yang waktunya habis dikunci dan subtes berikutnya dimulai otomatis."
+    private const val RULE =
+        "Timer wajib per subtes. Subtes yang waktunya habis dikunci dan subtes berikutnya dimulai otomatis."
 
     fun wib(iso: String?): String =
-        iso?.let { java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy, HH.mm", java.util.Locale.forLanguageTag("id-ID")).withZone(java.time.ZoneId.of("Asia/Jakarta")).format(Instant.parse(it)) }.orEmpty()
+        iso
+            ?.let {
+                java.time.format.DateTimeFormatter
+                    .ofPattern(
+                        "d MMM yyyy, HH.mm",
+                        java.util.Locale.forLanguageTag("id-ID"),
+                    ).withZone(java.time.ZoneId.of("Asia/Jakarta"))
+                    .format(Instant.parse(it))
+            }.orEmpty()
 
     fun packages(now: Instant): List<TryoutPackage> =
         listOf(
-            TryoutPackage(301, "Try Out UTBK-SNBT 1", "Simulasi tiga subtes dengan timer wajib per subtes.", 1, "UTBK-SNBT", ruleLabel = RULE, sections = sections, leaderboard = board),
             TryoutPackage(
-                302, "Try Out UTBK-SNBT 0", null, 1, "UTBK-SNBT", completed = true, allowRetry = false, finishedCount = 1,
-                lastFinishedAt = "2026-11-12T08:00:00Z", lastScore = 612.0, rank = 31, totalParticipants = 140, lastAttemptId = DONE_ATTEMPT,
-                ruleLabel = RULE, sections = sections, leaderboard = board,
+                301,
+                "Try Out UTBK-SNBT 1",
+                "Simulasi tiga subtes dengan timer wajib per subtes.",
+                1,
+                "UTBK-SNBT",
+                ruleLabel = RULE,
+                sections = sections,
+                leaderboard = board,
             ),
             TryoutPackage(
-                303, "Try Out Akbar Desember", null, 1, "UTBK-SNBT", ruleLabel = RULE, sections = sections,
-                window = TryoutWindow(TryoutWindow.STATE_UPCOMING, opensAt = now.plus(3, ChronoUnit.DAYS).toString(), closesAt = now.plus(4, ChronoUnit.DAYS).toString()),
+                302,
+                "Try Out UTBK-SNBT 0",
+                null,
+                1,
+                "UTBK-SNBT",
+                completed = true,
+                allowRetry = false,
+                finishedCount = 1,
+                lastFinishedAt = "2026-11-12T08:00:00Z",
+                lastScore = 612.0,
+                rank = 31,
+                totalParticipants = 140,
+                lastAttemptId = DONE_ATTEMPT,
+                ruleLabel = RULE,
+                sections = sections,
+                leaderboard = board,
             ),
-            TryoutPackage(304, "Try Out Premium Intensif", null, 1, "UTBK-SNBT", premium = true, premiumLocked = true, ruleLabel = RULE, sections = sections),
+            TryoutPackage(
+                303,
+                "Try Out Akbar Desember",
+                null,
+                1,
+                "UTBK-SNBT",
+                ruleLabel = RULE,
+                sections = sections,
+                window =
+                    TryoutWindow(
+                        TryoutWindow.STATE_UPCOMING,
+                        opensAt = now.plus(3, ChronoUnit.DAYS).toString(),
+                        closesAt = now.plus(4, ChronoUnit.DAYS).toString(),
+                    ),
+            ),
+            TryoutPackage(
+                304,
+                "Try Out Premium Intensif",
+                null,
+                1,
+                "UTBK-SNBT",
+                premium = true,
+                premiumLocked = true,
+                ruleLabel = RULE,
+                sections = sections,
+            ),
         )
 
     fun sessions(now: Instant): List<TryoutSession> {
-        val sessionSections = sections.mapIndexed { index, section -> SessionSection(section.id, section.title, index + 1, 300) }
+        val sessionSections =
+            sections.mapIndexed { index, section ->
+                SessionSection(
+                    section.id,
+                    section.title,
+                    index + 1,
+                    300,
+                )
+            }
         return listOf(
             TryoutSession(
-                401, "Sesi Serentak November", null, 301, "Try Out UTBK-SNBT 1", state = TryoutSession.RUNNING,
-                startsAt = now.minus(30, ChronoUnit.MINUTES).toString(), endsAt = now.plus(2, ChronoUnit.HOURS).toString(),
-                capacity = 200, registeredCount = 154, registered = true, sections = sessionSections,
+                401,
+                "Sesi Serentak November",
+                null,
+                301,
+                "Try Out UTBK-SNBT 1",
+                state = TryoutSession.RUNNING,
+                startsAt = now.minus(30, ChronoUnit.MINUTES).toString(),
+                endsAt = now.plus(2, ChronoUnit.HOURS).toString(),
+                capacity = 200,
+                registeredCount = 154,
+                registered = true,
+                sections = sessionSections,
             ),
             TryoutSession(
-                402, "Sesi Serentak Desember", null, 301, "Try Out UTBK-SNBT 1", state = TryoutSession.SCHEDULED,
-                startsAt = now.plus(2, ChronoUnit.DAYS).toString(), endsAt = now.plus(2, ChronoUnit.DAYS).plus(3, ChronoUnit.HOURS).toString(),
-                capacity = 200, registeredCount = 63, canRegister = true, sections = sessionSections,
+                402,
+                "Sesi Serentak Desember",
+                null,
+                301,
+                "Try Out UTBK-SNBT 1",
+                state = TryoutSession.SCHEDULED,
+                startsAt = now.plus(2, ChronoUnit.DAYS).toString(),
+                endsAt = now.plus(2, ChronoUnit.DAYS).plus(3, ChronoUnit.HOURS).toString(),
+                capacity = 200,
+                registeredCount = 63,
+                canRegister = true,
+                sections = sessionSections,
             ),
             TryoutSession(
-                403, "Sesi Serentak Oktober", null, 301, "Try Out UTBK-SNBT 1", state = TryoutSession.CLOSED,
-                startsAt = "2026-10-25T01:00:00Z", endsAt = "2026-10-25T04:00:00Z", capacity = 200, registeredCount = 180,
-                registered = true, attemptId = 952, attemptDone = true, score = 688.0, submittedAt = "2026-10-25T03:20:00Z",
-                rank = 21, totalParticipants = 174, sections = sessionSections,
+                403,
+                "Sesi Serentak Oktober",
+                null,
+                301,
+                "Try Out UTBK-SNBT 1",
+                state = TryoutSession.CLOSED,
+                startsAt = "2026-10-25T01:00:00Z",
+                endsAt = "2026-10-25T04:00:00Z",
+                capacity = 200,
+                registeredCount = 180,
+                registered = true,
+                attemptId = 952,
+                attemptDone = true,
+                score = 688.0,
+                submittedAt = "2026-10-25T03:20:00Z",
+                rank = 21,
+                totalParticipants = 174,
+                sections = sessionSections,
             ),
         )
     }
 
     fun doneResult() =
         TryoutResult(
-            id = DONE_ATTEMPT, packageId = 302, packageName = "Try Out UTBK-SNBT 0", status = "submitted", score = 612.0,
-            scoreLabel = "Skor Try Out", ranked = true, rank = 31, totalParticipants = 140, rankingAvailable = true,
-            scoringProfile = ScoringProfile(scale = 1000.0), correctCount = 3, wrongCount = 1, emptyCount = 1,
+            id = DONE_ATTEMPT,
+            packageId = 302,
+            packageName = "Try Out UTBK-SNBT 0",
+            status = "submitted",
+            score = 612.0,
+            scoreLabel = "Skor Try Out",
+            ranked = true,
+            rank = 31,
+            totalParticipants = 140,
+            rankingAvailable = true,
+            scoringProfile = ScoringProfile(scale = 1000.0),
+            correctCount = 3,
+            wrongCount = 1,
+            emptyCount = 1,
             sections =
                 listOf(
                     TryoutResultSection(1, SECTION_TITLES[0], 1, 1, 0, 200.0, 400.0),
@@ -508,8 +675,25 @@ internal object FakeTryoutData {
 
     fun leaderboard() =
         SessionLeaderboard(
-            entries = board.map { SessionLeaderboardEntry(it.rank, it.name, it.score, it.durationUsed, it.submittedAt) },
-            userEntry = SessionLeaderboardEntry(21, "Gilang Permana", 688.0, 5_100, "2026-10-25T03:20:00Z", isCurrentUser = true),
+            entries =
+                board.map {
+                    SessionLeaderboardEntry(
+                        it.rank,
+                        it.name,
+                        it.score,
+                        it.durationUsed,
+                        it.submittedAt,
+                    )
+                },
+            userEntry =
+                SessionLeaderboardEntry(
+                    21,
+                    "Gilang Permana",
+                    688.0,
+                    5_100,
+                    "2026-10-25T03:20:00Z",
+                    isCurrentUser = true,
+                ),
             totalParticipants = 174,
         )
 }

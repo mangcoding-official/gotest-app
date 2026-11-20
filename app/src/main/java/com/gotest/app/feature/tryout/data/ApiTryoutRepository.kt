@@ -28,11 +28,14 @@ class ApiTryoutRepository
 
         override suspend fun catalog(): Result<TryoutCatalogPage> = apiCall(json) { api.catalog() }
 
-        override suspend fun start(packageId: Long): Result<TryoutAttempt> = apiCall(json) { api.start(packageId).attempt }
+        override suspend fun start(packageId: Long): Result<TryoutAttempt> =
+            apiCall(json) { api.start(packageId).attempt }
 
-        override suspend fun attempt(attemptId: Long): Result<TryoutAttempt> = apiCall(json) { api.attempt(attemptId).attempt }
+        override suspend fun attempt(attemptId: Long): Result<TryoutAttempt> =
+            apiCall(json) { api.attempt(attemptId).attempt }
 
-        override suspend fun begin(attemptId: Long): Result<TryoutAttempt> = apiCall(json) { api.begin(attemptId).attempt }
+        override suspend fun begin(attemptId: Long): Result<TryoutAttempt> =
+            apiCall(json) { api.begin(attemptId).attempt }
 
         override suspend fun answer(
             attemptId: Long,
@@ -49,19 +52,28 @@ class ApiTryoutRepository
         override suspend fun finishSection(
             attemptId: Long,
             sectionId: Long?,
-        ): Result<TryoutAttempt> = apiCall(json) { api.finishSection(attemptId, FinishSectionRequest(sectionId)).attempt }
+        ): Result<TryoutAttempt> =
+            apiCall(json) { api.finishSection(attemptId, FinishSectionRequest(sectionId)).attempt }
 
-        override suspend fun submit(attemptId: Long): Result<TryoutAttempt> = apiCall(json) { api.submit(attemptId).attempt }
+        override suspend fun submit(attemptId: Long): Result<TryoutAttempt> =
+            apiCall(json) { api.submit(attemptId).attempt }
 
-        override suspend fun result(attemptId: Long): Result<TryoutResult> = apiCall(json) { api.result(attemptId).result }
+        override suspend fun result(attemptId: Long): Result<TryoutResult> =
+            apiCall(json) { api.result(attemptId).result }
 
-        override suspend fun session(sessionId: Long): Result<TryoutSessionPage> = apiCall(json) { api.session(sessionId) }
+        override suspend fun session(sessionId: Long): Result<TryoutSessionPage> =
+            apiCall(json) { api.session(sessionId) }
 
-        override suspend fun register(sessionId: Long): Result<String?> = apiCall(json) { api.register(sessionId).message }
+        override suspend fun register(sessionId: Long): Result<String?> =
+            apiCall(json) { api.register(sessionId).message }
 
-        override suspend fun unregister(sessionId: Long): Result<String?> = apiCall(json) { api.unregister(sessionId).message }
+        override suspend fun unregister(sessionId: Long): Result<String?> =
+            apiCall(json) { api.unregister(sessionId).message }
 
-        override suspend fun startSession(sessionId: Long): Result<Long> = apiCall(json) { api.startSession(sessionId).attempt.id }
+        override suspend fun startSession(sessionId: Long): Result<Long> =
+            apiCall(json) {
+                api.startSession(sessionId).attempt.id
+            }
 
         override suspend fun sessionLeaderboard(sessionId: Long): Result<SessionLeaderboard> =
             apiCall(json) { api.sessionLeaderboard(sessionId) }

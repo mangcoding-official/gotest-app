@@ -44,21 +44,34 @@ fun CategoryCard(
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    CatalogCard(
-        onClick = onOpen,
+    CatalogCategoryCard(
+        name = group.name,
+        description = group.description ?: stringResource(R.string.practice_category_text, group.name),
+        index = index,
+        meta =
+            listOf(
+                stringResource(R.string.practice_category_subjects, group.subjects.size),
+                stringResource(R.string.practice_category_packages, group.packages.size),
+            ),
+        onOpen = onOpen,
         modifier = modifier,
-        footer = {
-            MetaFooter(
-                listOf(
-                    stringResource(R.string.practice_category_subjects, group.subjects.size),
-                    stringResource(R.string.practice_category_packages, group.packages.size),
-                ),
-            )
-        },
-    ) {
+    )
+}
+
+/** Web CategoryCard, shared by Paket Latihan and Paket Try Out. */
+@Composable
+internal fun CatalogCategoryCard(
+    name: String,
+    description: String,
+    index: Int,
+    meta: List<String>,
+    onOpen: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CatalogCard(onClick = onOpen, modifier = modifier, footer = { MetaFooter(meta) }) {
         Bar(barColor(index))
-        CardTitle(group.name)
-        CardText(group.description ?: stringResource(R.string.practice_category_text, group.name))
+        CardTitle(name)
+        CardText(description)
     }
 }
 
@@ -198,7 +211,7 @@ fun cardLabel(item: PracticePackage): Int {
 }
 
 @Composable
-private fun CatalogCard(
+internal fun CatalogCard(
     footer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
@@ -281,7 +294,7 @@ fun MetaFooter(
 }
 
 @Composable
-private fun FooterFact(
+internal fun FooterFact(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
@@ -293,21 +306,3 @@ private fun FooterFact(
 }
 
 private const val BAR_COLORS = 4
-private val indonesian = Locale.forLanguageTag("id-ID")
-private val shortFormat = DateTimeFormatter.ofPattern("d MMM yyyy", indonesian)
-private val longFormat = DateTimeFormatter.ofPattern("d MMMM yyyy", indonesian)
-
-/** "14 Nov 2026" in the phone's zone, as the web's `shortDate` does in the browser's; null without a date. */
-fun shortDate(value: String?): String? =
-    value
-        ?.let { runCatching { OffsetDateTime.parse(it).atZoneSameInstant(ZoneId.systemDefault()) }.getOrNull() }
-        ?.let(shortFormat::format)
-
-/** "14 November 2026" (web `formatCompletedDate`); null without a date. */
-fun longDate(value: String?): String? =
-    value
-        ?.let { runCatching { OffsetDateTime.parse(it).atZoneSameInstant(ZoneId.systemDefault()) }.getOrNull() }
-        ?.let(longFormat::format)
-
-/** A score as `toLocaleString('id-ID')` writes it: "75", "82,5". */
-fun plainNumber(value: Double): String = NumberFormat.getNumberInstance(indonesian).format(value)

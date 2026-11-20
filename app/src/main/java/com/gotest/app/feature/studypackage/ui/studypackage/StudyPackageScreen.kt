@@ -35,6 +35,8 @@ import com.gotest.app.feature.practice.ui.catalog.PracticeCatalogFront
 import com.gotest.app.feature.practice.ui.catalog.PracticeNavigation
 import com.gotest.app.feature.studypackage.ui.components.JenjangDropdown
 import com.gotest.app.feature.studypackage.ui.components.StudyPackagePreviewData
+import com.gotest.app.feature.tryout.ui.catalog.TryoutCatalogFront
+import com.gotest.app.feature.tryout.ui.catalog.TryoutNavigation
 
 @Composable
 fun StudyPackageRoute(
@@ -44,6 +46,7 @@ fun StudyPackageRoute(
     onTryoutClick: (packageId: String) -> Unit,
     onActivityClick: (attemptId: String) -> Unit,
     practiceNavigation: PracticeNavigation,
+    tryoutNavigation: TryoutNavigation,
     modifier: Modifier = Modifier,
     viewModel: StudyPackageViewModel = hiltViewModel(),
 ) {
@@ -58,6 +61,7 @@ fun StudyPackageRoute(
         onActivityClick = onActivityClick,
         modifier = modifier,
         practiceContent = { PracticeCatalogFront(navigation = practiceNavigation) },
+        tryoutContent = { TryoutCatalogFront(navigation = tryoutNavigation) },
     )
 }
 
@@ -76,6 +80,7 @@ fun StudyPackageScreen(
     onActivityClick: (attemptId: String) -> Unit,
     modifier: Modifier = Modifier,
     practiceContent: @Composable () -> Unit = {},
+    tryoutContent: @Composable (() -> Unit)? = null,
 ) {
     val spacing = GotestTheme.spacing
     val isPractice = uiState.selectedTab == PackageType.Practice
@@ -125,9 +130,11 @@ fun StudyPackageScreen(
             GotestCard(modifier = Modifier.fillMaxWidth()) {
                 StudyPackageControls(uiState = uiState, onEvent = onEvent)
             }
-            // Paket Latihan comes from the API (T-026 A2c, web Practice/Index).
+            // Paket Latihan and Paket Try Out come from the API (T-026 A2c, web Practice/Index, Tryout/Index).
             if (isPractice) {
                 practiceContent()
+            } else if (tryoutContent != null) {
+                tryoutContent()
             } else {
                 StudyPackageBody(
                     uiState = uiState,
@@ -141,7 +148,7 @@ fun StudyPackageScreen(
     }
 }
 
-/** Latihan / Tryout switch plus the "Semua Jenjang" dropdown. */
+/** Latihan / Tryout switch; each catalog has its own "Semua Jenjang" (web PracticeCatalog, TryoutCatalog). */
 @Composable
 private fun StudyPackageControls(
     uiState: StudyPackageUiState,
@@ -149,7 +156,6 @@ private fun StudyPackageControls(
     modifier: Modifier = Modifier,
 ) {
     val tabs = PackageType.entries
-    val options = uiState.jenjangOptions
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md)) {
         GotestSegmentedControl(
             options =
@@ -164,14 +170,6 @@ private fun StudyPackageControls(
             selectedIndex = tabs.indexOf(uiState.selectedTab),
             onSelect = { onEvent(StudyPackageUiEvent.TabSelected(tabs[it])) },
         )
-        // Paket Latihan has its own "Semua Jenjang" in its catalog (web PracticeCatalog).
-        if (uiState.selectedTab != PackageType.Practice) {
-            JenjangDropdown(
-                options = options.map { it.name },
-                selectedIndex = options.indexOfFirst { it.id == uiState.selectedJenjangId }.takeIf { it >= 0 },
-                onSelect = { index -> onEvent(StudyPackageUiEvent.JenjangSelected(index?.let { options[it].id })) },
-            )
-        }
     }
 }
 
