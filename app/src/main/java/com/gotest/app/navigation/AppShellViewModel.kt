@@ -25,11 +25,17 @@ class AppShellViewModel
         val expired: StateFlow<Boolean> = signals.expired
         val updateRequired: StateFlow<Boolean> = signals.updateRequired
         val awaitingConsent: StateFlow<Boolean> = signals.awaitingConsent
+        val awaitingEmailVerification: StateFlow<Boolean> = signals.awaitingEmailVerification
 
         init {
             // Waiting for a parent belongs to one account: it ends with that account's session.
             viewModelScope.launch {
-                auth.isSignedIn.collect { signedIn -> if (!signedIn) signals.clearAwaitingConsent() }
+                auth.isSignedIn.collect { signedIn ->
+                    if (!signedIn) {
+                        signals.clearAwaitingConsent()
+                        signals.clearAwaitingEmailVerification()
+                    }
+                }
             }
         }
 

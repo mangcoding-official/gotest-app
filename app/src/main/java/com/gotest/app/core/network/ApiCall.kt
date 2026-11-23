@@ -16,8 +16,10 @@ suspend fun <T> apiCall(
     try {
         Result.success(block())
     } catch (error: HttpException) {
-        val body = error.response()?.errorBody()?.string()
-        Result.failure(ApiError.from(error.code(), body, json, SERVER_ERROR_MESSAGE))
+        val response = error.response()
+        val body = response?.errorBody()?.string()
+        val retryAfter = response?.headers()?.get("Retry-After")
+        Result.failure(ApiError.from(error.code(), body, json, SERVER_ERROR_MESSAGE, retryAfter))
     } catch (error: IOException) {
         Result.failure(error)
     } catch (error: SerializationException) {

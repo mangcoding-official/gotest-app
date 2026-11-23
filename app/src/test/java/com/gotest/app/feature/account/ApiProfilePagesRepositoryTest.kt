@@ -2,6 +2,7 @@ package com.gotest.app.feature.account
 
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.network.NetworkModule
+import com.gotest.app.core.session.AccountChanges
 import com.gotest.app.feature.account.data.ApiProfilePagesRepository
 import com.gotest.app.feature.account.domain.ProfileUpdate
 import kotlinx.coroutines.test.runTest
@@ -20,6 +21,7 @@ import org.junit.Test
 class ApiProfilePagesRepositoryTest {
     private val server = MockWebServer()
     private val json = NetworkModule.provideJson()
+    private val changes = AccountChanges()
     private lateinit var repository: ApiProfilePagesRepository
 
     @Before
@@ -31,7 +33,7 @@ class ApiProfilePagesRepositoryTest {
                 .newBuilder()
                 .baseUrl(server.url("/"))
                 .build()
-        repository = ApiProfilePagesRepository(retrofit, json)
+        repository = ApiProfilePagesRepository(retrofit, json, changes)
     }
 
     @After
@@ -119,5 +121,20 @@ class ApiProfilePagesRepositoryTest {
             val error = repository.deleteAccount("gotest").exceptionOrNull() as ApiError
 
             assertEquals("Ketik ulang gotest.id untuk menghapus akun.", error.fieldError("confirmation"))
+        }
+
+    @Test
+    fun `a saved write tells the readers to reload, a refused one and a sent code do not`() =
+        runTest {
+            reply("""{"message":null}""")
+            reply("""{"message":null,"phoneCodeSentTo":"0812-****-890"}""")
+            reply("""{"message":"Kode salah.","code":"validation","errors":{"code":["Kode salah."]}}""", code = 422)
+
+            repository.update(ProfileUpdate("Rina", "rina@contoh.id", "sma")).getOrThrow()
+            assertEquals(1, changes.changes.value)
+            repository.sendPhoneCode("081234567890").getOrThrow()
+            repository.savePhone("081234567890", "000000")
+            // Only the saved profile counts (T-026 required 15).
+            assertEquals(1, changes.changes.value)
         }
 }

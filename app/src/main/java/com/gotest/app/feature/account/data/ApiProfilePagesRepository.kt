@@ -1,6 +1,7 @@
 package com.gotest.app.feature.account.data
 
 import com.gotest.app.core.network.apiCall
+import com.gotest.app.core.session.AccountChanges
 import com.gotest.app.feature.account.domain.CurrentPassword
 import com.gotest.app.feature.account.domain.DeleteConfirmation
 import com.gotest.app.feature.account.domain.EmailCodeRequest
@@ -96,13 +97,17 @@ class ApiProfilePagesRepository
     constructor(
         retrofit: Retrofit,
         private val json: Json,
+        private val changes: AccountChanges,
     ) : ProfilePagesRepository {
         private val api = retrofit.create(ProfileApi::class.java)
 
+        /** A write that changes what /profil and /akun show: the readers reload once it went through. */
+        private suspend fun <T> write(block: suspend () -> T): Result<T> =
+            apiCall(json, block).onSuccess { changes.markChanged() }
+
         override suspend fun page(): Result<ProfilePage> = apiCall(json) { api.page() }
 
-        override suspend fun update(update: ProfileUpdate): Result<ProfileWriteReply> =
-            apiCall(json) { api.update(update) }
+        override suspend fun update(update: ProfileUpdate): Result<ProfileWriteReply> = write { api.update(update) }
 
         override suspend fun resendEmailCode(email: String): Result<ProfileWriteReply> =
             apiCall(json) { api.resendEmailCode(EmailCodeRequest(email)) }
@@ -110,18 +115,18 @@ class ApiProfilePagesRepository
         override suspend fun saveEmail(
             email: String,
             code: String,
-        ): Result<ProfileWriteReply> = apiCall(json) { api.saveEmail(EmailSave(email, code)) }
+        ): Result<ProfileWriteReply> = write { api.saveEmail(EmailSave(email, code)) }
 
         override suspend fun uploadPhoto(jpeg: ByteArray): Result<ProfileWriteReply> =
-            apiCall(json) {
+            write {
                 val body = jpeg.toRequestBody("image/jpeg".toMediaType())
                 api.uploadPhoto(MultipartBody.Part.createFormData("photo", "avatar.jpg", body))
             }
 
-        override suspend fun deletePhoto(): Result<ProfileWriteReply> = apiCall(json) { api.deletePhoto() }
+        override suspend fun deletePhoto(): Result<ProfileWriteReply> = write { api.deletePhoto() }
 
         override suspend fun changePassword(change: PasswordChange): Result<ProfileWriteReply> =
-            apiCall(json) { api.changePassword(change) }
+            write { api.changePassword(change) }
 
         override suspend fun sendPasswordLink(): Result<ProfileWriteReply> = apiCall(json) { api.sendPasswordLink() }
 
@@ -131,9 +136,9 @@ class ApiProfilePagesRepository
         override suspend fun savePhone(
             phone: String,
             code: String,
-        ): Result<ProfileWriteReply> = apiCall(json) { api.savePhone(PhoneSave(phone, code)) }
+        ): Result<ProfileWriteReply> = write { api.savePhone(PhoneSave(phone, code)) }
 
-        override suspend fun removePhone(): Result<ProfileWriteReply> = apiCall(json) { api.removePhone() }
+        override suspend fun removePhone(): Result<ProfileWriteReply> = write { api.removePhone() }
 
         override suspend fun signOutOtherDevices(currentPassword: String): Result<ProfileWriteReply> =
             apiCall(json) { api.signOutOtherDevices(CurrentPassword(currentPassword)) }

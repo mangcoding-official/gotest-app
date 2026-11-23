@@ -26,6 +26,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Server address per build type (T-018): release talks to gotest.id.
         buildConfigField("String", "API_BASE_URL", "\"https://gotest.id/\"")
+        // Release always talks to the API; debug uses the fakes unless `gotest.useApi=true` (T-026 required).
+        buildConfigField("boolean", "USE_API", "true")
     }
 
     buildTypes {
@@ -34,6 +36,10 @@ android {
             // `gotest.apiBaseUrl=https://…/` in ~/.gradle/gradle.properties or with -Pgotest.apiBaseUrl=….
             val apiBaseUrl = providers.gradleProperty("gotest.apiBaseUrl").getOrElse("http://10.0.2.2:8000/")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            // `gotest.useApi=true` (or -Pgotest.useApi=true) puts the API repositories in place of the fakes in
+            // src/debug, so a debug build can be tried against staging (T-026 required, A2e review).
+            val useApi = providers.gradleProperty("gotest.useApi").getOrElse("false").toBoolean()
+            buildConfigField("boolean", "USE_API", useApi.toString())
         }
         release {
             isMinifyEnabled = false

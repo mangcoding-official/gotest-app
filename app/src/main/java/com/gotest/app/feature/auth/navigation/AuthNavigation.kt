@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.gotest.app.feature.auth.ui.childlogin.ChildLoginRoute
 import com.gotest.app.feature.auth.ui.consent.GuardianConsentRoute
+import com.gotest.app.feature.auth.ui.emailverification.EmailVerificationRoute
 import com.gotest.app.feature.auth.ui.forgotpassword.ForgotPasswordRoute
 import com.gotest.app.feature.auth.ui.login.LoginRoute
 import com.gotest.app.feature.auth.ui.onboarding.OnboardingRoute
@@ -13,6 +14,7 @@ import com.gotest.app.feature.auth.ui.register.RegisterRoute
 import com.gotest.app.feature.auth.ui.resetpassword.ResetPasswordRoute
 import com.gotest.app.navigation.ChildLoginDestination
 import com.gotest.app.navigation.DeleteAccountDestination
+import com.gotest.app.navigation.EmailVerificationDestination
 import com.gotest.app.navigation.ForgotPasswordDestination
 import com.gotest.app.navigation.GuardianConsentDestination
 import com.gotest.app.navigation.HomeDestination
@@ -21,6 +23,7 @@ import com.gotest.app.navigation.OnboardingDestination
 import com.gotest.app.navigation.PhoneRegisterDestination
 import com.gotest.app.navigation.RegisterDestination
 import com.gotest.app.navigation.ResetPasswordDestination
+import com.gotest.app.navigation.RuangDestination
 
 /** Onboarding, Masuk, Daftar and Lupa Password. */
 fun NavGraphBuilder.authScreens(navController: NavController) {
@@ -77,6 +80,17 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
     }
     composable<GuardianConsentDestination> {
         GuardianConsentRoute(
+            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
+            onDeleteAccount = { navController.navigate(DeleteAccountDestination(awaitingConsent = true)) },
+        )
+    }
+    composable<EmailVerificationDestination> {
+        EmailVerificationRoute(
+            onAccountOpen = { joined ->
+                navController.navigateToHomeClearingAuth()
+                // The Mitra the sign-up link joined opens next, as the web goes to it (DEC-154).
+                joined?.let { navController.navigate(RuangDestination(it)) }
+            },
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
             onDeleteAccount = { navController.navigate(DeleteAccountDestination(awaitingConsent = true)) },
         )

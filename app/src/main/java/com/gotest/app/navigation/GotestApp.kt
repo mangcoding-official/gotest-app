@@ -47,10 +47,12 @@ fun GotestApp(
     val startDestination: Any = remember { if (viewModel.startSignedIn) HomeDestination else OnboardingDestination }
     val expired by viewModel.expired.collectAsStateWithLifecycle()
     val awaitingConsent by viewModel.awaitingConsent.collectAsStateWithLifecycle()
+    val awaitingEmailVerification by viewModel.awaitingEmailVerification.collectAsStateWithLifecycle()
     SessionRedirects(
         navController = navController,
         expired = expired,
         awaitingConsent = awaitingConsent,
+        awaitingEmailVerification = awaitingEmailVerification,
         onExpiredHandle = viewModel::consumeExpired,
     )
 
@@ -113,14 +115,15 @@ fun GotestApp(
 
 /**
  * The server's session answers, read as state when the app is in the front (T-018 review 4): an expired
- * session opens Masuk, and an account waiting for its parent sees only the waiting page (and Hapus Akun,
- * which the waiting page opens).
+ * session opens Masuk, and an account waiting for its parent, or for its email to be proven, sees only that
+ * waiting page (and Hapus Akun, which the waiting page opens).
  */
 @Composable
 private fun SessionRedirects(
     navController: NavHostController,
     expired: Boolean,
     awaitingConsent: Boolean,
+    awaitingEmailVerification: Boolean,
     onExpiredHandle: () -> Unit,
 ) {
     val currentOnExpiredHandle by rememberUpdatedState(onExpiredHandle)
@@ -137,6 +140,18 @@ private fun SessionRedirects(
                 destination?.hasRoute<DeleteAccountDestination>() == true
         if (awaitingConsent && !onConsentPages) {
             navController.navigate(GuardianConsentDestination) { popUpTo(navController.graph.id) { inclusive = true } }
+        }
+    }
+    // The email comes first: the server checks it before the parent's approval (DEC-154).
+    LaunchedEffect(awaitingEmailVerification) {
+        val destination = navController.currentDestination
+        val onWaitingPages =
+            destination?.hasRoute<EmailVerificationDestination>() == true ||
+                destination?.hasRoute<DeleteAccountDestination>() == true
+        if (awaitingEmailVerification && !onWaitingPages) {
+            navController.navigate(EmailVerificationDestination) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
         }
     }
 }

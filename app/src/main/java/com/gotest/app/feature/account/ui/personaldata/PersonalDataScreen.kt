@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestCard
 import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
@@ -59,10 +60,11 @@ private const val PRIVACY_POLICY_TAG = "privacy_policy"
 
 /** "Data yang kami simpan" (frame 23170); fixed copy, not per student. */
 private val storedData =
-    listOf(
+    listOfNotNull(
         GotestIcons.Linear.TaskSquare to R.string.account_personal_stored_results,
         GotestIcons.Linear.Message to R.string.account_personal_stored_chats,
-        GotestIcons.Linear.Bank to R.string.account_personal_stored_transactions,
+        // No paying in the app yet, so no transactions to speak of (T-026 required 7).
+        (GotestIcons.Linear.Bank to R.string.account_personal_stored_transactions).takeIf { AppFeatures.PAYMENTS },
         GotestIcons.Linear.Lock to R.string.account_personal_stored_devices,
     )
 

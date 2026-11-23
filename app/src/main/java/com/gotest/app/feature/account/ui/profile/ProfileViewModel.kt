@@ -7,6 +7,7 @@ import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.core.model.UserProfile
 import com.gotest.app.core.model.UserStats
+import com.gotest.app.core.session.AccountChanges
 import com.gotest.app.feature.account.domain.ProfilePage
 import com.gotest.app.feature.account.domain.ProfilePagesRepository
 import com.gotest.app.feature.account.ui.components.PhotoCaptureEvent
@@ -51,12 +52,14 @@ class ProfileViewModel
         private val photoEditor: ProfilePhotoEditor,
         private val profilePages: ProfilePagesRepository,
         private val ruang: RuangRepository,
+        accountChanges: AccountChanges,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
         private val signOut = MutableStateFlow(SignOutState())
 
         private val content: Flow<ProfileUiState> =
-            retryKey.flatMapLatest {
+            // "Coba lagi", or a saved write elsewhere (Ubah Profil, foto, nomor, email, password): read /profil again.
+            combine(retryKey, accountChanges.changes) { retry, changed -> retry to changed }.flatMapLatest {
                 // GET /profil: the number, whether numbers can be added, and the stats; the rest comes from /akun.
                 // Without /profil the page still shows, with Keluar (A2e review): those parts stay as /akun has them.
                 val page = flow { emit(profilePages.page().getOrNull()) }

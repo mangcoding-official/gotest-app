@@ -18,6 +18,7 @@ class SessionSignals
         private val expiredState = MutableStateFlow(false)
         private val updateRequiredState = MutableStateFlow(false)
         private val awaitingConsentState = MutableStateFlow(false)
+        private val awaitingEmailVerificationState = MutableStateFlow(false)
 
         /** 401 on a signed-in request: the session is gone and Masuk opens, until [consumeExpired]. */
         val expired: StateFlow<Boolean> = expiredState.asStateFlow()
@@ -27,6 +28,12 @@ class SessionSignals
 
         /** 403 `guardian_consent`: the account sees only the waiting page until its session ends (API-K6 B). */
         val awaitingConsent: StateFlow<Boolean> = awaitingConsentState.asStateFlow()
+
+        /**
+         * 403 `email_verification_pending`: the account sees only "Menunggu verifikasi email" (and Keluar and
+         * Hapus Akun) until its email is proven or its session ends (DEC-154).
+         */
+        val awaitingEmailVerification: StateFlow<Boolean> = awaitingEmailVerificationState.asStateFlow()
 
         fun markExpired() {
             expiredState.value = true
@@ -48,5 +55,14 @@ class SessionSignals
         /** The session ended (signed out, deleted, or expired), so the next account starts without it. */
         fun clearAwaitingConsent() {
             awaitingConsentState.value = false
+        }
+
+        fun markAwaitingEmailVerification() {
+            awaitingEmailVerificationState.value = true
+        }
+
+        /** The email was proven, or the session ended. */
+        fun clearAwaitingEmailVerification() {
+            awaitingEmailVerificationState.value = false
         }
     }

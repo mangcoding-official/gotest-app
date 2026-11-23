@@ -192,4 +192,13 @@
     <string name="login_code_note">Kami kirim kode 6 angka ke email ini, jadi kamu bisa masuk tanpa kata sandi.</string>
     <string name="login_code_send">Kirim kode ke email</string>
     <string name="login_code_sent">Bila %1$s terdaftar di Gotest, kode 6 angka dikirim ke sana. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
+    <!-- Menunggu verifikasi email (DEC-154, T-042; web Auth/EmailVerificationWaiting and EmailCodeForm) -->
+    <string name="email_verify_heading">Satu langkah lagi untuk akunmu.</string>
+    <string name="email_verify_lede">Akunmu sudah dibuat. Setelah emailmu terverifikasi, kamu bisa langsung mulai belajar di Gotest.</string>
+    <string name="email_verify_title">Menunggu verifikasi email</string>
+    <string name="email_verify_body">Masukkan kode dari email untuk membuka akunmu.</string>
+    <string name="email_verify_body_failed">Kode belum bisa dikirim ke emailmu. Tekan Kirim ulang kode beberapa saat lagi, atau tunggu tim Gotest memverifikasi emailmu.</string>
+    <string name="email_verify_notice_failed">Email akunmu: %1$s. Salah tulis email? Hapus akun ini, lalu daftar lagi dengan email yang benar.</string>
+    <string name="email_verify_submit">Verifikasi email</string>
+    <string name="email_verify_offline">Koneksi terputus. Periksa internet Anda lalu coba lagi.</string>
 </resources>
