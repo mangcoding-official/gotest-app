@@ -274,6 +274,45 @@ class PracticeRunnerViewModelTest {
             vm.viewModelScope.cancel()
         }
 
+    @Test
+    fun anotherForbiddenRefusalIsLeftToItsOwnWaitingScreen() =
+        runTest {
+            val vm = viewModel()
+            repository.answerReply =
+                Result.failure(ApiError(403, "Menunggu persetujuan orang tua.", "guardian_consent"))
+
+            vm.onEvent(PracticeRunnerEvent.SelectOption(1))
+            runCurrent()
+
+            // Only 403 `not_member` and 410 stop the Latihan (A2c re-review, note 1).
+            assertNull(vm.uiState.value.stopped)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun aSubmitAnsweredAfterTheReadSawTheEndOpensTheResultOnce() =
+        runTest {
+            val vm = viewModel()
+            val effects = mutableListOf<PracticeRunnerEffect>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.effects.collect { effects += it } }
+            vm.onResume()
+            vm.onPause()
+            val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            repository.submitGate = gate
+            repository.submitReply = Result.success(attempt(status = "submitted"))
+            repository.attemptReply = Result.success(attempt(status = "submitted"))
+
+            vm.onEvent(PracticeRunnerEvent.ConfirmSubmit)
+            runCurrent()
+            vm.onResume()
+            runCurrent()
+            gate.complete(Unit)
+            runCurrent()
+
+            assertEquals(listOf(PracticeRunnerEffect.OpenResult), effects)
+            vm.viewModelScope.cancel()
+        }
+
     private companion object {
         const val ATTEMPT = 1201L
         const val CANCELLED = "Pengerjaan ini dibatalkan oleh tim Gotest. Kamu bisa memulai paket ini lagi."

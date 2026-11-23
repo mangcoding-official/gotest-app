@@ -258,4 +258,8 @@
     <string name="invite_role_teacher_family">orang tua dan tutor</string>
     <string name="invite_role_student">siswa</string>
     <string name="invite_role_student_family">anak</string>
+    <!-- Main Bareng card in the Mitra space (web Ruang/Show, A2d) -->
+    <string name="ruang_main_bareng_title">Main Bareng</string>
+    <string name="ruang_main_bareng_text">Duel 1 lawan 1 atau room bersama sesama anggota %1$s. Permainannya hanya untuk anggota Mitra ini.</string>
+    <string name="ruang_main_bareng_open">Buka Main Bareng</string>
 </resources>

@@ -163,39 +163,14 @@ import kotlinx.serialization.Serializable
 // Main Bareng (multiplayer)
 
 /**
- * [openJoinSheet] opens "Gabung dengan kode" straight away (Beranda's "Gabung dengan Kode");
- * [joinCode] fills it in, from a `gotest.id/main-bareng?kode=…` link (T-018).
+ * Main Bareng of one space (web MainBareng/Index): [space] is the Mitra code, or null for Gotest.id. [action] is
+ * the web's `aksi` (`gabung`, `buat`, `lanjut`); [joinCode] fills "Gabung dengan kode" from a
+ * `gotest.id/main-bareng?kode=…` link (T-018). Every step of a game lives on this one screen, like the web page.
  */
 @Serializable data class MultiplayerDestination(
-    val openJoinSheet: Boolean = false,
+    val space: String? = null,
+    val action: String? = null,
     val joinCode: String? = null,
-)
-
-/** [copyFromGameCode] prefills the form with that game's settings ("Buat Ulang dengan Pengaturan Sama"). */
-@Serializable data class CreateGameDestination(
-    val copyFromGameCode: String? = null,
-)
-
-@Serializable data class WaitingRoomDestination(
-    val gameCode: String,
-)
-
-@Serializable data class GamePlayDestination(
-    val gameCode: String,
-)
-
-@Serializable data class GameWaitingDestination(
-    val gameCode: String,
-)
-
-@Serializable data class GameResultDestination(
-    val gameCode: String,
-)
-
-@Serializable data object MultiplayerHistoryDestination
-
-@Serializable data class GameDetailDestination(
-    val gameCode: String,
 )
 
 // Latihan (T-026 A2c, API module C): a category, its subtest, the runner, and the pembahasan.

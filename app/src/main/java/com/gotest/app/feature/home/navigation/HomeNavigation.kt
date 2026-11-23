@@ -9,7 +9,7 @@ import com.gotest.app.core.model.PackageType
 import com.gotest.app.feature.home.ui.home.HomeRoute
 import com.gotest.app.feature.home.ui.notification.NotificationRoute
 import com.gotest.app.feature.home.ui.search.SearchRoute
-import com.gotest.app.navigation.CreateGameDestination
+import com.gotest.app.feature.multiplayer.ui.MainBarengViewModel
 import com.gotest.app.navigation.ExamDestination
 import com.gotest.app.navigation.HelpDestination
 import com.gotest.app.navigation.HistoryDetailDestination
@@ -40,8 +40,12 @@ fun NavGraphBuilder.homeScreens(navController: NavController) {
             onOpenPackage = navController::navigateToPackage,
             onSeeAllActivity = { navController.openTab(TopLevelDestination.History) },
             onOpenResult = { attemptId -> navController.navigate(HistoryDetailDestination(attemptId)) },
-            onJoinGame = { navController.navigate(MultiplayerDestination(openJoinSheet = true)) },
-            onCreateGame = { navController.navigate(CreateGameDestination()) },
+            onJoinGame = { navController.navigate(MultiplayerDestination(action = MainBarengViewModel.ACTION_JOIN)) },
+            onCreateGame = {
+                navController.navigate(
+                    MultiplayerDestination(action = MainBarengViewModel.ACTION_CREATE),
+                )
+            },
             onOpenPromo =
                 { promoId: String ->
                     navController.navigate(PromoDestination(promoId))

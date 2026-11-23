@@ -10,6 +10,7 @@ import com.gotest.app.feature.practice.domain.PracticeItem
 import com.gotest.app.feature.practice.domain.answerPayload
 import com.gotest.app.feature.practice.domain.isAnswered
 import com.gotest.app.feature.practice.domain.savedAnswer
+import com.gotest.app.feature.practice.ui.runner.PracticeRunnerViewModel
 import com.gotest.app.feature.ruang.data.ElapsedClock
 import com.gotest.app.feature.ruang.data.ExamClock
 import com.gotest.app.feature.tryout.domain.TryoutActiveSection
@@ -489,6 +490,8 @@ class TryoutRunnerViewModel
                 repository
                     .submit(attemptId)
                     .onSuccess { next ->
+                        // The reader may have seen the end first and sent it already (A2c re-review, 2).
+                        if (ended) return@onSuccess
                         end()
                         _effects.send(
                             if (next.status ==
@@ -520,7 +523,7 @@ class TryoutRunnerViewModel
          * and show the server's sentence; the student can only leave (Ardy's review of A2c, items 1 and 2).
          */
         private fun stopBy(error: Throwable?): Boolean {
-            if (error !is ApiError || error.status !in GONE) return false
+            if (error !is ApiError || !PracticeRunnerViewModel.stops(error)) return false
             end()
             drafts.clear()
             _uiState.update {
