@@ -37,6 +37,8 @@ data class GuardianConsentUiState(
     val isResending: Boolean = false,
     val isChanging: Boolean = false,
     val isSigningOut: Boolean = false,
+    /** Pulled down to read the waiting page again. */
+    val isRefreshing: Boolean = false,
     /** Why the sign-up's Mitra link was dropped, right after the email was verified (DEC-154); shown once. */
     val emailVerifiedReason: String? = null,
 )
@@ -59,10 +61,16 @@ sealed interface GuardianConsentUiEvent {
     data object SubmitChange : GuardianConsentUiEvent
 
     data object SignOut : GuardianConsentUiEvent
+
+    /** Opened again from the background, or pulled down: has the parent approved meanwhile? */
+    data object Refresh : GuardianConsentUiEvent
 }
 
 sealed interface GuardianConsentEffect {
     data object SignedOut : GuardianConsentEffect
+
+    /** The parent approved: the waiting is over and Beranda opens (T-026 required 13). */
+    data object Approved : GuardianConsentEffect
 }
 
 /** What an account waiting for a parent's approval sees (web: Auth/GuardianConsentWaiting.tsx). */
@@ -120,6 +128,10 @@ class GuardianConsentViewModel
                 GuardianConsentUiEvent.SignOut -> {
                     signOut()
                 }
+
+                GuardianConsentUiEvent.Refresh -> {
+                    refresh()
+                }
             }
         }
 
@@ -157,6 +169,17 @@ class GuardianConsentViewModel
                         _uiState.update { it.copy(change = it.change?.copy(errorMessage = error.message)) }
                     }
                 _uiState.update { it.copy(isChanging = false) }
+            }
+        }
+
+        private fun refresh() {
+            if (_uiState.value.isRefreshing) return
+            _uiState.update { it.copy(isRefreshing = true) }
+            viewModelScope.launch {
+                repository.refreshConsent().onSuccess { waiting ->
+                    if (!waiting) _effects.send(GuardianConsentEffect.Approved)
+                }
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
 

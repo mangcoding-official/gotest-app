@@ -221,10 +221,12 @@ class ApiSignUpTest {
                 """.trimIndent(),
             )
 
+            val waiting = repository.refreshConsent().getOrThrow()
             val state = repository.observeConsent().filterNotNull().first()
 
             assertEquals(listOf(GuardianChannel.WhatsApp, GuardianChannel.Email), state.channels)
             assertEquals("2026-12-01T03:00:00Z", state.expiresAt.toString())
+            assertFalse(waiting)
             assertFalse(signals.awaitingConsent.value)
         }
 

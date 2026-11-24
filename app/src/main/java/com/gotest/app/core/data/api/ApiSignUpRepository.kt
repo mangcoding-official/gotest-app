@@ -19,7 +19,6 @@ import com.gotest.app.feature.auth.domain.SignUpResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.json.Json
 import retrofit2.Retrofit
 import java.time.OffsetDateTime
@@ -122,7 +121,12 @@ class ApiSignUpRepository
                 }
         }
 
-        override fun observeConsent(): Flow<ConsentState?> = consent.asStateFlow().onStart { readConsent() }
+        override fun observeConsent(): Flow<ConsentState?> = consent.asStateFlow()
+
+        override suspend fun refreshConsent(): Result<Boolean> =
+            apiCall(json) { api.consent() }
+                .onSuccess(::keep)
+                .map { it.waiting }
 
         override suspend fun resendConsent(): Result<String> =
             apiCall(json) { api.resendConsent() }
@@ -142,10 +146,6 @@ class ApiSignUpRepository
             return apiCall(json) { api.changeConsentContact(request) }
                 .onSuccess(::keep)
                 .map { it.message.orEmpty() }
-        }
-
-        private suspend fun readConsent() {
-            apiCall(json) { api.consent() }.onSuccess(::keep)
         }
 
         /** The latest state; once the parent approved, the waiting is over and Beranda opens (T-026 required 13). */

@@ -113,6 +113,8 @@ class FakeSignUpRepository
 
         override fun observeConsent(): Flow<ConsentState?> = consent.asStateFlow()
 
+        override suspend fun refreshConsent(): Result<Boolean> = Result.success(true)
+
         override suspend fun resendConsent(): Result<String> {
             simulateLatency()
             val state = consent.value ?: return Result.failure(AuthFlowError("resend", "Tautan belum bisa dikirim."))

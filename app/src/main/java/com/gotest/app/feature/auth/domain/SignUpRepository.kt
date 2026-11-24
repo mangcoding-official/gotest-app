@@ -24,6 +24,12 @@ interface SignUpRepository {
 
     fun observeConsent(): Flow<ConsentState?>
 
+    /**
+     * Reads the waiting page again (T-026 required 13), as the web does when the page loads; false once the
+     * parent approved, so Beranda can open.
+     */
+    suspend fun refreshConsent(): Result<Boolean>
+
     /** "Kirim ulang tautan"; returns the confirmation shown to the student. */
     suspend fun resendConsent(): Result<String>
 
