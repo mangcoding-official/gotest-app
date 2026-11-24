@@ -144,6 +144,7 @@ fun RegisterScreen(
         if (codeStep == null) {
             RegisterActions(
                 showSubmit = !showPhone,
+                showGoogle = uiState.showGoogle,
                 isSubmitting = uiState.isSubmitting,
                 onEvent = onEvent,
                 onSignIn = onSignIn,
@@ -157,6 +158,7 @@ fun RegisterScreen(
 @Composable
 private fun RegisterActions(
     showSubmit: Boolean,
+    showGoogle: Boolean,
     isSubmitting: Boolean,
     onEvent: (RegisterUiEvent) -> Unit,
     onSignIn: () -> Unit,
@@ -171,13 +173,15 @@ private fun RegisterActions(
                 enabled = !isSubmitting,
             )
         }
-        GotestButton(
-            text = stringResource(R.string.register_google),
-            onClick = { onEvent(RegisterUiEvent.GoogleSignUp) },
-            modifier = Modifier.fillMaxWidth(),
-            variant = GotestButtonVariant.Plain,
-            enabled = !isSubmitting,
-        )
+        if (showGoogle) {
+            GotestButton(
+                text = stringResource(R.string.register_google),
+                onClick = { onEvent(RegisterUiEvent.GoogleSignUp) },
+                modifier = Modifier.fillMaxWidth(),
+                variant = GotestButtonVariant.Plain,
+                enabled = !isSubmitting,
+            )
+        }
         AuthSwitchPrompt(
             prompt = stringResource(R.string.register_has_account),
             linkText = stringResource(R.string.register_login_link),
@@ -389,7 +393,12 @@ private val PreviewQuestion =
 @Composable
 private fun RegisterScreenPreview() {
     GotestTheme {
-        RegisterScreen(uiState = RegisterUiState(emailCode = true), onEvent = {}, onSignIn = {}, onBack = {})
+        RegisterScreen(
+            uiState = RegisterUiState(emailCode = true, showGoogle = true),
+            onEvent = {},
+            onSignIn = {},
+            onBack = {},
+        )
     }
 }
 

@@ -171,6 +171,7 @@ fun LoginScreen(
                 passwordForm = !showPhone && !codeMode,
                 codeAvailable = emailCodeState.isAvailable,
                 codeMode = codeMode,
+                showGoogle = uiState.showGoogle,
                 isSubmitting = uiState.isSubmitting,
                 onEvent = onEvent,
                 onUseCode = { onEmailCodeEvent(EmailCodeSignInUiEvent.UseCode(true)) },
@@ -191,6 +192,7 @@ private fun LoginActions(
     passwordForm: Boolean,
     codeAvailable: Boolean,
     codeMode: Boolean,
+    showGoogle: Boolean,
     isSubmitting: Boolean,
     onEvent: (LoginUiEvent) -> Unit,
     onUseCode: () -> Unit,
@@ -216,13 +218,15 @@ private fun LoginActions(
             }
         }
         if (!codeMode) {
-            GotestButton(
-                text = stringResource(R.string.login_google),
-                onClick = { onEvent(LoginUiEvent.GoogleSignIn) },
-                modifier = Modifier.fillMaxWidth(),
-                variant = GotestButtonVariant.Plain,
-                enabled = !isSubmitting,
-            )
+            if (showGoogle) {
+                GotestButton(
+                    text = stringResource(R.string.login_google),
+                    onClick = { onEvent(LoginUiEvent.GoogleSignIn) },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = GotestButtonVariant.Plain,
+                    enabled = !isSubmitting,
+                )
+            }
             AuthSwitchPrompt(
                 prompt = stringResource(R.string.login_no_account),
                 linkText = stringResource(R.string.login_register_link),
@@ -283,7 +287,7 @@ private fun LoginForm(
 private fun LoginScreenPreview() {
     GotestTheme {
         LoginScreen(
-            uiState = LoginUiState(email = "gilangpermana@mail.com"),
+            uiState = LoginUiState(email = "gilangpermana@mail.com", showGoogle = true),
             onEvent = {},
             onForgotPassword = {},
             onRegister = {},
@@ -316,7 +320,7 @@ private fun LoginScreenEmailCodePreview() {
 private fun LoginScreenErrorPreview() {
     GotestTheme {
         LoginScreen(
-            uiState = LoginUiState(email = "gilang", emailError = R.string.auth_error_email),
+            uiState = LoginUiState(email = "gilang", emailError = R.string.auth_error_email, showGoogle = true),
             onEvent = {},
             onForgotPassword = {},
             onRegister = {},

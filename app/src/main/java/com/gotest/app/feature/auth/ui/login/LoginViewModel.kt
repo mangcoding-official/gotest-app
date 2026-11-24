@@ -6,6 +6,7 @@ import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.auth.domain.CredentialValidator
+import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -25,12 +26,20 @@ class LoginViewModel
     constructor(
         private val authRepository: AuthRepository,
         private val validator: CredentialValidator,
+        private val options: SignInOptionsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(LoginUiState())
         val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
         private val _effects = Channel<LoginEffect>(Channel.BUFFERED)
         val effects: Flow<LoginEffect> = _effects.receiveAsFlow()
+
+        init {
+            viewModelScope.launch {
+                val google = options.options().google
+                _uiState.update { it.copy(showGoogle = google) }
+            }
+        }
 
         fun onEvent(event: LoginUiEvent) {
             when (event) {

@@ -19,6 +19,8 @@ data class LoginUiState(
      */
     val formMessage: String? = null,
     val isSubmitting: Boolean = false,
+    /** "Masuk dengan Google" only while the server offers it (`/referensi`). */
+    val showGoogle: Boolean = false,
 )
 
 sealed interface LoginUiEvent {

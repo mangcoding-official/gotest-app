@@ -44,9 +44,6 @@ interface AuthFlowRepository {
         pin: String,
     ): Result<Unit>
 
-    /** Whether the server offers signing in with a WhatsApp code (the web's `phoneSignIn`). */
-    suspend fun isPhoneSignInAvailable(): Boolean
-
     /** Sends a 6-digit code to [phone] (a stored `628…` number); returns where it went, in display form. */
     suspend fun sendPhoneCode(phone: String): Result<String>
 

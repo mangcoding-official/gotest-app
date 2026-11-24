@@ -37,6 +37,8 @@ data class RegisterUiState(
     val messages: Map<String, String> = emptyMap(),
     val codeStep: RegisterCodeStep? = null,
     val isSubmitting: Boolean = false,
+    /** "Daftar dengan Google" only while the server offers it (`/referensi`). */
+    val showGoogle: Boolean = false,
 ) {
     val asksGuardian: Boolean get() = guardianQuestion.asksFor(level)
 }

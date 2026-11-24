@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.EmailCodeSignInRepository
+import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -77,6 +78,7 @@ class EmailCodeSignInViewModel
     @Inject
     constructor(
         private val repository: EmailCodeSignInRepository,
+        private val options: SignInOptionsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(EmailCodeSignInUiState())
         val uiState: StateFlow<EmailCodeSignInUiState> = _uiState.asStateFlow()
@@ -86,7 +88,7 @@ class EmailCodeSignInViewModel
 
         init {
             viewModelScope.launch {
-                val available = repository.isAvailable()
+                val available = options.options().emailCode
                 _uiState.update { it.copy(isAvailable = available) }
             }
         }

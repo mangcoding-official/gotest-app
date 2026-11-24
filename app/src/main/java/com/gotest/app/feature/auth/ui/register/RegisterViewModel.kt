@@ -6,6 +6,7 @@ import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.CredentialValidator
+import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import com.gotest.app.feature.auth.domain.SignUpForm
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import com.gotest.app.feature.auth.domain.SignUpResult
@@ -32,6 +33,7 @@ class RegisterViewModel
         private val authRepository: AuthRepository,
         private val signUps: SignUpRepository,
         private val validator: CredentialValidator,
+        private val options: SignInOptionsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(RegisterUiState())
         val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -44,11 +46,13 @@ class RegisterViewModel
         init {
             viewModelScope.launch {
                 val info = signUps.registrationInfo()
+                val google = options.options().google
                 _uiState.update {
                     it.copy(
                         guardianQuestion = info.guardianQuestion,
                         emailCode = info.emailCode,
                         joinNotice = info.joinNotice,
+                        showGoogle = google,
                     )
                 }
             }

@@ -98,8 +98,6 @@ class FakeAuthFlowRepository
 
         private fun wrongPin() = AuthFlowError("pin", "Kode keluarga, nama, atau PIN belum cocok. Periksa lagi.")
 
-        override suspend fun isPhoneSignInAvailable(): Boolean = true
-
         override suspend fun sendPhoneCode(phone: String): Result<String> {
             simulateLatency()
             val now = System.currentTimeMillis()

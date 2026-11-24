@@ -9,6 +9,7 @@ import com.gotest.app.core.model.PhoneNumber
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.PhoneVerification
+import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -76,6 +77,7 @@ class PhoneSignInViewModel
     @Inject
     constructor(
         private val repository: AuthFlowRepository,
+        private val options: SignInOptionsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(PhoneSignInUiState())
         val uiState: StateFlow<PhoneSignInUiState> = _uiState.asStateFlow()
@@ -85,7 +87,7 @@ class PhoneSignInViewModel
 
         init {
             viewModelScope.launch {
-                val available = repository.isPhoneSignInAvailable()
+                val available = options.options().phone
                 _uiState.update { it.copy(isAvailable = available) }
             }
         }
