@@ -249,8 +249,15 @@ private fun RegisterFields(
             })
         }
         if (uiState.emailCode) NoteText(stringResource(R.string.register_email_code_note))
-        messages["form"]?.let { ErrorNote(it) }
+        FormNote(uiState)
     }
+}
+
+/** The server's text for the whole form, or the app's own when the server could not be reached. */
+@Composable
+private fun FormNote(uiState: RegisterUiState) {
+    val text = uiState.messages["form"] ?: uiState.formError?.let { stringResource(it) }
+    if (text != null) ErrorNote(text)
 }
 
 /** "Cek email kamu": the code from the email makes the account (web: Components/Auth/EmailCodeForm.tsx). */
@@ -269,8 +276,8 @@ private fun RegisterCodeForm(
             onValueChange = { onEvent(RegisterUiEvent.CodeChanged(it)) },
             label = stringResource(R.string.register_code_label),
             placeholder = stringResource(R.string.code_hint),
-            supportingText = step.codeMessage,
-            isError = step.codeMessage != null,
+            supportingText = step.codeMessage ?: step.codeErrorRes?.let { stringResource(it) },
+            isError = step.codeMessage != null || step.codeErrorRes != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onEvent(RegisterUiEvent.ConfirmCode) }),
         )

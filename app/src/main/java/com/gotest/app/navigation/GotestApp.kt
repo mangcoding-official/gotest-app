@@ -60,7 +60,10 @@ fun GotestApp(
     val currentOnAppLinkConsume by rememberUpdatedState(onAppLinkConsume)
     LaunchedEffect(appLink, isSignedIn) {
         val link = appLink ?: return@LaunchedEffect
-        if (link !is AppLink.ResetPassword && !isSignedIn) return@LaunchedEffect
+        if (link !is AppLink.ResetPassword && !isSignedIn) {
+            viewModel.keepMitraLink(link)
+            return@LaunchedEffect
+        }
         when (link) {
             is AppLink.ResetPassword -> {
                 navController.navigate(ResetPasswordDestination(link.token, link.email))

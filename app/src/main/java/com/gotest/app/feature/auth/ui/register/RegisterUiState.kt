@@ -14,6 +14,8 @@ data class RegisterCodeStep(
     val sentTo: String,
     val code: String = "",
     val codeMessage: String? = null,
+    /** The app's own text when the code could not reach the server. */
+    @param:StringRes val codeErrorRes: Int? = null,
     val resendInSeconds: Int = 0,
 )
 
@@ -35,6 +37,8 @@ data class RegisterUiState(
     @param:StringRes val levelError: Int? = null,
     /** The server's own texts by the web's field names: name, email, password, education_level, form. */
     val messages: Map<String, String> = emptyMap(),
+    /** The app's own text for the whole form: no connection, or a reply it could not read. */
+    @param:StringRes val formError: Int? = null,
     val codeStep: RegisterCodeStep? = null,
     val isSubmitting: Boolean = false,
     /** "Daftar dengan Google" only while the server offers it (`/referensi`). */

@@ -4,13 +4,16 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * Daftar with email and the parent's approval the web has and the app gains in T-018 (Aturan 2.14, 2.15,
- * 2.18). Bound to a fake until the API contract (Jalur 5 A1) is approved.
+ * 2.18), against API module A since T-026 A2a.
  */
 interface SignUpRepository {
     suspend fun registrationInfo(): RegistrationInfo
 
     /** "Bukan, daftar biasa": the Mitra code is dropped and Daftar becomes a plain sign-up. */
     suspend fun dropJoinCode()
+
+    /** A sign-up still waiting for its email code after Android closed the app (T-026 required 10). */
+    suspend fun pendingEmailCode(): SignUpResult.EmailCodeSent?
 
     suspend fun register(form: SignUpForm): Result<SignUpResult>
 

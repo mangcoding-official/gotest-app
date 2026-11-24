@@ -8,6 +8,7 @@ import com.gotest.app.core.network.SessionSignals
 import com.gotest.app.core.session.AccountChanges
 import com.gotest.app.core.session.KeyValueStore
 import com.gotest.app.core.session.SessionStore
+import com.gotest.app.core.session.SignUpDraftStore
 import com.gotest.app.core.session.TokenCipher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -45,7 +46,7 @@ class ApiAccountTest {
                 .newBuilder()
                 .baseUrl(server.url("/"))
                 .build()
-        val acceptor = SignInAcceptor(session, signals, changes)
+        val acceptor = SignInAcceptor(session, signals, changes, SignUpDraftStore(MemoryStore()))
         auth = ApiAuthRepository(retrofit, json, session, acceptor)
         users = ApiUserRepository(retrofit, json, session, changes)
     }
@@ -93,7 +94,7 @@ class ApiAccountTest {
             auth.signIn("anak@contoh.id", "rahasia123").getOrThrow()
             assertTrue("T-026 required 3: no waiting for the first 403", signals.awaitingConsent.value)
 
-            val acceptor = SignInAcceptor(session, signals, changes)
+            val acceptor = SignInAcceptor(session, signals, changes, SignUpDraftStore(MemoryStore()))
             acceptor.accept(SignInReply(token = "8|token", code = SignInReply.EMAIL_VERIFICATION_PENDING))
             assertTrue(signals.awaitingEmailVerification.value)
             assertFalse(acceptor.accept(SignInReply(code = SignInReply.EMAIL_CODE_SENT, registrationToken = "rt")))

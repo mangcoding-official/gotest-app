@@ -58,6 +58,9 @@ class FakeSignUpRepository
             info = info.copy(joinNotice = null)
         }
 
+        override suspend fun pendingEmailCode(): SignUpResult.EmailCodeSent? =
+            pendingSignUp?.let { SignUpResult.EmailCodeSent(sentTo = maskEmail(it.email.trim()), resendInSeconds = 0) }
+
         override suspend fun register(form: SignUpForm): Result<SignUpResult> {
             simulateLatency()
             if (form.email.trim().equals(TAKEN_EMAIL, ignoreCase = true)) {

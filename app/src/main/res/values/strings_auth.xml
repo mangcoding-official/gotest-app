@@ -57,6 +57,7 @@
     <string name="auth_error_password_mismatch">Kata sandi belum sama</string>
     <string name="auth_error_sign_in">Email atau password salah</string>
     <string name="auth_error_offline">Koneksi terputus. Periksa internetmu lalu coba lagi.</string>
+    <string name="auth_error_server">Terjadi kesalahan di server. Coba lagi sebentar lagi.</string>
     <!-- Laravel max:72 on kata sandi (Password::defaults, T-026 required 8). -->
     <string name="auth_error_password_max">Kata sandi tidak boleh lebih dari 72 karakter.</string>
     <string name="forgot_sent">Link reset password sudah dikirim ke %1$s</string>

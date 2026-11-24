@@ -2,5 +2,6 @@
 <!-- API 30 and lower. The session token and the Ujian device tokens are encrypted with a key that never leaves this device, so they are not backed up. -->
 <full-backup-content>
     <exclude domain="sharedpref" path="gotest_session.xml" />
+    <exclude domain="sharedpref" path="gotest_signup.xml" />
     <exclude domain="sharedpref" path="gotest_exam.xml" />
 </full-backup-content>

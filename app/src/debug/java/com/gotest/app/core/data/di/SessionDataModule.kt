@@ -3,13 +3,16 @@ package com.gotest.app.core.data.di
 import com.gotest.app.BuildConfig
 import com.gotest.app.core.data.api.ApiAuthRepository
 import com.gotest.app.core.data.api.ApiSignInOptionsRepository
+import com.gotest.app.core.data.api.ApiSignUpRepository
 import com.gotest.app.core.data.api.ApiUserRepository
 import com.gotest.app.core.data.fake.FakeAuthRepository
 import com.gotest.app.core.data.fake.FakeUserRepository
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
 import com.gotest.app.feature.auth.data.FakeSignInOptionsRepository
+import com.gotest.app.feature.auth.data.FakeSignUpRepository
 import com.gotest.app.feature.auth.domain.SignInOptionsRepository
+import com.gotest.app.feature.auth.domain.SignUpRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,4 +40,10 @@ object SessionDataModule {
         fake: Provider<FakeSignInOptionsRepository>,
         api: Provider<ApiSignInOptionsRepository>,
     ): SignInOptionsRepository = if (BuildConfig.USE_API) api.get() else fake.get()
+
+    @Provides
+    fun provideSignUpRepository(
+        fake: Provider<FakeSignUpRepository>,
+        api: Provider<ApiSignUpRepository>,
+    ): SignUpRepository = if (BuildConfig.USE_API) api.get() else fake.get()
 }

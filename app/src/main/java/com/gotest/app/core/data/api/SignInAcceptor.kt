@@ -4,6 +4,7 @@ import android.os.Build
 import com.gotest.app.core.network.SessionSignals
 import com.gotest.app.core.session.AccountChanges
 import com.gotest.app.core.session.SessionStore
+import com.gotest.app.core.session.SignUpDraftStore
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,6 +20,7 @@ class SignInAcceptor
         private val session: SessionStore,
         private val signals: SessionSignals,
         private val changes: AccountChanges,
+        private val drafts: SignUpDraftStore,
     ) {
         /** The phone's name, sent as `device_name` and shown in Sesi Aktif (at most 100 letters). */
         val deviceName: String
@@ -33,6 +35,9 @@ class SignInAcceptor
         fun accept(reply: SignInReply): Boolean {
             val token = reply.token ?: return false
             session.save(token)
+            // Signed in: an unfinished sign-up and its Mitra link belong to no one now.
+            drafts.clearEmailCode()
+            drafts.mitraLink = null
             when {
                 reply.code == SignInReply.EMAIL_VERIFICATION_PENDING -> signals.markAwaitingEmailVerification()
                 reply.consentLocked -> signals.markAwaitingConsent()
