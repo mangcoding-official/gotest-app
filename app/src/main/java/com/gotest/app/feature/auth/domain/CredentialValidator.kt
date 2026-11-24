@@ -13,6 +13,9 @@ enum class CredentialError {
     NewPasswordTooShort,
     PasswordNeedsLetter,
     PasswordNeedsNumber,
+
+    /** Longer than the 72 characters the web allows (Password::defaults). */
+    PasswordTooLong,
 }
 
 /** Client-side checks shared by the sign-in, register and reset forms. */
@@ -26,18 +29,16 @@ class CredentialValidator
                 else -> null
             }
 
+        /** Signing in only needs a password, as on the web; its rules are for new passwords (T-026 required 8). */
         fun validatePassword(password: String): CredentialError? =
-            when {
-                password.isEmpty() -> CredentialError.Required
-                password.length < MIN_PASSWORD_LENGTH -> CredentialError.PasswordTooShort
-                else -> null
-            }
+            if (password.isEmpty()) CredentialError.Required else null
 
         /** A new password follows the web's rule: at least 8 characters with a letter and a number. */
         fun validateNewPassword(password: String): CredentialError? =
             when {
                 password.isEmpty() -> CredentialError.Required
                 password.length < MIN_PASSWORD_LENGTH -> CredentialError.NewPasswordTooShort
+                password.length > MAX_PASSWORD_LENGTH -> CredentialError.PasswordTooLong
                 password.none { it.isLetter() } -> CredentialError.PasswordNeedsLetter
                 password.none { it.isDigit() } -> CredentialError.PasswordNeedsNumber
                 else -> null
@@ -57,6 +58,7 @@ class CredentialValidator
 
         private companion object {
             const val MIN_PASSWORD_LENGTH = 8
+            const val MAX_PASSWORD_LENGTH = 72
             val EMAIL_PATTERN = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
         }
     }

@@ -5,8 +5,10 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.core.content.edit
+import java.io.IOException
 import java.security.GeneralSecurityException
 import java.security.KeyStore
+import java.security.ProviderException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -47,6 +49,11 @@ class KeystoreTokenCipher : TokenCipher {
         } catch (_: GeneralSecurityException) {
             null
         } catch (_: IllegalArgumentException) {
+            null
+        } catch (_: ProviderException) {
+            // The Keystore key is gone or broken (T-026 required 5): the token is dropped, Masuk opens.
+            null
+        } catch (_: IOException) {
             null
         }
 

@@ -46,7 +46,11 @@ class SessionStore(
     val token: String? get() = cached
 
     fun save(token: String) {
-        store.putString(KEY_TOKEN, cipher.encrypt(token))
+        // A Keystore that cannot seal the token keeps it for this run only, instead of stopping the app (T-026
+        // required 5); the next start asks to sign in again.
+        runCatching { cipher.encrypt(token) }
+            .onSuccess { store.putString(KEY_TOKEN, it) }
+            .onFailure { store.remove(KEY_TOKEN) }
         cached = token
         signedIn.value = true
     }
@@ -60,7 +64,8 @@ class SessionStore(
     private fun load(): String? {
         val encrypted = store.getString(KEY_TOKEN) ?: return null
         // A token that cannot be read any more is dropped, so the app asks to sign in again.
-        return cipher.decrypt(encrypted).also { if (it == null) store.remove(KEY_TOKEN) }
+        val token = runCatching { cipher.decrypt(encrypted) }.getOrNull()
+        return token.also { if (it == null) store.remove(KEY_TOKEN) }
     }
 
     private companion object {

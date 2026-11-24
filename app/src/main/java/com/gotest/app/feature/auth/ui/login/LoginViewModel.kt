@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
+import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.auth.domain.CredentialValidator
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,11 +35,21 @@ class LoginViewModel
         fun onEvent(event: LoginUiEvent) {
             when (event) {
                 is LoginUiEvent.EmailChanged -> {
-                    _uiState.update { it.copy(email = event.value, emailError = null, formError = null) }
+                    _uiState.update {
+                        it.copy(
+                            email = event.value,
+                            emailError = null,
+                            formError = null,
+                            emailMessage = null,
+                            formMessage = null,
+                        )
+                    }
                 }
 
                 is LoginUiEvent.PasswordChanged -> {
-                    _uiState.update { it.copy(password = event.value, passwordError = null, formError = null) }
+                    _uiState.update {
+                        it.copy(password = event.value, passwordError = null, formError = null, formMessage = null)
+                    }
                 }
 
                 LoginUiEvent.Submit -> {
@@ -64,7 +76,7 @@ class LoginViewModel
                 authRepository
                     .signIn(state.email.trim(), state.password)
                     .onSuccess { _effects.send(LoginEffect.SignedIn) }
-                    .onFailure { _uiState.update { it.copy(formError = R.string.auth_error_sign_in) } }
+                    .onFailure { error -> _uiState.update { it.withSignInError(error) } }
                 _uiState.update { it.copy(isSubmitting = false) }
             }
         }
@@ -77,4 +89,13 @@ class LoginViewModel
                 _uiState.update { it.copy(isSubmitting = false) }
             }
         }
+    }
+
+/** Where a refused sign-in says why: the server's sentence on `email`, for the whole form, or the app's own. */
+internal fun LoginUiState.withSignInError(error: Throwable): LoginUiState =
+    when {
+        error is ApiError && error.fieldError("email") != null -> copy(emailMessage = error.fieldError("email"))
+        error is ApiError && error.status != 0 -> copy(formMessage = error.message)
+        error is IOException -> copy(formError = R.string.auth_error_offline)
+        else -> copy(formError = R.string.auth_error_sign_in)
     }

@@ -9,8 +9,15 @@ data class LoginUiState(
     val password: String = "",
     @param:StringRes val emailError: Int? = null,
     @param:StringRes val passwordError: Int? = null,
-    /** Shown under the password field when the server rejects the credentials. */
+    /** Shown under the password field when the sign-in fails without the server's own sentence. */
     @param:StringRes val formError: Int? = null,
+    /** The server's sentence on `email` (wrong email or password, too many tries), as the web shows it. */
+    val emailMessage: String? = null,
+    /**
+     * The server's sentence for the whole sign-in: the reason an account was blocked (401 `account_blocked`,
+     * T-026 required 2) or that a Gotest team account signs in on gotest.id (403).
+     */
+    val formMessage: String? = null,
     val isSubmitting: Boolean = false,
 )
 

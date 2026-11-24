@@ -252,16 +252,17 @@ private fun LoginForm(
             label = stringResource(R.string.login_email_label),
             placeholder = stringResource(R.string.login_email_hint),
             leadingIcon = GotestIcons.Linear.User,
-            supportingText = uiState.emailError?.let { stringResource(it) },
-            isError = uiState.emailError != null,
+            supportingText = uiState.emailError?.let { stringResource(it) } ?: uiState.emailMessage,
+            isError = uiState.emailError != null || uiState.emailMessage != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
         )
-        val passwordError = uiState.passwordError ?: uiState.formError
+        val passwordError =
+            (uiState.passwordError ?: uiState.formError)?.let { stringResource(it) } ?: uiState.formMessage
         GotestPasswordField(
             value = uiState.password,
             onValueChange = { onEvent(LoginUiEvent.PasswordChanged(it)) },
             label = stringResource(R.string.login_password_label),
-            supportingText = passwordError?.let { stringResource(it) },
+            supportingText = passwordError,
             isError = passwordError != null,
             keyboardActions = KeyboardActions(onDone = { onEvent(LoginUiEvent.Submit) }),
         )
