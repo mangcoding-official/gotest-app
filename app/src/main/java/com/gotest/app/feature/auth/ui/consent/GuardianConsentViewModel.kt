@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.core.domain.repository.AuthRepository
+import com.gotest.app.core.session.SessionNotices
 import com.gotest.app.feature.auth.domain.ConsentState
 import com.gotest.app.feature.auth.domain.GuardianChannel
 import com.gotest.app.feature.auth.domain.SignUpRepository
@@ -36,6 +37,8 @@ data class GuardianConsentUiState(
     val isResending: Boolean = false,
     val isChanging: Boolean = false,
     val isSigningOut: Boolean = false,
+    /** Why the sign-up's Mitra link was dropped, right after the email was verified (DEC-154); shown once. */
+    val emailVerifiedReason: String? = null,
 )
 
 sealed interface GuardianConsentUiEvent {
@@ -69,8 +72,10 @@ class GuardianConsentViewModel
     constructor(
         private val repository: SignUpRepository,
         private val authRepository: AuthRepository,
+        notices: SessionNotices,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(GuardianConsentUiState())
+        private val _uiState =
+            MutableStateFlow(GuardianConsentUiState(emailVerifiedReason = notices.takeEmailVerified()))
         val uiState: StateFlow<GuardianConsentUiState> = _uiState.asStateFlow()
 
         private val _effects = Channel<GuardianConsentEffect>(Channel.BUFFERED)

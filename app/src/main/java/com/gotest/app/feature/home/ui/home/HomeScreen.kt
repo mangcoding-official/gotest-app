@@ -13,13 +13,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.theme.GotestTheme
@@ -43,6 +51,14 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // The web's flash after verifying the email when the sign-up's Mitra link was dropped (DEC-154).
+    val snackbar = remember { SnackbarHostState() }
+    val reason = viewModel.emailVerifiedReason
+    val notice = reason?.let { stringResource(R.string.email_verified_notice, it) }
+    LaunchedEffect(notice) {
+        // Stays until closed, as the web's flash stays on the page.
+        notice?.let { snackbar.showSnackbar(it, withDismissAction = true, duration = SnackbarDuration.Indefinite) }
+    }
     HomeScreen(
         uiState = uiState,
         onEvent = viewModel::onEvent,
@@ -60,6 +76,7 @@ fun HomeRoute(
                 onOpenPromo = onOpenPromo,
             ),
         modifier = modifier,
+        snackbarHostState = snackbar,
     )
 }
 
@@ -86,6 +103,7 @@ fun HomeScreen(
     onEvent: (HomeUiEvent) -> Unit,
     actions: HomeActions,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Box(
         modifier =
@@ -131,6 +149,10 @@ fun HomeScreen(
                 )
             }
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.TopCenter).windowInsetsPadding(WindowInsets.statusBars),
+        )
     }
 }
 

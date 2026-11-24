@@ -3,6 +3,7 @@ package com.gotest.app.feature.auth
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.network.SessionSignals
+import com.gotest.app.core.session.SessionNotices
 import com.gotest.app.feature.auth.domain.EmailVerificationRepository
 import com.gotest.app.feature.auth.domain.EmailVerificationState
 import com.gotest.app.feature.auth.domain.EmailVerified
@@ -33,6 +34,7 @@ import java.io.IOException
 @OptIn(ExperimentalCoroutinesApi::class)
 class EmailVerificationViewModelTest {
     private val signals = SessionSignals().apply { markAwaitingEmailVerification() }
+    private val notices = SessionNotices()
     private var stateReply: Result<EmailVerificationState> = Result.success(WAITING)
     private var resendReply: Result<EmailVerificationState> = Result.success(WAITING.copy(resendIn = 60))
     private var verifyReply: Result<EmailVerified> = Result.success(EmailVerified())
@@ -77,7 +79,7 @@ class EmailVerificationViewModelTest {
 
     private fun TestScope.viewModel(): EmailVerificationViewModel {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        return EmailVerificationViewModel(repository, auth, signals).also { runCurrent() }
+        return EmailVerificationViewModel(repository, auth, signals, notices).also { runCurrent() }
     }
 
     @After
@@ -101,9 +103,27 @@ class EmailVerificationViewModelTest {
         }
 
     @Test
-    fun aParentsApprovalAskedNowOpensItsWaitingPage() =
+    fun whyTheMitraLinkWasDroppedIsKeptForTheNextScreen() =
         runTest {
-            verifyReply = Result.success(EmailVerified(consent = EmailVerified.CONSENT_PENDING))
+            val reason = "Tautan undangan sudah tidak berlaku, jadi akunmu belum bergabung ke Mitra."
+            verifyReply = Result.success(EmailVerified(message = reason))
+            val vm = viewModel()
+            vm.onCode("123456")
+            vm.verify()
+            runCurrent()
+
+            // Beranda (or the parent's approval page) shows "Emailmu sudah terverifikasi. {alasan}" once.
+            assertEquals(reason, notices.takeEmailVerified())
+            assertEquals(null, notices.takeEmailVerified())
+        }
+
+    @Test
+    fun aParentsApprovalAskedNowOpensItsWaitingPageWithTheReason() =
+        runTest {
+            verifyReply =
+                Result.success(
+                    EmailVerified(message = "Kode kelas sudah ditutup.", consent = EmailVerified.CONSENT_PENDING),
+                )
             val vm = viewModel()
             vm.onCode("123456")
             vm.verify()
@@ -111,6 +131,7 @@ class EmailVerificationViewModelTest {
 
             assertFalse(signals.awaitingEmailVerification.value)
             assertTrue(signals.awaitingConsent.value)
+            assertEquals("Kode kelas sudah ditutup.", notices.takeEmailVerified())
         }
 
     @Test

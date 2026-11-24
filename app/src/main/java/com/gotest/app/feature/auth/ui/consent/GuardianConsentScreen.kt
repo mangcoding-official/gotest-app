@@ -82,6 +82,7 @@ fun GuardianConsentScreen(
             GotestLoadingView(modifier = Modifier.fillMaxWidth())
             return@AuthFormCard
         }
+        uiState.emailVerifiedReason?.let { NoticeBox(stringResource(R.string.email_verified_notice, it)) }
         uiState.notice?.let { NoticeBox(it) }
         if (consent.canResend) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {

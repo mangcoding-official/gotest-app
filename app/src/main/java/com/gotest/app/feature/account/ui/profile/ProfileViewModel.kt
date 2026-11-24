@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -52,17 +53,19 @@ class ProfileViewModel
         private val photoEditor: ProfilePhotoEditor,
         private val profilePages: ProfilePagesRepository,
         private val ruang: RuangRepository,
-        accountChanges: AccountChanges,
+        private val accountChanges: AccountChanges,
     ) : ViewModel() {
         private val retryKey = MutableStateFlow(0)
         private val signOut = MutableStateFlow(SignOutState())
 
         private val content: Flow<ProfileUiState> =
-            // "Coba lagi", or a saved write elsewhere (Ubah Profil, foto, nomor, email, password): read /profil again.
-            combine(retryKey, accountChanges.changes) { retry, changed -> retry to changed }.flatMapLatest {
+            retryKey.flatMapLatest {
                 // GET /profil: the number, whether numbers can be added, and the stats; the rest comes from /akun.
                 // Without /profil the page still shows, with Keluar (A2e review): those parts stay as /akun has them.
-                val page = flow { emit(profilePages.page().getOrNull()) }
+                // A saved write elsewhere (Ubah Profil, foto, nomor, email, password) reads /profil again in place,
+                // without the loading screen and without asking for the Mitra list again (review of the required
+                // items, 15).
+                val page = accountChanges.changes.mapLatest { profilePages.page().getOrNull() }
                 // The Mitra portal is not in the app yet (A4), so only student spaces are listed.
                 val spaces = flow { emit(ruang.memberships().getOrDefault(emptyList()).filterNot { it.opensPortal }) }
                 combine(userRepository.observeProfile(), page, spaces) { profile, profilePage, studentSpaces ->

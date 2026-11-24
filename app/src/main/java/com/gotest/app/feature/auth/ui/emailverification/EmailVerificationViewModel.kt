@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.network.SessionSignals
+import com.gotest.app.core.session.SessionNotices
 import com.gotest.app.feature.auth.domain.EmailVerificationRepository
 import com.gotest.app.feature.auth.domain.EmailVerificationState
 import com.gotest.app.feature.auth.domain.EmailVerified
@@ -71,6 +72,7 @@ class EmailVerificationViewModel
         private val repository: EmailVerificationRepository,
         private val authRepository: AuthRepository,
         private val signals: SessionSignals,
+        private val notices: SessionNotices,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(EmailVerificationUiState())
         val uiState: StateFlow<EmailVerificationUiState> = _uiState.asStateFlow()
@@ -84,13 +86,19 @@ class EmailVerificationViewModel
             load()
         }
 
+        private var loading = false
+
         fun load() {
+            // "Coba lagi" pressed twice asks once (review of the required items).
+            if (loading) return
+            loading = true
             _uiState.update { it.copy(loadFailed = false) }
             viewModelScope.launch {
                 repository
                     .state()
                     .onSuccess(::show)
                     .onFailure { _uiState.update { it.copy(loadFailed = true) } }
+                loading = false
             }
         }
 
@@ -148,6 +156,8 @@ class EmailVerificationViewModel
         }
 
         private fun opened(verified: EmailVerified) {
+            // Why the sign-up's Mitra link was dropped: Beranda (or the parent's approval page) says it once.
+            verified.message?.takeIf { it.isNotBlank() }?.let(notices::postEmailVerified)
             signals.clearAwaitingEmailVerification()
             if (verified.consent == EmailVerified.CONSENT_PENDING) {
                 // The app shell opens "Menunggu persetujuan orang tua" for it.

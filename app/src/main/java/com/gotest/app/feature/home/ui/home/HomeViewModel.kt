@@ -9,6 +9,7 @@ import com.gotest.app.core.model.AttemptSummary
 import com.gotest.app.core.model.PackageType
 import com.gotest.app.core.model.StudyPackage
 import com.gotest.app.core.model.UserProfile
+import com.gotest.app.core.session.SessionNotices
 import com.gotest.app.feature.home.domain.NotificationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,7 +39,11 @@ class HomeViewModel
         private val studyPackageRepository: StudyPackageRepository,
         private val examRepository: ExamRepository,
         private val notificationRepository: NotificationRepository,
+        notices: SessionNotices,
     ) : ViewModel() {
+        /** Why the sign-up's Mitra link was dropped, right after the email was verified (DEC-154); shown once. */
+        val emailVerifiedReason: String? = notices.takeEmailVerified()
+
         private val retryCount = MutableStateFlow(0)
         private val recommendedType = MutableStateFlow(PackageType.Practice)
         private val activityType = MutableStateFlow(PackageType.Practice)

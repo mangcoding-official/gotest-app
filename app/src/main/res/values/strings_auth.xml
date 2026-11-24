@@ -200,5 +200,7 @@
     <string name="email_verify_body_failed">Kode belum bisa dikirim ke emailmu. Tekan Kirim ulang kode beberapa saat lagi, atau tunggu tim Gotest memverifikasi emailmu.</string>
     <string name="email_verify_notice_failed">Email akunmu: %1$s. Salah tulis email? Hapus akun ini, lalu daftar lagi dengan email yang benar.</string>
     <string name="email_verify_submit">Verifikasi email</string>
-    <string name="email_verify_offline">Koneksi terputus. Periksa internet Anda lalu coba lagi.</string>
+    <string name="email_verify_offline">Koneksi terputus. Periksa internetmu lalu coba lagi.</string>
+    <!-- Web flash after the code, when the Mitra link of the sign-up could not be used (DEC-154). -->
+    <string name="email_verified_notice">Emailmu sudah terverifikasi. %1$s</string>
 </resources>
