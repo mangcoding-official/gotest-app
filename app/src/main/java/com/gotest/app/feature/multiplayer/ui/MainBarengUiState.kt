@@ -57,6 +57,8 @@ data class PlayState(
     val unsent: Set<Long> = emptySet(),
     val modal: PlayModal = PlayModal.None,
     val finishing: Boolean = false,
+    /** "Ya, Keluar" is on its way. */
+    val leaving: Boolean = false,
     val error: PlayError? = null,
 ) {
     val question: GameQuestion? get() = questions.getOrNull(index)

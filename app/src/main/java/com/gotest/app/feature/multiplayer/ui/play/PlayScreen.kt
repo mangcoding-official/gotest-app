@@ -101,6 +101,7 @@ internal fun PlayContent(
             PlayHeader(
                 game = game,
                 secondsLeft = secondsLeft,
+                leaving = play.leaving,
                 onExit = { onEvent(PlayEvent.Modal(PlayModal.Leave)) },
             )
         },
@@ -152,6 +153,7 @@ internal fun PlayContent(
 private fun PlayHeader(
     game: GameState,
     secondsLeft: Long?,
+    leaving: Boolean,
     onExit: () -> Unit,
 ) {
     val colors = GotestTheme.colors
@@ -197,6 +199,7 @@ private fun PlayHeader(
             onClick = onExit,
             variant = GotestButtonVariant.Plain,
             size = GotestButtonSize.Small,
+            enabled = !leaving,
         )
     }
 }

@@ -39,6 +39,7 @@ internal class ScriptedMainBareng : MainBarengRepository {
     val answers = mutableListOf<Pair<Long, AnswerData>>()
     var stateCalls = 0
     var finishCalls = 0
+    var leaveCalls = 0
 
     override suspend fun hub(space: String?) = hubReply
 
@@ -70,7 +71,10 @@ internal class ScriptedMainBareng : MainBarengRepository {
 
     override suspend fun cancel(code: String) = cancelReply
 
-    override suspend fun leave(code: String) = leaveReply
+    override suspend fun leave(code: String): Result<Unit> {
+        leaveCalls++
+        return leaveReply
+    }
 
     override suspend fun questions(code: String) = questionsReply
 

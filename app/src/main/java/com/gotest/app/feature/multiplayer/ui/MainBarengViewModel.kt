@@ -106,6 +106,7 @@ class MainBarengViewModel
         private var poller: Job? = null
         private var shown = false
         private var countdownDone = false
+        private var timeUpFinishSent = false
 
         init {
             load()
@@ -304,9 +305,17 @@ class MainBarengViewModel
 
         // The waiting room.
 
-        override fun startGame() = runAction { handleState(repository.start(currentCode()).getOrThrow()) }
+        override fun startGame() =
+            runAction {
+                val requestedAt = elapsed.elapsedMs()
+                handleState(repository.start(currentCode()).getOrThrow(), requestedAt)
+            }
 
-        override fun cancelGame() = runAction { handleState(repository.cancel(currentCode()).getOrThrow()) }
+        override fun cancelGame() =
+            runAction {
+                val requestedAt = elapsed.elapsedMs()
+                handleState(repository.cancel(currentCode()).getOrThrow(), requestedAt)
+            }
 
         override fun leaveLobby() =
             runAction {
@@ -340,6 +349,7 @@ class MainBarengViewModel
                 repository
                     .questions(code)
                     .onSuccess { questions ->
+                        timeUpFinishSent = false
                         play.begin(code, questions)
                         go(GameScreen.Play)
                     }.onFailure {
@@ -423,9 +433,15 @@ class MainBarengViewModel
             restartTicker()
         }
 
-        /** Web `handleState`: the waiting room moves to the countdown, the waiting screen to the result. */
-        private fun handleState(next: GameState) {
-            showGame(next, elapsed.elapsedMs())
+        /**
+         * Web `handleState`: the waiting room moves to the countdown, the waiting screen to the result.
+         * [requestedAt] is when the request went out, so `serverNow` is not counted late (A2d review).
+         */
+        private fun handleState(
+            next: GameState,
+            requestedAt: Long,
+        ) {
+            showGame(next, requestedAt)
             val screen = _uiState.value.screen
             if (next.running && screen == GameScreen.Lobby) go(GameScreen.Countdown)
             if (next.finished && (screen == GameScreen.Waiting || screen == GameScreen.Play)) {
@@ -473,10 +489,8 @@ class MainBarengViewModel
             val requestedAt = elapsed.elapsedMs()
             repository
                 .state(code)
-                .onSuccess { next ->
-                    anchorMs = requestedAt
-                    handleState(next)
-                }.onFailure { error ->
+                .onSuccess { next -> handleState(next, requestedAt) }
+                .onFailure { error ->
                     // A member taken out of the game (left the Mitra) goes back to the hub.
                     if (GameProblem.of(error).kind == GameProblem.NOT_FOUND) toHub(HubFlash.Removed)
                 }
@@ -525,7 +539,11 @@ class MainBarengViewModel
                 }
 
                 GameScreen.Play -> {
-                    if (left == 0L) play.finish()
+                    // Once per game, as the web: a failure says so and waits for "Selesai" (A2d review 1).
+                    if (left == 0L && !timeUpFinishSent) {
+                        timeUpFinishSent = true
+                        play.finish()
+                    }
                 }
 
                 else -> {}

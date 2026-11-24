@@ -18,6 +18,7 @@ import com.gotest.app.feature.multiplayer.ui.HubDialog
 import com.gotest.app.feature.multiplayer.ui.HubFlash
 import com.gotest.app.feature.multiplayer.ui.MainBarengEffect
 import com.gotest.app.feature.multiplayer.ui.MainBarengViewModel
+import com.gotest.app.feature.multiplayer.ui.PlayError
 import com.gotest.app.feature.multiplayer.ui.PlayEvent
 import com.gotest.app.feature.practice.domain.AnswerData
 import com.gotest.app.feature.practice.domain.AnswerValue
@@ -305,6 +306,76 @@ class MainBarengViewModelTest {
             runCurrent()
 
             assertEquals(1, repository.finishCalls)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun aFailedFinishWhenTimeIsUpIsSentOnceThenWaitsForSelesai() =
+        runTest {
+            val vm = playing()
+            repository.finishReply = ScriptedMainBareng.offline()
+
+            advanceTimeBy(GAME_MS)
+            runCurrent()
+            advanceTimeBy(5_000)
+            runCurrent()
+            assertEquals("Sent once, not on every tick (A2d review 1)", 1, repository.finishCalls)
+            assertEquals(
+                PlayError.FinishFailed,
+                vm.uiState.value.play
+                    ?.error,
+            )
+
+            repository.finishReply =
+                Result.success(game(GameState.STATUS_RUNNING, listOf(ME, RIVAL), youFinished = true))
+            vm.onPlay(PlayEvent.Finish)
+            runCurrent()
+            assertEquals(2, repository.finishCalls)
+            assertEquals(GameScreen.Waiting, vm.uiState.value.screen)
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun anAnswerRefusedForGoodIsNotSentAgain() =
+        runTest {
+            val vm = playing()
+            repository.answerReply = { Result.failure(ApiError(422, "Waktu permainan sudah habis.", "closed")) }
+
+            vm.onPlay(PlayEvent.Select(1))
+            runCurrent()
+            advanceTimeBy(10_000)
+            runCurrent()
+
+            assertEquals(1, repository.answers.size)
+            assertEquals(
+                emptyList<Int>(),
+                vm.uiState.value.play
+                    ?.unsentNumbers,
+            )
+            vm.viewModelScope.cancel()
+        }
+
+    @Test
+    fun leavingGoesOnceWhilePressedTwice() =
+        runTest {
+            val vm = playing()
+            repository.leaveReply = ScriptedMainBareng.offline()
+
+            vm.onPlay(PlayEvent.Leave)
+            vm.onPlay(PlayEvent.Leave)
+            runCurrent()
+
+            assertEquals(1, repository.leaveCalls)
+            assertEquals(
+                PlayError.LeaveFailed,
+                vm.uiState.value.play
+                    ?.error,
+            )
+            assertEquals(
+                false,
+                vm.uiState.value.play
+                    ?.leaving,
+            )
             vm.viewModelScope.cancel()
         }
 

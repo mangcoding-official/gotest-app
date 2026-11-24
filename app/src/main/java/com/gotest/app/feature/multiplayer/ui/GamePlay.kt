@@ -1,5 +1,6 @@
 package com.gotest.app.feature.multiplayer.ui
 
+import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.multiplayer.domain.GameQuestion
 import com.gotest.app.feature.multiplayer.domain.GameState
 import com.gotest.app.feature.multiplayer.domain.MainBarengRepository
@@ -133,10 +134,14 @@ internal class GamePlay(
             value = latest[question.id]
             // An answer taken back goes as an empty one, as the web sends `value ?? []`.
             val payload = answerPayload(question.questionType, value ?: AnswerValue.Multiple(emptyList()))
-            if (repository.answer(gameCode, question.id, payload).isFailure) return false
+            val result = repository.answer(gameCode, question.id, payload)
+            // Refused for good (time up, finished, not this player's): sending again would only fail again.
+            if (result.isFailure && !result.refusedForGood()) return false
         } while (latest[question.id] != value)
         return true
     }
+
+    private fun Result<Unit>.refusedForGood(): Boolean = (exceptionOrNull() as? ApiError)?.status in PERMANENT
 
     /** Unsaved answers go again on their own once the connection returns. */
     private fun keepRetrying() {
@@ -174,18 +179,20 @@ internal class GamePlay(
 
     fun leave() {
         val gameCode = code ?: return
-        updatePlay { it.copy(modal = PlayModal.None, error = null) }
+        if (current()?.leaving == true) return
+        updatePlay { it.copy(modal = PlayModal.None, error = null, leaving = true) }
         scope.launch {
             repository
                 .leave(gameCode)
                 .onSuccess {
                     stop()
                     onLeft()
-                }.onFailure { updatePlay { it.copy(error = PlayError.LeaveFailed) } }
+                }.onFailure { updatePlay { it.copy(error = PlayError.LeaveFailed, leaving = false) } }
         }
     }
 
     private companion object {
         const val RETRY_MS = 4_000L
+        val PERMANENT = setOf(404, 409, 422)
     }
 }
