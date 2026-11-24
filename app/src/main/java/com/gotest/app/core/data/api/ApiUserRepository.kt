@@ -13,9 +13,11 @@ import com.gotest.app.feature.ruang.data.parseServerTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.transform
 import kotlinx.serialization.json.Json
 import retrofit2.Retrofit
 import java.time.LocalDate
@@ -39,10 +41,26 @@ class ApiUserRepository
     ) : UserRepository {
         private val api = retrofit.create(AuthApi::class.java)
 
+        /**
+         * Only the first read can fail the screen; a later read that fails (no connection right after a save)
+         * keeps what is shown, and the next write or sign-in reads again.
+         */
         override fun observeProfile(): Flow<UserProfile> =
-            combine(session.isSignedIn, changes.changes) { signedIn, _ -> signedIn }
-                .filter { it }
-                .flatMapLatest { flow { emit(apiCall(json) { api.account() }.getOrThrow().toProfile()) } }
+            flow {
+                var shown = false
+                val reads =
+                    combine(session.isSignedIn, changes.changes) { signedIn, _ -> signedIn }
+                        .filter { it }
+                        .mapLatest { apiCall(json) { api.account() } }
+                        .transform { read ->
+                            read
+                                .onSuccess {
+                                    shown = true
+                                    emit(it.toProfile())
+                                }.onFailure { if (!shown) throw it }
+                        }
+                emitAll(reads)
+            }
 
         /** The photo is saved through Profil (`POST /profil/foto`); this only reads `/akun` again. */
         override suspend fun updateAvatar(avatarUrl: String): Result<Unit> {

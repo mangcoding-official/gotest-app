@@ -10,8 +10,14 @@ import com.gotest.app.core.session.KeyValueStore
 import com.gotest.app.core.session.SessionStore
 import com.gotest.app.core.session.SignUpDraftStore
 import com.gotest.app.core.session.TokenCipher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mockwebserver3.MockResponse
@@ -141,6 +147,29 @@ class ApiAccountTest {
         }
 
     @Test
+    fun aFailedReadAfterAWriteKeepsTheAccountShown() =
+        runBlocking {
+            session.save("7|token")
+            reply(200, ACCOUNT)
+            reply(500, """{"message":"Terjadi kesalahan di server. Coba lagi sebentar lagi.","code":"server_error"}""")
+            reply(200, ACCOUNT.replace("Rina Ayu", "Rina Putri"))
+            val seen = Channel<String>(Channel.UNLIMITED)
+            val job = launch(Dispatchers.IO) { users.observeProfile().collect { seen.send(it.fullName) } }
+
+            assertEquals("Rina Ayu", withTimeout(TIMEOUT_MS) { seen.receive() })
+            changes.markChanged()
+            server.takeRequest()
+            server.takeRequest()
+            // The 500 shows nothing new and fails nothing; the next write reads again.
+            delay(SETTLE_MS)
+            assertTrue(seen.isEmpty)
+            assertTrue(job.isActive)
+            changes.markChanged()
+            assertEquals("Rina Putri", withTimeout(TIMEOUT_MS) { seen.receive() })
+            job.cancel()
+        }
+
+    @Test
     fun aKeystoreThatFailsAsksToSignInAgainInsteadOfStopping() {
         val store = MemoryStore().apply { putString("token", "sealed") }
         val broken =
@@ -188,6 +217,9 @@ class ApiAccountTest {
     }
 
     private companion object {
+        const val TIMEOUT_MS = 5_000L
+        const val SETTLE_MS = 300L
+
         const val ACCOUNT =
             """{"user":{"id":9,"name":"Rina Ayu","avatar_url":null,"email":null,"phone":null,""" +
                 """"education_level":"smp"},""" +
