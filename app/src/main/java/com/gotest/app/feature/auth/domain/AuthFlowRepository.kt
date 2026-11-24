@@ -26,7 +26,7 @@ sealed interface PhoneVerification {
 
 /**
  * Sign-in flows the web has and the app gains in T-018: resetting the password from the email link and
- * Masuk Anak. Bound to a fake until the API contract (Jalur 5 A1) is approved.
+ * Masuk Anak, against API module A since T-026 A2a.
  */
 interface AuthFlowRepository {
     suspend fun resetPassword(

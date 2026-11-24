@@ -37,6 +37,7 @@ class SignInAcceptor
             session.save(token)
             // Signed in: an unfinished sign-up and its Mitra link belong to no one now.
             drafts.clearEmailCode()
+            drafts.clearPhoneToken()
             drafts.mitraLink = null
             when {
                 reply.code == SignInReply.EMAIL_VERIFICATION_PENDING -> signals.markAwaitingEmailVerification()

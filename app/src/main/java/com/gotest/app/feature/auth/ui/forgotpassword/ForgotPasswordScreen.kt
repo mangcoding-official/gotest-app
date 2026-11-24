@@ -59,8 +59,8 @@ fun ForgotPasswordScreen(
             label = stringResource(R.string.forgot_email_label),
             placeholder = stringResource(R.string.forgot_email_hint),
             leadingIcon = GotestIcons.Linear.DirectNotification,
-            supportingText = uiState.emailError?.let { stringResource(it) },
-            isError = uiState.emailError != null,
+            supportingText = uiState.emailMessage ?: uiState.emailError?.let { stringResource(it) },
+            isError = uiState.emailMessage != null || uiState.emailError != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Send),
             keyboardActions = KeyboardActions(onSend = { onEvent(ForgotPasswordUiEvent.Submit) }),
         )

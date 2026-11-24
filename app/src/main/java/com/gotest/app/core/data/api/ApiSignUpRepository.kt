@@ -43,7 +43,7 @@ class ApiSignUpRepository
         private val options: SignInOptionsRepository,
         private val signals: SessionSignals,
     ) : SignUpRepository {
-        private val api = retrofit.create(AuthApi::class.java)
+        private val api = retrofit.create(SignUpApi::class.java)
         private val consent = MutableStateFlow<ConsentState?>(null)
 
         override suspend fun registrationInfo(): RegistrationInfo {
@@ -183,7 +183,7 @@ class ApiSignUpRepository
         }
     }
 
-private val EducationLevel.code: String
+internal val EducationLevel.code: String
     get() =
         when (this) {
             EducationLevel.Sd -> "sd"
@@ -193,7 +193,7 @@ private val EducationLevel.code: String
             EducationLevel.Graduated -> "umum"
         }
 
-private val GuardianChannel.code: String
+internal val GuardianChannel.code: String
     get() = if (this == GuardianChannel.Email) ConsentReply.CHANNEL_EMAIL else ConsentReply.CHANNEL_WHATSAPP
 
 private fun channelOf(code: String): GuardianChannel? =

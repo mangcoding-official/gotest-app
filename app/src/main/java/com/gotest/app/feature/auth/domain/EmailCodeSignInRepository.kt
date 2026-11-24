@@ -2,7 +2,7 @@ package com.gotest.app.feature.auth.domain
 
 /**
  * "Masuk dengan kode email" (T-023, F-c FC6): a code to the account's email instead of the password.
- * Bound to a fake until the API (T-028) is up. Whether it is on comes from [SignInOptionsRepository].
+ * Against API module A since T-026 A2a. Whether it is on comes from [SignInOptionsRepository].
  */
 interface EmailCodeSignInRepository {
     /**

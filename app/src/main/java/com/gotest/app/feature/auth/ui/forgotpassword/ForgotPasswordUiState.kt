@@ -7,6 +7,8 @@ import androidx.compose.runtime.Immutable
 data class ForgotPasswordUiState(
     val email: String = "",
     @param:StringRes val emailError: Int? = null,
+    /** The server's sentence when the link was refused, such as too many requests. */
+    val emailMessage: String? = null,
     val isSubmitting: Boolean = false,
     /** Email the reset link went to; non-null once sent. */
     val sentTo: String? = null,

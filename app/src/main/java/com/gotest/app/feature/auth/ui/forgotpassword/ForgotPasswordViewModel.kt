@@ -2,7 +2,9 @@ package com.gotest.app.feature.auth.ui.forgotpassword
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
+import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.auth.domain.CredentialValidator
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,7 +29,14 @@ class ForgotPasswordViewModel
         fun onEvent(event: ForgotPasswordUiEvent) {
             when (event) {
                 is ForgotPasswordUiEvent.EmailChanged -> {
-                    _uiState.update { it.copy(email = event.value, emailError = null, sentTo = null) }
+                    _uiState.update {
+                        it.copy(
+                            email = event.value,
+                            emailError = null,
+                            emailMessage = null,
+                            sentTo = null,
+                        )
+                    }
                 }
 
                 ForgotPasswordUiEvent.Submit -> {
@@ -46,7 +56,18 @@ class ForgotPasswordViewModel
             viewModelScope.launch {
                 _uiState.update { it.copy(isSubmitting = true) }
                 val email = state.email.trim()
-                authRepository.requestPasswordReset(email).onSuccess { _uiState.update { it.copy(sentTo = email) } }
+                authRepository
+                    .requestPasswordReset(email)
+                    .onSuccess { _uiState.update { it.copy(sentTo = email) } }
+                    .onFailure { error ->
+                        _uiState.update {
+                            when (error) {
+                                is ApiError -> it.copy(emailMessage = error.fieldError("email") ?: error.message)
+                                is IOException -> it.copy(emailError = R.string.auth_error_offline)
+                                else -> it.copy(emailError = R.string.auth_error_server)
+                            }
+                        }
+                    }
                 _uiState.update { it.copy(isSubmitting = false) }
             }
         }

@@ -1,7 +1,9 @@
 package com.gotest.app.core.data.di
 
 import com.gotest.app.BuildConfig
+import com.gotest.app.core.data.api.ApiAuthFlowRepository
 import com.gotest.app.core.data.api.ApiAuthRepository
+import com.gotest.app.core.data.api.ApiEmailCodeSignInRepository
 import com.gotest.app.core.data.api.ApiSignInOptionsRepository
 import com.gotest.app.core.data.api.ApiSignUpRepository
 import com.gotest.app.core.data.api.ApiUserRepository
@@ -9,8 +11,12 @@ import com.gotest.app.core.data.fake.FakeAuthRepository
 import com.gotest.app.core.data.fake.FakeUserRepository
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.domain.repository.UserRepository
+import com.gotest.app.feature.auth.data.FakeAuthFlowRepository
+import com.gotest.app.feature.auth.data.FakeEmailCodeSignInRepository
 import com.gotest.app.feature.auth.data.FakeSignInOptionsRepository
 import com.gotest.app.feature.auth.data.FakeSignUpRepository
+import com.gotest.app.feature.auth.domain.AuthFlowRepository
+import com.gotest.app.feature.auth.domain.EmailCodeSignInRepository
 import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import dagger.Module
@@ -46,4 +52,16 @@ object SessionDataModule {
         fake: Provider<FakeSignUpRepository>,
         api: Provider<ApiSignUpRepository>,
     ): SignUpRepository = if (BuildConfig.USE_API) api.get() else fake.get()
+
+    @Provides
+    fun provideAuthFlowRepository(
+        fake: Provider<FakeAuthFlowRepository>,
+        api: Provider<ApiAuthFlowRepository>,
+    ): AuthFlowRepository = if (BuildConfig.USE_API) api.get() else fake.get()
+
+    @Provides
+    fun provideEmailCodeSignInRepository(
+        fake: Provider<FakeEmailCodeSignInRepository>,
+        api: Provider<ApiEmailCodeSignInRepository>,
+    ): EmailCodeSignInRepository = if (BuildConfig.USE_API) api.get() else fake.get()
 }
