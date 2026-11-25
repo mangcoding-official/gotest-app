@@ -223,7 +223,12 @@ private fun ProfileHeader(
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .heightIn(min = GotestTheme.sizes.appBarHeight)
-                .padding(horizontal = spacing.screenHorizontal, vertical = spacing.sm),
+                .padding(
+                    start = spacing.screenHorizontal,
+                    end = spacing.screenHorizontal,
+                    top = spacing.md,
+                    bottom = spacing.sm,
+                ),
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {

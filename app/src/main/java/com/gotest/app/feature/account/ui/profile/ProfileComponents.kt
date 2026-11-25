@@ -5,9 +5,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -22,6 +25,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gotest.app.R
@@ -79,7 +83,10 @@ fun ProfileCard(
             }
             PlanChip(isPremium = profile.subscription.isPremium)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
             StatTile(
                 value = GotestFormat.number(profile.stats.questionsAnswered),
                 label = stringResource(R.string.account_profile_stat_questions),
@@ -169,13 +176,26 @@ private fun RowScope.StatTile(
         modifier =
             modifier
                 .weight(1f)
+                .fillMaxHeight()
                 .background(GotestTheme.colors.bgSubtle, MaterialTheme.shapes.medium)
-                .padding(horizontal = spacing.sm, vertical = spacing.sm + spacing.xxs),
+                .padding(horizontal = spacing.xs, vertical = spacing.sm + spacing.xxs),
         verticalArrangement = Arrangement.spacedBy(spacing.xxs),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = value, style = MaterialTheme.typography.titleMedium, color = GotestTheme.colors.textPrimary)
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = GotestTheme.colors.textSecondary)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = GotestTheme.colors.textPrimary,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = GotestTheme.colors.textSecondary,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

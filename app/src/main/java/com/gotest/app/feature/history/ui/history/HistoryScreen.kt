@@ -46,7 +46,7 @@ import com.gotest.app.core.designsystem.component.GotestButtonSize
 import com.gotest.app.core.designsystem.component.GotestButtonVariant
 import com.gotest.app.core.designsystem.component.GotestEmptyView
 import com.gotest.app.core.designsystem.component.GotestErrorView
-import com.gotest.app.core.designsystem.component.GotestLoadingView
+import com.gotest.app.core.designsystem.component.GotestSkeletonCardList
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.ui.ObserveAsEvents
@@ -140,7 +140,13 @@ fun HistoryScreen(
             HistoryHeader()
             when {
                 uiState.isLoading -> {
-                    GotestLoadingView(modifier = Modifier.padding(bottom = bottomInset))
+                    GotestSkeletonCardList(
+                        modifier =
+                            Modifier.padding(
+                                horizontal = GotestTheme.spacing.screenHorizontal,
+                                vertical = GotestTheme.spacing.md,
+                            ),
+                    )
                 }
 
                 uiState.loadFailed -> {
@@ -202,7 +208,7 @@ private fun HistoryList(
             PaddingValues(
                 start = spacing.screenHorizontal,
                 end = spacing.screenHorizontal,
-                top = spacing.sm,
+                top = spacing.lg,
                 bottom = bottomPadding + spacing.xl,
             ),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
@@ -240,18 +246,20 @@ private fun HistoryList(
         }
         if (uiState.results.isEmpty()) {
             item {
-                GotestEmptyView(
-                    icon = GotestIcons.Linear.Directbox,
-                    title = stringResource(R.string.history_empty_title),
-                    message = stringResource(R.string.history_empty_message),
+                HistoryEmpty(
+                    filtered = uiState.applied.isFiltered,
+                    onResetFilters = {
+                        actions.onDraftChange(HistoryFilters())
+                        actions.onApply()
+                    },
                 )
             }
         }
         groups.forEach { (month, results) ->
             item(key = "month-$month") { MonthLabel(month) }
-            items(results, key = {
-                it.id
-            }) { result -> HistoryResultRow(result = result, onOpen = { actions.onOpenResult(result.id) }) }
+            items(results, key = { it.id }) { result ->
+                HistoryResultRow(result = result, onOpen = { actions.onOpenResult(result.id) })
+            }
         }
         if (uiState.nextPage != null) {
             item {
@@ -267,6 +275,32 @@ private fun HistoryList(
                 )
             }
         }
+    }
+}
+
+/** No results: "Reset Filter" when the filters left nothing, otherwise the first-time empty state. */
+@Composable
+private fun HistoryEmpty(
+    filtered: Boolean,
+    onResetFilters: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (filtered) {
+        GotestEmptyView(
+            icon = GotestIcons.Linear.SearchNormal,
+            title = stringResource(R.string.history_empty_filtered_title),
+            message = stringResource(R.string.history_empty_filtered_message),
+            modifier = modifier,
+            actionText = stringResource(R.string.history_reset_filter),
+            onAction = onResetFilters,
+        )
+    } else {
+        GotestEmptyView(
+            icon = GotestIcons.Linear.Directbox,
+            title = stringResource(R.string.history_empty_title),
+            message = stringResource(R.string.history_empty_message),
+            modifier = modifier,
+        )
     }
 }
 

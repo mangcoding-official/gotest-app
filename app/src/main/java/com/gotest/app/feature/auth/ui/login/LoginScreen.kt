@@ -266,6 +266,7 @@ private fun LoginForm(
             value = uiState.password,
             onValueChange = { onEvent(LoginUiEvent.PasswordChanged(it)) },
             label = stringResource(R.string.login_password_label),
+            placeholder = stringResource(R.string.login_password_hint),
             supportingText = passwordError,
             isError = passwordError != null,
             keyboardActions = KeyboardActions(onDone = { onEvent(LoginUiEvent.Submit) }),

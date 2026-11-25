@@ -40,7 +40,10 @@ data class HistoryFilters(
     @SerialName("mode") val mode: HistoryMode = HistoryMode.All,
     @SerialName("category") val category: Long? = null,
     @SerialName("sort") val sort: HistorySort = HistorySort.Newest,
-)
+) {
+    val isFiltered: Boolean
+        get() = q.isNotBlank() || mode != HistoryMode.All || category != null || sort != HistorySort.Newest
+}
 
 @Serializable
 data class HistoryCategory(

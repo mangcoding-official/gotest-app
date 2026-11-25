@@ -1,14 +1,21 @@
 package com.gotest.app.core.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestCard
 import com.gotest.app.core.designsystem.component.GotestChipTone
@@ -22,18 +29,25 @@ fun StudentStatTiles(
     packagesDone: Int,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
+    Row(
+        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Max),
+        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
+    ) {
         StatTile(
             GotestFormat.number(questionsDone),
             stringResource(R.string.history_stat_questions),
-            Modifier.weight(1f),
+            Modifier.weight(1f).fillMaxHeight(),
         )
         StatTile(
             stringResource(R.string.history_percent, accuracy),
             stringResource(R.string.history_stat_accuracy),
-            Modifier.weight(1f),
+            Modifier.weight(1f).fillMaxHeight(),
         )
-        StatTile(GotestFormat.number(packagesDone), stringResource(R.string.history_stat_packages), Modifier.weight(1f))
+        StatTile(
+            GotestFormat.number(packagesDone),
+            stringResource(R.string.history_stat_packages),
+            Modifier.weight(1f).fillMaxHeight(),
+        )
     }
 }
 
@@ -45,11 +59,34 @@ private fun StatTile(
 ) {
     GotestCard(
         modifier = modifier,
-        contentPadding = PaddingValues(GotestTheme.spacing.md),
-        verticalSpacing = GotestTheme.spacing.xs,
+        contentPadding =
+            PaddingValues(
+                horizontal = GotestTheme.spacing.xs,
+                vertical =
+                    GotestTheme.spacing.sm + GotestTheme.spacing.xxs,
+            ),
+        verticalSpacing = GotestTheme.spacing.xxs,
     ) {
-        Text(text = value, style = MaterialTheme.typography.headlineSmall, color = GotestTheme.colors.textPrimary)
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = GotestTheme.colors.textSecondary)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xxs),
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                color = GotestTheme.colors.textPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = GotestTheme.colors.textSecondary,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 

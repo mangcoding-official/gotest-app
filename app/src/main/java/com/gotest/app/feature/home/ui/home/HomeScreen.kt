@@ -178,7 +178,7 @@ private fun HomeDashboard(
             PaddingValues(
                 start = spacing.screenHorizontal,
                 end = spacing.screenHorizontal,
-                top = spacing.sm,
+                top = spacing.lg,
                 bottom = GotestTheme.sizes.bottomBarHeight + bottomInset + spacing.xl,
             ),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),

@@ -98,7 +98,6 @@ fun RegisterScreen(
     phoneState: PhoneSignInUiState = PhoneSignInUiState(),
     onPhoneEvent: (PhoneSignInUiEvent) -> Unit = {},
 ) {
-    val spacing = GotestTheme.spacing
     val codeStep = uiState.codeStep
     AuthFormCard(
         title = stringResource(if (codeStep != null) R.string.register_code_title else R.string.register_title),
@@ -321,7 +320,7 @@ private fun JoinNoticeBox(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         containerColor = GotestTheme.colors.bgSubtle,
-        contentPadding = PaddingValues(horizontal = GotestTheme.spacing.md, vertical = GotestTheme.spacing.sm),
+        contentPadding = PaddingValues(horizontal = GotestTheme.spacing.sm, vertical = GotestTheme.spacing.sm),
         verticalSpacing = GotestTheme.spacing.xs,
     ) {
         NoteText(

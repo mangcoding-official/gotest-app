@@ -337,18 +337,25 @@ internal fun ActivityPanel(
     val dates = DateFilter.entries
     GotestCard(modifier = modifier.fillMaxWidth()) {
         Heading(stringResource(R.string.practice_activity_title), stringResource(R.string.practice_activity_lede))
-        JenjangDropdown(
-            options = categories.map { it.name },
-            selectedIndex = categories.indexOfFirst { it.name == filters.draftCategory }.takeIf { it >= 0 },
-            onSelect = { index -> filters.onDraftCategory(index?.let { categories[it].name }) },
-            allOptionLabel = stringResource(R.string.practice_activity_all_levels),
-        )
-        JenjangDropdown(
-            options = dates.drop(1).map { stringResource(dateLabel(it)) },
-            selectedIndex = dates.indexOf(filters.draftDate).takeIf { it > 0 }?.minus(1),
-            onSelect = { index -> filters.onDraftDate(index?.let { dates[it + 1] } ?: DateFilter.All) },
-            allOptionLabel = stringResource(R.string.practice_activity_date_all),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
+        ) {
+            JenjangDropdown(
+                options = categories.map { it.name },
+                selectedIndex = categories.indexOfFirst { it.name == filters.draftCategory }.takeIf { it >= 0 },
+                onSelect = { index -> filters.onDraftCategory(index?.let { categories[it].name }) },
+                allOptionLabel = stringResource(R.string.practice_activity_all_levels),
+                modifier = Modifier.weight(1f),
+            )
+            JenjangDropdown(
+                options = dates.drop(1).map { stringResource(dateLabel(it)) },
+                selectedIndex = dates.indexOf(filters.draftDate).takeIf { it > 0 }?.minus(1),
+                onSelect = { index -> filters.onDraftDate(index?.let { dates[it + 1] } ?: DateFilter.All) },
+                allOptionLabel = stringResource(R.string.practice_activity_date_all),
+                modifier = Modifier.weight(1f),
+            )
+        }
         GotestButton(
             text = stringResource(R.string.practice_activity_filter),
             onClick = filters.onApply,
