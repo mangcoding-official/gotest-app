@@ -72,7 +72,7 @@ data class PracticePackage(
         get() = lastAttemptId.takeIf { continueAttemptId == null && !allowRetry && finishedCount > 0 }
 }
 
-/** A finished attempt in "Aktifitas"; the result per subtest loads when the row is opened. */
+/** A finished attempt in "Aktivitas"; the result per subtest loads when the row is opened. */
 @Serializable
 data class RecentAttempt(
     @SerialName("id") val id: Long,

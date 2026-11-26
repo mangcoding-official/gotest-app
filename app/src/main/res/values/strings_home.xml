@@ -41,7 +41,7 @@
 
     <!-- Beranda / Paket Untukmu -->
     <string name="home_recommended_title">Paket Untukmu</string>
-    <string name="home_recommended_subtitle">Kerjakan latihan atau Try Out disini.</string>
+    <string name="home_recommended_subtitle">Kerjakan latihan atau Try Out di sini.</string>
     <string name="home_recommended_empty">Belum ada paket latihan yang tersedia saat ini.</string>
     <string name="home_see_all">Lihat Selengkapnya</string>
     <string name="home_tab_practice">Paket Latihan</string>
@@ -78,7 +78,7 @@
     <string name="home_leaderboard_title">Leaderboard</string>
     <string name="home_leaderboard_subtitle">Peringkat Pengguna dengan performa terbaik minggu ini</string>
     <string name="home_leaderboard_empty_title">Belum ada data Leaderboard</string>
-    <string name="home_leaderboard_empty_body">Kerjakan latihan atau Try Out untuk melihat peringkat disini.</string>
+    <string name="home_leaderboard_empty_body">Kerjakan latihan atau Try Out untuk melihat peringkat di sini.</string>
     <string name="home_leaderboard_name">Nama</string>
     <string name="home_leaderboard_points">Poin</string>
     <string name="home_leaderboard_points_value">%1$d pt</string>
@@ -87,8 +87,8 @@
     <string name="home_activity_subtitle">Pengerjaan terbaru kamu.</string>
     <string name="home_activity_completed_on">Diselesaikan %1$s</string>
     <string name="home_activity_view_result">Lihat Hasil</string>
-    <string name="home_activity_empty_title">Belum ada Aktifitas</string>
-    <string name="home_activity_empty_body">Kerjakan latihan atau Try Out untuk melihat Aktifitas disini.</string>
+    <string name="home_activity_empty_title">Belum ada Aktivitas</string>
+    <string name="home_activity_empty_body">Kerjakan latihan atau Try Out untuk melihat Aktivitas di sini.</string>
 
     <!-- Pencarian -->
     <string name="home_search_placeholder">Cari paket, hasil, atau bantuan</string>

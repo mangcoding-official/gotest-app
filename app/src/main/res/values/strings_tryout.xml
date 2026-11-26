@@ -27,7 +27,7 @@
     <string name="tryout_window_until">Berlangsung sampai %1$s</string>
     <string name="tryout_window_running">Sedang berlangsung</string>
     <string name="tryout_review_opens">Peringkat dibuka %1$s, setelah waktu pengerjaan peserta terakhir berakhir.</string>
-    <string name="tryout_activity_empty_copy">Kerjakan Try Out untuk melihat Aktifitas disini.</string>
+    <string name="tryout_activity_empty_copy">Kerjakan Try Out untuk melihat Aktivitas di sini.</string>
 
     <!-- TryoutStartModal -->
     <string name="tryout_start_lede">Kerjakan setiap subtes sesuai batas waktu yang ditentukan.</string>
