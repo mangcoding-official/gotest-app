@@ -37,7 +37,8 @@ class GuardianConsentViewModelTest {
 
     private val repository =
         object : SignUpRepository {
-            override suspend fun registrationInfo() = RegistrationInfo(null, emailCode = false, joinNotice = null)
+            override suspend fun registrationInfo() =
+                Result.success(RegistrationInfo(null, emailCode = false, joinNotice = null))
 
             override suspend fun dropJoinCode() = Unit
 

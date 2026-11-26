@@ -52,7 +52,7 @@ class FakeSignUpRepository
                 joinNotice = null,
             )
 
-        override suspend fun registrationInfo(): RegistrationInfo = info
+        override suspend fun registrationInfo(): Result<RegistrationInfo> = Result.success(info)
 
         override suspend fun dropJoinCode() {
             info = info.copy(joinNotice = null)

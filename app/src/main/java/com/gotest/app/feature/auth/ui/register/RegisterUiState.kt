@@ -7,6 +7,7 @@ import com.gotest.app.feature.auth.domain.GuardianQuestion
 import com.gotest.app.feature.auth.domain.JoinNotice
 import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblem
 import com.gotest.app.feature.auth.ui.components.asksFor
 
 /** "Cek email kamu": the account is made after the code sent to the email (web: EmailCodeForm). */
@@ -44,6 +45,8 @@ data class RegisterUiState(
     val isSubmitting: Boolean = false,
     /** "Daftar dengan Google" only while the server offers it (`/referensi`). */
     val showGoogle: Boolean = false,
+    /** The page's questions could not be read (`auth/daftar/info`): why, with "Coba Lagi". */
+    val infoProblem: InfoProblem? = null,
 ) {
     val asksGuardian: Boolean get() = guardianQuestion.asksFor(level)
 }
@@ -91,6 +94,9 @@ sealed interface RegisterUiEvent {
 
     /** "Daftar dengan Google": the route opens Google's account picker and sends [GoogleResult]. */
     data object GoogleSignUp : RegisterUiEvent
+
+    /** "Coba Lagi" after the page's questions failed to load. */
+    data object RetryInfo : RegisterUiEvent
 
     data class GoogleResult(
         val result: GoogleIdTokenResult,

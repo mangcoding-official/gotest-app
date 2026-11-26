@@ -31,7 +31,7 @@
     <string name="register_email_label">Alamat Email</string>
     <string name="register_email_hint">nama@email.com</string>
     <string name="register_password_label">Kata Sandi</string>
-    <string name="register_password_hint">Minimal 8 karakter</string>
+    <string name="register_password_hint">* * * * * * *</string>
     <string name="register_confirm_label">Konfirmasi Kata Sandi</string>
     <string name="register_confirm_hint">Ulangi kata sandi</string>
     <string name="register_submit">Daftar</string>

@@ -47,16 +47,17 @@ class ApiSignUpRepository
         private val api = retrofit.create(SignUpApi::class.java)
         private val consent = MutableStateFlow<ConsentState?>(null)
 
-        override suspend fun registrationInfo(): RegistrationInfo {
+        override suspend fun registrationInfo(): Result<RegistrationInfo> {
             val emailCode = options.options().emailCode
-            val info = apiCall(json) { api.signUpInfo(MitraLinkRequest(drafts.mitraLink)) }.getOrNull()
-            // The staff dialog after joining names the Mitra (A2a-1); the sign-up reply only has its code.
-            info?.joinNotice?.organization?.let { join.mitraName = it }
-            return RegistrationInfo(
-                guardianQuestion = info?.guardianQuestion?.toQuestion(),
-                emailCode = emailCode,
-                joinNotice = info?.joinNotice?.toNotice(),
-            )
+            return apiCall(json) { api.signUpInfo(MitraLinkRequest(drafts.mitraLink)) }.map { info ->
+                // The staff dialog after joining names the Mitra (A2a-1); the sign-up reply only has its code.
+                info.joinNotice?.organization?.let { join.mitraName = it }
+                RegistrationInfo(
+                    guardianQuestion = info.guardianQuestion?.toQuestion(),
+                    emailCode = emailCode,
+                    joinNotice = info.joinNotice?.toNotice(),
+                )
+            }
         }
 
         override suspend fun dropJoinCode() {

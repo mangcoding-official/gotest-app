@@ -27,6 +27,7 @@ import com.gotest.app.feature.auth.ui.components.AuthFormCard
 import com.gotest.app.feature.auth.ui.components.EducationLevelPicker
 import com.gotest.app.feature.auth.ui.components.GuardianFields
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblemView
 
 @Composable
 fun PhoneRegisterRoute(
@@ -68,41 +69,24 @@ fun PhoneRegisterScreen(
         onBack = onChangeNumber,
         modifier = modifier,
     ) {
-        val nameError = uiState.nameMessage ?: uiState.nameErrorRes?.let { stringResource(it) }
-        GotestTextField(
-            value = uiState.fullName,
-            onValueChange = { onEvent(PhoneRegisterUiEvent.NameChanged(it)) },
-            label = stringResource(R.string.phone_register_name_label),
-            placeholder = stringResource(R.string.phone_register_name_hint),
-            supportingText = nameError,
-            isError = nameError != null,
-            keyboardOptions =
-                KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Done,
-                ),
-        )
-        EducationLevelPicker(
-            selected = uiState.level,
-            onSelect = { onEvent(PhoneRegisterUiEvent.LevelPicked(it)) },
-            error = uiState.levelErrorRes?.let { stringResource(it) },
-        )
-        val question = uiState.guardianQuestion
-        if (question != null && uiState.asksGuardian) {
-            GuardianFields(question = question, state = uiState.guardian, onChange = {
-                onEvent(PhoneRegisterUiEvent.GuardianChanged(it))
-            })
+        val problem = uiState.infoProblem
+        if (problem != null) {
+            InfoProblemView(problem = problem, onRetry = { onEvent(PhoneRegisterUiEvent.RetryInfo) })
+        } else {
+            PhoneRegisterFields(uiState = uiState, onEvent = onEvent)
         }
         Column(verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
-            GotestButton(
-                text =
-                    stringResource(
-                        if (uiState.isSubmitting) R.string.auth_processing else R.string.phone_register_submit,
-                    ),
-                onClick = { onEvent(PhoneRegisterUiEvent.Submit) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isSubmitting,
-            )
+            if (problem == null) {
+                GotestButton(
+                    text =
+                        stringResource(
+                            if (uiState.isSubmitting) R.string.auth_processing else R.string.phone_register_submit,
+                        ),
+                    onClick = { onEvent(PhoneRegisterUiEvent.Submit) },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !uiState.isSubmitting,
+                )
+            }
             GotestButton(
                 text =
                     stringResource(
@@ -114,6 +98,39 @@ fun PhoneRegisterScreen(
             )
         }
         AuthCopyright()
+    }
+}
+
+/** Name, education level, and the parent's questions when asked (F3). */
+@Composable
+private fun PhoneRegisterFields(
+    uiState: PhoneRegisterUiState,
+    onEvent: (PhoneRegisterUiEvent) -> Unit,
+) {
+    val nameError = uiState.nameMessage ?: uiState.nameErrorRes?.let { stringResource(it) }
+    GotestTextField(
+        value = uiState.fullName,
+        onValueChange = { onEvent(PhoneRegisterUiEvent.NameChanged(it)) },
+        label = stringResource(R.string.phone_register_name_label),
+        placeholder = stringResource(R.string.phone_register_name_hint),
+        supportingText = nameError,
+        isError = nameError != null,
+        keyboardOptions =
+            KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Done,
+            ),
+    )
+    EducationLevelPicker(
+        selected = uiState.level,
+        onSelect = { onEvent(PhoneRegisterUiEvent.LevelPicked(it)) },
+        error = uiState.levelErrorRes?.let { stringResource(it) },
+    )
+    val question = uiState.guardianQuestion
+    if (question != null && uiState.asksGuardian) {
+        GuardianFields(question = question, state = uiState.guardian, onChange = {
+            onEvent(PhoneRegisterUiEvent.GuardianChanged(it))
+        })
     }
 }
 

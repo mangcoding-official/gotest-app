@@ -15,6 +15,7 @@ import com.gotest.app.feature.auth.domain.SignUpForm
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import com.gotest.app.feature.auth.domain.SignUpResult
 import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
+import com.gotest.app.feature.auth.ui.components.InfoProblem
 import com.gotest.app.feature.auth.ui.components.check
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,19 +60,28 @@ class RegisterViewModel
         private var countdown: Job? = null
 
         init {
+            loadInfo()
+        }
+
+        /** The page's questions; a failure says why with "Coba Lagi" instead of a form without them. */
+        private fun loadInfo() {
+            _uiState.update { it.copy(infoProblem = null) }
             viewModelScope.launch {
-                val info = signUps.registrationInfo()
                 val google = options.options().google
-                _uiState.update {
-                    it.copy(
-                        guardianQuestion = info.guardianQuestion,
-                        emailCode = info.emailCode,
-                        joinNotice = info.joinNotice,
-                        showGoogle = google,
-                    )
-                }
-                // A sign-up still waiting for its email code opens on "Cek email kamu" again.
-                if (_uiState.value.codeStep == null) signUps.pendingEmailCode()?.let { handle(it) }
+                signUps
+                    .registrationInfo()
+                    .onSuccess { info ->
+                        _uiState.update {
+                            it.copy(
+                                guardianQuestion = info.guardianQuestion,
+                                emailCode = info.emailCode,
+                                joinNotice = info.joinNotice,
+                                showGoogle = google,
+                            )
+                        }
+                        // A sign-up still waiting for its email code opens on "Cek email kamu" again.
+                        if (_uiState.value.codeStep == null) signUps.pendingEmailCode()?.let { handle(it) }
+                    }.onFailure { error -> _uiState.update { it.copy(infoProblem = InfoProblem.of(error)) } }
             }
         }
 
@@ -99,6 +109,10 @@ class RegisterViewModel
 
                 // The route opens Google's picker; its answer comes back as GoogleResult.
                 RegisterUiEvent.GoogleSignUp -> {}
+
+                RegisterUiEvent.RetryInfo -> {
+                    loadInfo()
+                }
 
                 is RegisterUiEvent.GoogleResult -> {
                     signUpWithGoogle(event.result)

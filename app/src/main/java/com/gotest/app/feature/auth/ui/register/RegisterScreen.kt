@@ -44,6 +44,7 @@ import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
 import com.gotest.app.feature.auth.ui.components.EducationLevelPicker
 import com.gotest.app.feature.auth.ui.components.GuardianFields
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblemView
 import com.gotest.app.feature.auth.ui.components.rememberGoogleIdToken
 import com.gotest.app.feature.auth.ui.phone.PhoneCodeForm
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInEffect
@@ -135,26 +136,16 @@ fun RegisterScreen(
         ) {
             AuthMethodTabs(phoneSelected = phoneTab, onSelectPhone = { phoneTab = it })
         }
-        when {
-            codeStep != null -> {
-                RegisterCodeForm(step = codeStep, isSubmitting = uiState.isSubmitting, onEvent = onEvent)
-            }
-
-            showPhone -> {
-                PhoneCodeForm(
-                    uiState = phoneState,
-                    onEvent = onPhoneEvent,
-                    submitText = stringResource(R.string.phone_submit_register),
-                )
-            }
-
-            else -> {
-                RegisterFields(uiState = uiState, onEvent = onEvent)
-            }
-        }
+        RegisterBody(
+            uiState = uiState,
+            showPhone = showPhone,
+            phoneState = phoneState,
+            onEvent = onEvent,
+            onPhoneEvent = onPhoneEvent,
+        )
         if (codeStep == null) {
             RegisterActions(
-                showSubmit = !showPhone,
+                showSubmit = !showPhone && uiState.infoProblem == null,
                 showGoogle = uiState.showGoogle,
                 isSubmitting = uiState.isSubmitting,
                 onEvent = onEvent,
@@ -163,6 +154,40 @@ fun RegisterScreen(
         }
         TermsNotice()
         AuthCopyright()
+    }
+}
+
+/** The email code step, the Nomor HP form, why the page could not load, or the email form. */
+@Composable
+private fun RegisterBody(
+    uiState: RegisterUiState,
+    showPhone: Boolean,
+    phoneState: PhoneSignInUiState,
+    onEvent: (RegisterUiEvent) -> Unit,
+    onPhoneEvent: (PhoneSignInUiEvent) -> Unit,
+) {
+    val codeStep = uiState.codeStep
+    val problem = uiState.infoProblem
+    when {
+        codeStep != null -> {
+            RegisterCodeForm(step = codeStep, isSubmitting = uiState.isSubmitting, onEvent = onEvent)
+        }
+
+        showPhone -> {
+            PhoneCodeForm(
+                uiState = phoneState,
+                onEvent = onPhoneEvent,
+                submitText = stringResource(R.string.phone_submit_register),
+            )
+        }
+
+        problem != null -> {
+            InfoProblemView(problem = problem, onRetry = { onEvent(RegisterUiEvent.RetryInfo) })
+        }
+
+        else -> {
+            RegisterFields(uiState = uiState, onEvent = onEvent)
+        }
     }
 }
 

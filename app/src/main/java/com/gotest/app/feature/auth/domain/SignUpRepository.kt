@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.Flow
  * 2.18), against API module A since T-026 A2a.
  */
 interface SignUpRepository {
-    suspend fun registrationInfo(): RegistrationInfo
+    /** The sign-up page's questions and notices; a failure is shown with "Coba Lagi" (Ardy's review of A2a, 3). */
+    suspend fun registrationInfo(): Result<RegistrationInfo>
 
     /** "Bukan, daftar biasa": the Mitra code is dropped and Daftar becomes a plain sign-up. */
     suspend fun dropJoinCode()

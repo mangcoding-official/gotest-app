@@ -109,7 +109,7 @@ class ApiSignUpTest {
             )
             reply(201, signedIn(consent = "not_needed", joined = """{"code":"SMPH","role":"siswa","class":"8A"}"""))
 
-            val info = repository.registrationInfo()
+            val info = repository.registrationInfo().getOrThrow()
             val sent = body()
             val result = repository.register(form.copy(guardian = null)).getOrThrow()
 
@@ -139,6 +139,16 @@ class ApiSignUpTest {
 
             assertNull(join.joined.value)
             assertFalse(join.takeUsedLink("/gabung/KLS123"))
+        }
+
+    @Test
+    fun aSignUpPageThatCannotBeReadSaysWhyInsteadOfLeavingOutItsQuestions() =
+        runTest {
+            reply(503, """{"message":"Gotest sedang dalam perbaikan.","code":"unavailable"}""")
+
+            val error = repository.registrationInfo().exceptionOrNull() as ApiError
+
+            assertEquals("Gotest sedang dalam perbaikan.", error.message)
         }
 
     @Test

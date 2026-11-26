@@ -14,6 +14,7 @@ import com.gotest.app.feature.auth.domain.GuardianQuestion
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import com.gotest.app.feature.auth.domain.SignUpResult
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblem
 import com.gotest.app.feature.auth.ui.components.asksFor
 import com.gotest.app.feature.auth.ui.components.check
 import com.gotest.app.navigation.PhoneRegisterDestination
@@ -42,6 +43,8 @@ data class PhoneRegisterUiState(
     val guardianQuestion: GuardianQuestion? = null,
     val guardian: GuardianFormState = GuardianFormState(),
     val isSubmitting: Boolean = false,
+    /** The sign-up questions could not be read (`auth/daftar/info`): why, with "Coba Lagi". */
+    val infoProblem: InfoProblem? = null,
 ) {
     val asksGuardian: Boolean get() = guardianQuestion.asksFor(level)
 }
@@ -60,6 +63,8 @@ sealed interface PhoneRegisterUiEvent {
     ) : PhoneRegisterUiEvent
 
     data object Submit : PhoneRegisterUiEvent
+
+    data object RetryInfo : PhoneRegisterUiEvent
 }
 
 sealed interface PhoneRegisterEffect {
@@ -95,9 +100,17 @@ class PhoneRegisterViewModel
         val effects: Flow<PhoneRegisterEffect> = _effects.receiveAsFlow()
 
         init {
+            loadInfo()
+        }
+
+        /** The sign-up questions; a failure says why with "Coba Lagi" instead of a form without them. */
+        private fun loadInfo() {
+            _uiState.update { it.copy(infoProblem = null) }
             viewModelScope.launch {
-                val question = signUps.registrationInfo().guardianQuestion
-                _uiState.update { it.copy(guardianQuestion = question) }
+                signUps
+                    .registrationInfo()
+                    .onSuccess { info -> _uiState.update { it.copy(guardianQuestion = info.guardianQuestion) } }
+                    .onFailure { error -> _uiState.update { it.copy(infoProblem = InfoProblem.of(error)) } }
             }
         }
 
@@ -117,6 +130,10 @@ class PhoneRegisterViewModel
 
                 PhoneRegisterUiEvent.Submit -> {
                     submit()
+                }
+
+                PhoneRegisterUiEvent.RetryInfo -> {
+                    loadInfo()
                 }
             }
         }
