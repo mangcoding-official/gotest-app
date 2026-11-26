@@ -23,19 +23,22 @@ import com.gotest.app.core.designsystem.component.GotestActivityRow
 import com.gotest.app.core.designsystem.component.GotestCard
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.PackageType
-import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.core.ui.examChipTone
+import com.gotest.app.core.ui.categoryTone
+import com.gotest.app.feature.home.domain.DashboardAttempt
 import com.gotest.app.feature.home.ui.components.HomeDimens
 import com.gotest.app.feature.home.ui.components.HomeSectionHeader
 import com.gotest.app.feature.home.ui.components.HomeTabSwitcher
+import com.gotest.app.feature.practice.ui.catalog.longDate
+import kotlin.math.roundToInt
 
-/** "Aktivitas Terkini": latest finished attempts with a link to each result. */
+/** Web RecentActivity: the three latest finished attempts of the chosen mode, each with "Lihat Hasil". */
 @Composable
 internal fun HomeActivitySection(
-    activity: HomeActivity,
+    selectedType: PackageType,
+    attempts: List<DashboardAttempt>,
     onSelectType: (PackageType) -> Unit,
     onSeeAll: () -> Unit,
-    onOpenResult: (attemptId: String) -> Unit,
+    onOpenResult: (DashboardAttempt) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val shape = MaterialTheme.shapes.small
@@ -48,7 +51,7 @@ internal fun HomeActivitySection(
         )
         HomeTabSwitcher(
             options = listOf(stringResource(R.string.home_tab_practice), stringResource(R.string.home_tab_tryout)),
-            selectedIndex = activity.selectedType.ordinal,
+            selectedIndex = selectedType.ordinal,
             onSelect = { onSelectType(PackageType.entries[it]) },
         )
         Column(
@@ -58,21 +61,28 @@ internal fun HomeActivitySection(
                     .clip(shape)
                     .border(GotestTheme.sizes.strokeThin, GotestTheme.colors.borderSubtle, shape),
         ) {
-            if (activity.attempts.isEmpty()) {
+            if (attempts.isEmpty()) {
                 HomeActivityEmpty()
             } else {
-                activity.attempts.forEach { attempt ->
+                attempts.forEach { attempt ->
+                    val category = attempt.categoryName ?: stringResource(R.string.home_category_general)
                     GotestActivityRow(
-                        chipText = attempt.examLabel,
-                        title = attempt.title,
+                        chipText = category,
+                        title = attempt.packageName,
                         subtitle =
                             stringResource(
                                 R.string.home_activity_completed_on,
-                                GotestFormat.longDate(attempt.completedOn),
+                                longDate(attempt.submittedAt) ?: stringResource(R.string.practice_activity_not_yet),
                             ),
                         actionText = stringResource(R.string.home_activity_view_result),
-                        onAction = { onOpenResult(attempt.attemptId) },
-                        chipTone = examChipTone(attempt.examLabel),
+                        onAction = { onOpenResult(attempt) },
+                        chipTone = categoryTone(category),
+                        detail =
+                            stringResource(
+                                R.string.practice_activity_score,
+                                attempt.scoreLabel ?: stringResource(R.string.practice_score_fallback),
+                                attempt.score.roundToInt(),
+                            ),
                     )
                 }
             }
@@ -123,7 +133,8 @@ private fun HomeActivityEmpty(modifier: Modifier = Modifier) {
 private fun HomeActivitySectionPreview() {
     GotestTheme {
         HomeActivitySection(
-            activity = HomeActivity(selectedType = PackageType.Practice, attempts = HomePreviewData.attempts),
+            selectedType = PackageType.Practice,
+            attempts = HomePreviewData.page.recentAttempts,
             onSelectType = {},
             onSeeAll = {},
             onOpenResult = {},
@@ -137,7 +148,8 @@ private fun HomeActivitySectionPreview() {
 private fun HomeActivitySectionEmptyPreview() {
     GotestTheme {
         HomeActivitySection(
-            activity = HomeActivity(selectedType = PackageType.Practice, attempts = emptyList()),
+            selectedType = PackageType.Tryout,
+            attempts = emptyList(),
             onSelectType = {},
             onSeeAll = {},
             onOpenResult = {},

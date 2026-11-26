@@ -35,4 +35,12 @@ object AppFeatures {
 
     /** The "Email Promosi" switch in Pengaturan, which the web does not have (T-018 D1). */
     const val PROMO_EMAILS: Boolean = false
+
+    /**
+     * The Latihan screens of T-018 that the web does not have (A2c-2 = a): the subject and topic lists, the old
+     * package list, Detail Paket and Detail Try Out, the old runner and result, Pembahasan, and Ringkasan
+     * Pembahasan. Latihan and Try Out follow the web's catalog since A2c; the screens stay, out of the graph.
+     * Notifikasi and Asisten still lead to Detail Paket, so they need this on when they are switched on.
+     */
+    const val OLD_STUDY_SCREENS: Boolean = false
 }

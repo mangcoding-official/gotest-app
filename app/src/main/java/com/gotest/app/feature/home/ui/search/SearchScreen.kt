@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,29 +59,84 @@ import com.gotest.app.core.designsystem.component.GotestLoadingView
 import com.gotest.app.core.designsystem.component.GotestTextField
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.core.model.PackageType
+import com.gotest.app.feature.home.domain.SearchItem
+import com.gotest.app.feature.home.domain.SearchTarget
+import com.gotest.app.feature.practice.ui.catalog.PracticeStartElsewhere
+import com.gotest.app.feature.tryout.ui.catalog.TryoutStartElsewhere
+
+/** Where a search result leads (`target` of `GET /search`). */
+@Immutable
+data class SearchActions(
+    val onBack: () -> Unit,
+    val onOpenPracticeRunner: (attemptId: Long, packageName: String) -> Unit,
+    val onOpenPracticeResult: (attemptId: Long, packageName: String) -> Unit,
+    val onOpenTryoutRunner: (attemptId: Long, packageName: String) -> Unit,
+    val onOpenTryoutResult: (attemptId: Long) -> Unit,
+    val onOpenHelpTopic: (slug: String) -> Unit,
+)
 
 @Composable
 fun SearchRoute(
-    onBack: () -> Unit,
-    onOpenPackage: (packageId: String, type: PackageType) -> Unit,
-    onOpenResult: (attemptId: String) -> Unit,
-    onOpenArticle: (articleId: String) -> Unit,
+    actions: SearchActions,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // A package opens its start sheet, as on Beranda; the catalog finds the package by its id.
+    var starting by remember { mutableStateOf<SearchTarget?>(null) }
     SearchScreen(
         query = viewModel.query,
         uiState = uiState,
         onEvent = viewModel::onEvent,
-        onBack = onBack,
-        onOpenPackage = onOpenPackage,
-        onOpenResult = onOpenResult,
-        onOpenArticle = onOpenArticle,
+        onBack = actions.onBack,
+        onOpen = { item -> item.target?.let { target -> open(target, item.title, actions) { starting = it } } },
         modifier = modifier,
     )
+    val target = starting
+    val id = target?.id
+    when {
+        id == null -> {}
+
+        target.type == TARGET_PRACTICE_PACKAGE -> {
+            PracticeStartElsewhere(
+                packageId = id,
+                onClose = { starting = null },
+                onOpenRunner = actions.onOpenPracticeRunner,
+                onOpenResult = actions.onOpenPracticeResult,
+            )
+        }
+
+        else -> {
+            TryoutStartElsewhere(
+                packageId = id,
+                onClose = { starting = null },
+                onOpenRunner = actions.onOpenTryoutRunner,
+                onOpenResult = actions.onOpenTryoutResult,
+            )
+        }
+    }
 }
+
+/** Web `target` types: a package's start sheet, the attempt in progress, a result, or a Bantuan topic. */
+private fun open(
+    target: SearchTarget,
+    title: String,
+    actions: SearchActions,
+    onStart: (SearchTarget) -> Unit,
+) {
+    val id = target.id
+    when (target.type) {
+        TARGET_PRACTICE_PACKAGE, TARGET_TRYOUT_PACKAGE -> onStart(target)
+        "practice_attempt" -> id?.let { actions.onOpenPracticeRunner(it, title) }
+        "tryout_attempt" -> id?.let { actions.onOpenTryoutRunner(it, title) }
+        "practice_result" -> id?.let { actions.onOpenPracticeResult(it, title) }
+        "tryout_result" -> id?.let(actions.onOpenTryoutResult)
+        "help_topic" -> target.slug?.let(actions.onOpenHelpTopic)
+    }
+}
+
+private const val TARGET_PRACTICE_PACKAGE = "practice_package"
+private const val TARGET_TRYOUT_PACKAGE = "tryout_package"
 
 @Composable
 fun SearchScreen(
@@ -87,9 +144,7 @@ fun SearchScreen(
     uiState: SearchUiState,
     onEvent: (SearchUiEvent) -> Unit,
     onBack: () -> Unit,
-    onOpenPackage: (packageId: String, type: PackageType) -> Unit,
-    onOpenResult: (attemptId: String) -> Unit,
-    onOpenArticle: (articleId: String) -> Unit,
+    onOpen: (SearchItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // The keyboard and navigation bar push the results up; the search bar pads the status bar.
@@ -107,68 +162,19 @@ fun SearchScreen(
             onClear = { onEvent(SearchUiEvent.ClearQuery) },
             onBack = onBack,
         )
-        SearchBody(
-            uiState = uiState,
-            onEvent = onEvent,
-            onOpenPackage = onOpenPackage,
-            onOpenResult = onOpenResult,
-            onOpenArticle = onOpenArticle,
-        )
-    }
-}
+        when (uiState) {
+            SearchUiState.Idle -> {
+                GotestEmptyView(
+                    icon = GotestIcons.Linear.SearchNormal,
+                    title = stringResource(R.string.home_search_idle_title),
+                    message = stringResource(R.string.home_search_idle_body),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            }
 
-@Composable
-private fun ColumnScope.SearchBody(
-    uiState: SearchUiState,
-    onEvent: (SearchUiEvent) -> Unit,
-    onOpenPackage: (packageId: String, type: PackageType) -> Unit,
-    onOpenResult: (attemptId: String) -> Unit,
-    onOpenArticle: (articleId: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val fill = modifier.fillMaxWidth().weight(1f)
-    when (uiState) {
-        SearchUiState.Idle -> {
-            GotestEmptyView(
-                icon = GotestIcons.Linear.SearchNormal,
-                title = stringResource(R.string.home_search_idle_title),
-                message = stringResource(R.string.home_search_idle_body),
-                modifier = fill,
-            )
-        }
-
-        SearchUiState.Loading -> {
-            GotestLoadingView(modifier = fill)
-        }
-
-        SearchUiState.Error -> {
-            GotestErrorView(onRetry = { onEvent(SearchUiEvent.Retry) }, modifier = fill)
-        }
-
-        is SearchUiState.Empty -> {
-            SearchResults(
-                query = uiState.query,
-                filter = uiState.filter,
-                results = null,
-                onSelectFilter = { onEvent(SearchUiEvent.SelectFilter(it)) },
-                onOpenPackage = onOpenPackage,
-                onOpenResult = onOpenResult,
-                onOpenArticle = onOpenArticle,
-                modifier = fill,
-            )
-        }
-
-        is SearchUiState.Success -> {
-            SearchResults(
-                query = uiState.query,
-                filter = uiState.filter,
-                results = uiState,
-                onSelectFilter = { onEvent(SearchUiEvent.SelectFilter(it)) },
-                onOpenPackage = onOpenPackage,
-                onOpenResult = onOpenResult,
-                onOpenArticle = onOpenArticle,
-                modifier = fill,
-            )
+            is SearchUiState.Results -> {
+                SearchResults(results = uiState, onOpen = onOpen, modifier = Modifier.fillMaxWidth().weight(1f))
+            }
         }
     }
 }
@@ -232,16 +238,11 @@ private fun SearchBar(
     }
 }
 
-/** Heading, filter pills and the result sections (or the no-result message when [results] is null). */
+/** Web SearchPanel: the heading, "Mencari…" while waiting, "Tidak ada hasil yang cocok.", or the groups. */
 @Composable
 private fun SearchResults(
-    query: String,
-    filter: SearchFilter,
-    results: SearchUiState.Success?,
-    onSelectFilter: (SearchFilter) -> Unit,
-    onOpenPackage: (packageId: String, type: PackageType) -> Unit,
-    onOpenResult: (attemptId: String) -> Unit,
-    onOpenArticle: (articleId: String) -> Unit,
+    results: SearchUiState.Results,
+    onOpen: (SearchItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -250,46 +251,23 @@ private fun SearchResults(
         contentPadding = PaddingValues(horizontal = spacing.screenHorizontal, vertical = spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
-        item(key = "heading") { SearchHeading(query = query) }
-        item(key = "filters") { SearchFilterRow(selected = filter, onSelect = onSelectFilter) }
-        if (results == null) {
-            item(key = "empty") {
-                GotestEmptyView(
-                    icon = GotestIcons.Linear.SearchNormal,
-                    title = stringResource(R.string.home_search_empty_title),
-                    message = stringResource(R.string.home_search_empty_body),
-                    modifier = Modifier.fillMaxWidth(),
-                )
+        item(key = "heading") { SearchHeading(query = results.query) }
+        val note =
+            when {
+                results.isLoading && results.groups.isEmpty() -> R.string.home_search_loading
+                !results.isLoading && results.groups.isEmpty() -> R.string.home_search_empty
+                else -> null
             }
-            return@LazyColumn
-        }
-        if (results.tryouts.isNotEmpty()) {
-            item(key = "tryouts") {
-                SearchPackageSection(
-                    title = stringResource(R.string.home_search_section_tryout),
-                    packages = results.tryouts,
-                    onOpenPackage = onOpenPackage,
+        note?.let {
+            item(key = "note") {
+                Text(
+                    text = stringResource(it),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GotestTheme.colors.textSecondary,
                 )
             }
         }
-        if (results.practices.isNotEmpty()) {
-            item(key = "practices") {
-                SearchPackageSection(
-                    title = stringResource(R.string.home_search_section_practice),
-                    packages = results.practices,
-                    onOpenPackage = onOpenPackage,
-                )
-            }
-        }
-        if (results.topics.isNotEmpty()) {
-            item(key = "topics") { SearchTopicSection(topics = results.topics) }
-        }
-        if (results.attempts.isNotEmpty()) {
-            item(key = "attempts") { SearchAttemptSection(attempts = results.attempts, onOpenResult = onOpenResult) }
-        }
-        if (results.articles.isNotEmpty()) {
-            item(key = "articles") { SearchArticleSection(articles = results.articles, onOpenArticle = onOpenArticle) }
-        }
+        items(results.groups, key = { it.key }) { group -> SearchGroupCard(group = group, onOpen = onOpen) }
     }
 }
 
@@ -322,79 +300,38 @@ private fun SearchHeading(
     )
 }
 
+@Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
-private fun SearchFilterRow(
-    selected: SearchFilter,
-    onSelect: (SearchFilter) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
-    ) {
-        SearchFilter.entries.forEach { filter ->
-            GotestFilterPill(
-                text = stringResource(filter.labelRes()),
-                selected = filter == selected,
-                onClick = { onSelect(filter) },
-            )
-        }
-    }
-}
-
-private fun SearchFilter.labelRes(): Int =
-    when (this) {
-        SearchFilter.All -> R.string.home_search_filter_all
-        SearchFilter.Packages -> R.string.home_search_filter_packages
-        SearchFilter.Topics -> R.string.home_search_filter_topics
-        SearchFilter.Results -> R.string.home_search_filter_results
-        SearchFilter.Articles -> R.string.home_search_filter_articles
-    }
-
-@Composable
-private fun SearchScreenPreview(
-    uiState: SearchUiState,
-    query: String = "utbk",
-) {
+private fun SearchScreenResultsPreview() {
     GotestTheme {
         SearchScreen(
-            query = query,
-            uiState = uiState,
+            query = "utbk",
+            uiState = SearchUiState.Results(query = "utbk", groups = previewGroups),
             onEvent = {},
             onBack = {},
-            onOpenPackage = { _, _ -> },
-            onOpenResult = {},
-            onOpenArticle = {},
+            onOpen = {},
         )
     }
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
-private fun SearchScreenSuccessPreview() {
-    SearchScreenPreview(uiState = SearchPreviewData.success)
+private fun SearchScreenEmptyPreview() {
+    GotestTheme {
+        SearchScreen(
+            query = "zzz",
+            uiState = SearchUiState.Results(query = "zzz"),
+            onEvent = {},
+            onBack = {},
+            onOpen = {},
+        )
+    }
 }
 
 @Preview(showBackground = true, widthDp = 440, heightDp = 956)
 @Composable
 private fun SearchScreenIdlePreview() {
-    SearchScreenPreview(uiState = SearchUiState.Idle, query = "")
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun SearchScreenEmptyPreview() {
-    SearchScreenPreview(uiState = SearchUiState.Empty(query = "kimia", filter = SearchFilter.All), query = "kimia")
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun SearchScreenLoadingPreview() {
-    SearchScreenPreview(uiState = SearchUiState.Loading)
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 956)
-@Composable
-private fun SearchScreenErrorPreview() {
-    SearchScreenPreview(uiState = SearchUiState.Error)
+    GotestTheme {
+        SearchScreen(query = "", uiState = SearchUiState.Idle, onEvent = {}, onBack = {}, onOpen = {})
+    }
 }

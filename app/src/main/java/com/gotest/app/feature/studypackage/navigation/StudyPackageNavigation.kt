@@ -46,43 +46,46 @@ fun NavGraphBuilder.studyPackageScreens(navController: NavController) {
             tryoutNavigation = navController.tryoutNavigation(),
         )
     }
-    composable<PackageListDestination> {
-        PackageListRoute(
-            onBack = navController::navigateUp,
-            onSearch = openSearch,
-            onSavedPackages = openSavedPackages,
-            onTryoutClick = openTryout,
-            onStartExam = startExam,
-        )
-    }
-    composable<SubjectListDestination> {
-        SubjectListRoute(
-            onBack = navController::navigateUp,
-            onSearch = openSearch,
-            onSubjectClick = { subjectId -> navController.navigate(TopicListDestination(subjectId)) },
-        )
-    }
-    composable<TopicListDestination> {
-        TopicListRoute(
-            onBack = navController::navigateUp,
-            onSearch = openSearch,
-            onTopicClick = { packageId -> navController.navigate(PracticeDetailDestination(packageId)) },
-            onStartExam = startExam,
-        )
-    }
-    composable<PracticeDetailDestination> {
-        PracticeDetailRoute(
-            onBack = navController::navigateUp,
-            onStartExam = startExam,
-            onOpenSavedPackages = openSavedPackages,
-        )
-    }
-    composable<TryoutDetailDestination> {
-        TryoutDetailRoute(
-            onBack = navController::navigateUp,
-            onStartExam = startExam,
-            onOpenSavedPackages = openSavedPackages,
-        )
+    // The T-018 Latihan screens the web does not have stay out of the graph (A2c-2 = a).
+    if (AppFeatures.OLD_STUDY_SCREENS) {
+        composable<PackageListDestination> {
+            PackageListRoute(
+                onBack = navController::navigateUp,
+                onSearch = openSearch,
+                onSavedPackages = openSavedPackages,
+                onTryoutClick = openTryout,
+                onStartExam = startExam,
+            )
+        }
+        composable<SubjectListDestination> {
+            SubjectListRoute(
+                onBack = navController::navigateUp,
+                onSearch = openSearch,
+                onSubjectClick = { subjectId -> navController.navigate(TopicListDestination(subjectId)) },
+            )
+        }
+        composable<TopicListDestination> {
+            TopicListRoute(
+                onBack = navController::navigateUp,
+                onSearch = openSearch,
+                onTopicClick = { packageId -> navController.navigate(PracticeDetailDestination(packageId)) },
+                onStartExam = startExam,
+            )
+        }
+        composable<PracticeDetailDestination> {
+            PracticeDetailRoute(
+                onBack = navController::navigateUp,
+                onStartExam = startExam,
+                onOpenSavedPackages = openSavedPackages,
+            )
+        }
+        composable<TryoutDetailDestination> {
+            TryoutDetailRoute(
+                onBack = navController::navigateUp,
+                onStartExam = startExam,
+                onOpenSavedPackages = openSavedPackages,
+            )
+        }
     }
     if (AppFeatures.SAVED_PACKAGES) {
         composable<SavedPackagesDestination> {

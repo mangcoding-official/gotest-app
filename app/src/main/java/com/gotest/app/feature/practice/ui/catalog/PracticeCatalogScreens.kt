@@ -438,7 +438,7 @@ data class SheetAccess(
 )
 
 @Composable
-private fun startAccess(
+internal fun startAccess(
     uiState: PracticeCatalogUiState,
     item: PracticePackage,
 ): SheetAccess {

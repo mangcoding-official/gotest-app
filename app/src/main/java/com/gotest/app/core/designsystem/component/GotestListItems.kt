@@ -103,7 +103,7 @@ fun GotestTrackedProgress(
 
 /**
  * The design's "Mobile/Activity Row": chip, title and subtitle on the left, a small action
- * button on the right. Used by Aktivitas Terkini and Riwayat.
+ * button on the right. Used by Aktivitas Terkini and Riwayat. [detail] is a third line, such as the score.
  */
 @Composable
 fun GotestActivityRow(
@@ -114,6 +114,7 @@ fun GotestActivityRow(
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
     chipTone: GotestChipTone = GotestChipTone.Blue,
+    detail: String? = null,
 ) {
     val spacing = GotestTheme.spacing
     Row(
@@ -142,6 +143,13 @@ fun GotestActivityRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                detail?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = GotestTheme.colors.textPrimary,
+                    )
+                }
             }
         }
         GotestButton(

@@ -13,8 +13,6 @@
     <string name="home_stat_accuracy">Akurasi Jawaban</string>
     <string name="home_stat_packages">Paket Selesai</string>
     <string name="home_stat_empty">-</string>
-    <string name="home_cd_trend_up">Naik %1$d%% dari minggu lalu</string>
-    <string name="home_cd_trend_down">Turun %1$d%% dari minggu lalu</string>
 
     <!-- Beranda / Main Bareng -->
     <string name="home_multiplayer_title">Main Bareng</string>
@@ -24,66 +22,83 @@
     <string name="home_multiplayer_create">Buat Permainan</string>
 
     <!-- Beranda / Lanjutkan -->
-    <string name="home_continue_action">Lanjutkan</string>
     <string name="home_package_question_count">%1$d Soal</string>
     <string name="home_package_duration">%1$d Menit</string>
-    <string name="home_continue_progress">%1$d dari %2$d Soal benar</string>
+    <string name="home_continue_progress">%1$d dari %2$d Soal dikerjakan</string>
 
     <!-- Beranda / Empty State -->
+    <!-- Web ContinueCard (T-026 A2c-1). -->
+    <string name="home_continue_practice">Lanjutkan Latihan</string>
+    <string name="home_continue_tryout">Lanjutkan Try Out</string>
+    <string name="home_first_practice_badge">Belum ada Latihan</string>
+    <string name="home_no_attempt_badge">Tidak ada pengerjaan berjalan</string>
+    <string name="home_no_attempt_title">Lanjutkan Persiapanmu</string>
+    <string name="home_no_attempt_body">Semua pengerjaanmu sudah selesai. Pilih paket berikutnya untuk terus berlatih.</string>
+    <string name="home_category_general">Umum</string>
     <string name="home_first_practice_title">Mulai Latihan Pertamamu</string>
-    <string name="home_first_practice_body">Pilih paket latihan sesuai jenjang dan mulai kerjakan soal sekarang.</string>
-    <string name="home_first_practice_action">Lihat Paket</string>
+    <string name="home_first_practice_body">Pilih paket latihan sesuai jenjang dan materi yang kamu butuhkan, lalu mulai kerjakan soal sekarang.</string>
+    <string name="home_first_practice_action">Lihat Paket Latihan</string>
 
     <!-- Beranda / Paket Untukmu -->
     <string name="home_recommended_title">Paket Untukmu</string>
-    <string name="home_recommended_subtitle">Kerjakan latihan atau tryout di sini.</string>
-    <string name="home_recommended_empty">Belum ada paket untuk kategori ini.</string>
-    <string name="home_see_all">Lihat Semua</string>
+    <string name="home_recommended_subtitle">Kerjakan latihan atau Try Out disini.</string>
+    <string name="home_recommended_empty">Belum ada paket latihan yang tersedia saat ini.</string>
+    <string name="home_see_all">Lihat Selengkapnya</string>
     <string name="home_tab_practice">Paket Latihan</string>
-    <string name="home_tab_tryout">Paket Tryout</string>
+    <string name="home_tab_tryout">Paket Try Out</string>
     <string name="home_package_start_practice">Mulai Latihan</string>
     <string name="home_package_retry_practice">Latihan Lagi</string>
-    <string name="home_package_start_tryout">Mulai Tryout</string>
-    <string name="home_package_score">Skor: %1$s</string>
+    <string name="home_package_start_tryout">Mulai Try Out</string>
+    <string name="home_package_score">Skor : %1$s</string>
+    <string name="home_recommended_empty_tryout">Belum ada paket tryout yang tersedia saat ini.</string>
+    <string name="home_package_continue_practice">Lanjutkan Latihan</string>
+    <string name="home_package_continue_tryout">Lanjutkan Try Out</string>
+    <string name="home_package_retry_tryout">Kerjakan Lagi</string>
+    <string name="home_package_detail">Lihat Detail</string>
+    <string name="home_package_review">Lihat Pembahasan</string>
+    <string name="home_package_description_fallback">Kerjakan paket ini untuk mengukur kemampuanmu.</string>
     <string name="home_package_attempts_label">Dikerjakan</string>
-    <string name="home_package_attempts_value">%1$d Kali</string>
     <string name="home_package_last_attempt_label">Dikerjakan Pada</string>
     <string name="home_package_value_empty">-</string>
 
     <!-- Beranda / Aktivitas Terkini -->
+    <!-- Web MitraTasksCard, SchoolSpaceCard (DEC-088), and MiniLeaderboard. -->
+    <string name="home_tasks_label">Tugas hari ini</string>
+    <string name="home_tasks_today">%1$d tugas hari ini</string>
+    <string name="home_tasks_late">%1$d terlambat</string>
+    <string name="home_tasks_action">Kerjakan Tugas</string>
+    <string name="home_space_ruang">Ruang Mitra</string>
+    <string name="home_space_portal">Portal Mitra</string>
+    <string name="home_space_running">%1$s sedang berlangsung</string>
+    <string name="home_space_next">%1$s · %2$s</string>
+    <string name="home_space_no_session">Belum ada Try Out terjadwal.</string>
+    <string name="home_space_open_ruang">Buka Ruang Mitra</string>
+    <string name="home_space_work_now">Kerjakan Sekarang</string>
+    <string name="home_space_open_portal">Buka Portal Mitra</string>
+    <string name="home_leaderboard_title">Leaderboard</string>
+    <string name="home_leaderboard_subtitle">Peringkat Pengguna dengan performa terbaik minggu ini</string>
+    <string name="home_leaderboard_empty_title">Belum ada data Leaderboard</string>
+    <string name="home_leaderboard_empty_body">Kerjakan latihan atau Try Out untuk melihat peringkat disini.</string>
+    <string name="home_leaderboard_name">Nama</string>
+    <string name="home_leaderboard_points">Poin</string>
+    <string name="home_leaderboard_points_value">%1$d pt</string>
+
     <string name="home_activity_title">Aktivitas Terkini</string>
-    <string name="home_activity_subtitle">Monitoring update data sistem secara realtime.</string>
+    <string name="home_activity_subtitle">Pengerjaan terbaru kamu.</string>
     <string name="home_activity_completed_on">Diselesaikan %1$s</string>
     <string name="home_activity_view_result">Lihat Hasil</string>
-    <string name="home_activity_empty_title">Belum ada Aktivitas</string>
-    <string name="home_activity_empty_body">Kerjakan latihan atau tryout untuk melihat aktivitas di sini.</string>
+    <string name="home_activity_empty_title">Belum ada Aktifitas</string>
+    <string name="home_activity_empty_body">Kerjakan latihan atau Try Out untuk melihat Aktifitas disini.</string>
 
     <!-- Pencarian -->
-    <string name="home_search_placeholder">Cari paket, topik, atau artikel</string>
+    <string name="home_search_placeholder">Cari paket, hasil, atau bantuan</string>
     <string name="home_search_cd_clear">Hapus pencarian</string>
     <string name="home_search_query_quoted">“%1$s”</string>
     <string name="home_search_results_for">Hasil pencarian untuk %1$s</string>
-    <string name="home_search_filter_all">Semua</string>
-    <string name="home_search_filter_packages">Paket</string>
-    <string name="home_search_filter_topics">Topik</string>
-    <string name="home_search_filter_results">Hasil</string>
-    <string name="home_search_filter_articles">Artikel</string>
-    <string name="home_search_section_tryout">Paket Tryout</string>
-    <string name="home_search_section_practice">Paket Latihan</string>
-    <string name="home_search_section_topics">Topik</string>
-    <string name="home_search_section_results">Hasil Kamu</string>
-    <string name="home_search_section_articles">Artikel &amp; Bantuan</string>
-    <string name="home_search_package_count">%1$d paket</string>
-    <string name="home_search_topic_count">%1$d topik</string>
-    <string name="home_search_package_meta">%1$d Soal • %2$d Menit</string>
-    <string name="home_search_result_date">Dikerjakan %1$s</string>
-    <string name="home_search_result_rank">#%1$d</string>
-    <string name="home_search_article_meta">Pusat Bantuan • %1$d menit baca</string>
-    <string name="home_search_article_action">Lihat</string>
+    <string name="home_search_loading">Mencari…</string>
+    <string name="home_search_empty">Tidak ada hasil yang cocok.</string>
     <string name="home_search_idle_title">Mau cari apa hari ini?</string>
     <string name="home_search_idle_body">Ketik nama paket, topik, atau artikel yang ingin kamu temukan.</string>
-    <string name="home_search_empty_title">Tidak ada hasil</string>
-    <string name="home_search_empty_body">Coba kata kunci lain atau ganti filter pencarian.</string>
 
     <!-- Notifikasi -->
     <string name="home_notification_title">Notifikasi</string>

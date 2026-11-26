@@ -35,7 +35,8 @@ fun GotestNavHost(
         authScreens(navController)
         accountScreens(navController)
         homeScreens(navController)
-        examScreens(navController)
+        // The old runner, result, Pembahasan, and Ringkasan Pembahasan of T-018 (A2c-2 = a).
+        if (AppFeatures.OLD_STUDY_SCREENS) examScreens(navController)
         studyPackageScreens(navController)
         practiceScreens(navController)
         tryoutScreens(navController)
