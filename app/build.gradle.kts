@@ -28,6 +28,13 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"https://gotest.id/\"")
         // Release always talks to the API; debug uses the fakes unless `gotest.useApi=true` (T-026 required).
         buildConfigField("boolean", "USE_API", "true")
+        // Masuk dengan Google (T-026 A2a): the server's Web client ID, sent to Google as `setServerClientId` so
+        // the ID token is meant for the server (`GOOGLE_ANDROID_CLIENT_ID`). Public, as on gotest.id itself.
+        buildConfigField(
+            "String",
+            "GOOGLE_SERVER_CLIENT_ID",
+            "\"333368632911-nc07kak9sf3q4q9h0nfhrhtvjfk7s2ko.apps.googleusercontent.com\"",
+        )
     }
 
     buildTypes {
@@ -134,6 +141,10 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)
     // Question HTML and KaTeX math in a WebView served from app assets (T-026 criterion 6).
     implementation(libs.androidx.webkit)
+    // Masuk dengan Google through Credential Manager (T-026 A2a, `POST /auth/google`).
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     ksp(libs.hilt.compiler)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

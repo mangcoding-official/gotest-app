@@ -19,9 +19,14 @@ import kotlinx.serialization.Serializable
     val email: String? = null,
 )
 
-/** "Satu langkah lagi" for a new number after its WhatsApp code (T-018). */
+/**
+ * "Satu langkah lagi" for a new number after its WhatsApp code (T-018), or for a new Google account
+ * ([viaGoogle], T-026 A2a): [phoneDisplay] is then the Google email and [name] the name Google gave.
+ */
 @Serializable data class PhoneRegisterDestination(
     val phoneDisplay: String,
+    val viaGoogle: Boolean = false,
+    val name: String = "",
 )
 
 /** Masuk Anak: family code, name, PIN (T-018). */

@@ -35,7 +35,7 @@ internal fun Throwable.toAuthFlowError(): AuthFlowError =
         }
     }
 
-private const val FORM = "form"
+private const val FORM = AuthFlowError.FORM
 
 /** The same sentence as `auth_error_offline`. */
 private const val OFFLINE = "Koneksi terputus. Periksa internetmu lalu coba lagi."

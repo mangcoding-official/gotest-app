@@ -4,15 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.R
-import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.auth.domain.AuthFlowError
+import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.CredentialValidator
+import com.gotest.app.feature.auth.domain.GoogleSignIn
 import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import com.gotest.app.feature.auth.domain.SignUpForm
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import com.gotest.app.feature.auth.domain.SignUpResult
+import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
 import com.gotest.app.feature.auth.ui.components.check
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +36,7 @@ import javax.inject.Inject
 class RegisterViewModel
     @Inject
     constructor(
-        private val authRepository: AuthRepository,
+        private val flows: AuthFlowRepository,
         private val signUps: SignUpRepository,
         private val validator: CredentialValidator,
         private val options: SignInOptionsRepository,
@@ -95,8 +97,11 @@ class RegisterViewModel
                     dropJoinCode()
                 }
 
-                RegisterUiEvent.GoogleSignUp -> {
-                    signUpWithGoogle()
+                // The route opens Google's picker; its answer comes back as GoogleResult.
+                RegisterUiEvent.GoogleSignUp -> {}
+
+                is RegisterUiEvent.GoogleResult -> {
+                    signUpWithGoogle(event.result)
                 }
 
                 else -> {
@@ -326,12 +331,64 @@ class RegisterViewModel
                 }
         }
 
-        private fun signUpWithGoogle() {
+        /** An existing Google account signs in, as on the web; a new one finishes on "Satu langkah lagi". */
+        private fun signUpWithGoogle(picked: GoogleIdTokenResult) {
             if (_uiState.value.isSubmitting) return
-            viewModelScope.launch {
-                _uiState.update { it.copy(isSubmitting = true) }
-                authRepository.signInWithGoogle().onSuccess { _effects.send(RegisterEffect.Registered) }
-                _uiState.update { it.copy(isSubmitting = false) }
+            _uiState.update { it.copy(messages = emptyMap(), formError = null) }
+            when (picked) {
+                GoogleIdTokenResult.Cancelled -> {
+                    return
+                }
+
+                GoogleIdTokenResult.Failed -> {
+                    _uiState.update { it.copy(formError = R.string.auth_google_failed) }
+                }
+
+                is GoogleIdTokenResult.Token -> {
+                    viewModelScope.launch {
+                        _uiState.update { it.copy(isSubmitting = true) }
+                        flows
+                            .signInWithGoogle(picked.value)
+                            .onSuccess { result ->
+                                _effects.send(
+                                    when (result) {
+                                        GoogleSignIn.SignedIn -> {
+                                            RegisterEffect.Registered
+                                        }
+
+                                        is GoogleSignIn.NeedsRegistration -> {
+                                            RegisterEffect.GoogleRegister(
+                                                result.name,
+                                                result.email,
+                                            )
+                                        }
+                                    },
+                                )
+                            }.onFailure { error ->
+                                // The web shows a refused Google sign-in under the email field.
+                                val refusal = error as? AuthFlowError
+                                _uiState.update {
+                                    when {
+                                        refusal == null -> {
+                                            it.copy(formError = R.string.auth_google_failed)
+                                        }
+
+                                        refusal.field == AuthFlowError.FORM -> {
+                                            it.copy(
+                                                messages =
+                                                    mapOf(FORM to refusal.message),
+                                            )
+                                        }
+
+                                        else -> {
+                                            it.copy(messages = mapOf(EMAIL to refusal.message))
+                                        }
+                                    }
+                                }
+                            }
+                        _uiState.update { it.copy(isSubmitting = false) }
+                    }
+                }
             }
         }
 
@@ -339,6 +396,7 @@ class RegisterViewModel
             const val CODE_LENGTH = 6
             const val SECOND_MILLIS = 1_000L
             const val FORM = "form"
+            const val EMAIL = "email"
             const val KEY_NAME = "register_name"
             const val KEY_EMAIL = "register_email"
             const val KEY_LEVEL = "register_level"

@@ -41,6 +41,9 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
             },
             onChildSignIn = { navController.navigate(ChildLoginDestination) },
             onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
+            onGoogleRegister = { name, email ->
+                navController.navigate(PhoneRegisterDestination(email, viaGoogle = true, name = name))
+            },
         )
     }
     composable<ChildLoginDestination> {
@@ -67,6 +70,9 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
             },
             onBack = navController::navigateUp,
             onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
+            onGoogleRegister = { name, email ->
+                navController.navigate(PhoneRegisterDestination(email, viaGoogle = true, name = name))
+            },
             onAwaitConsent = navController::navigateToConsentClearingAuth,
         )
     }

@@ -8,6 +8,7 @@ import com.gotest.app.core.session.SessionStore
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.FamilyChild
+import com.gotest.app.feature.auth.domain.GoogleSignIn
 import com.gotest.app.feature.auth.domain.GuardianAnswer
 import com.gotest.app.feature.auth.domain.GuardianChannel
 import com.gotest.app.feature.auth.domain.PhoneVerification
@@ -178,6 +179,21 @@ class FakeAuthFlowRepository
                     Result.success(signUps.finishSignUp(FAKE_PHONE_TOKEN, guardian))
                 }
             }
+        }
+
+        /** Debug without the API: Google's account is new, so "Satu langkah lagi" can be checked. */
+        override suspend fun signInWithGoogle(idToken: String): Result<GoogleSignIn> {
+            simulateLatency()
+            return Result.success(GoogleSignIn.NeedsRegistration(name = "Gilang Pratama", email = "gilang@gmail.com"))
+        }
+
+        override suspend fun completeGoogleRegistration(
+            fullName: String,
+            level: EducationLevel,
+            guardian: GuardianAnswer?,
+        ): Result<SignUpResult> {
+            simulateLatency()
+            return Result.success(signUps.finishSignUp(FAKE_PHONE_TOKEN, guardian))
         }
 
         private fun signInOrRegister(phone: String): PhoneVerification =

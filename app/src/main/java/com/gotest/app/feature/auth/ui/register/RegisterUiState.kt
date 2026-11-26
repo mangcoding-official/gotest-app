@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.feature.auth.domain.GuardianQuestion
 import com.gotest.app.feature.auth.domain.JoinNotice
+import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
 import com.gotest.app.feature.auth.ui.components.asksFor
 
@@ -88,7 +89,12 @@ sealed interface RegisterUiEvent {
     /** "Bukan, daftar biasa": sign up without the Mitra code. */
     data object DropJoinCode : RegisterUiEvent
 
+    /** "Daftar dengan Google": the route opens Google's account picker and sends [GoogleResult]. */
     data object GoogleSignUp : RegisterUiEvent
+
+    data class GoogleResult(
+        val result: GoogleIdTokenResult,
+    ) : RegisterUiEvent
 }
 
 sealed interface RegisterEffect {
@@ -96,4 +102,10 @@ sealed interface RegisterEffect {
 
     /** An under-age account waits for the parent's approval (Aturan 2.15). */
     data object AwaitingConsent : RegisterEffect
+
+    /** A new Google account finishes on "Satu langkah lagi" (as the web's GoogleRegister). */
+    data class GoogleRegister(
+        val name: String,
+        val email: String,
+    ) : RegisterEffect
 }

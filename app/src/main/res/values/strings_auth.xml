@@ -63,6 +63,8 @@
     <string name="auth_error_password_mismatch">Kata sandi belum sama</string>
     <string name="auth_error_sign_in">Email atau password salah</string>
     <string name="auth_error_offline">Koneksi terputus. Periksa internetmu lalu coba lagi.</string>
+    <!-- Google's account picker failed on the phone; the server's own sentence for a token it refuses. -->
+    <string name="auth_google_failed">Gagal masuk dengan Google. Silakan coba lagi.</string>
     <string name="auth_error_server">Terjadi kesalahan di server. Coba lagi sebentar lagi.</string>
     <!-- Laravel max:72 on kata sandi (Password::defaults, T-026 required 8). -->
     <string name="auth_error_password_max">Kata sandi tidak boleh lebih dari 72 karakter.</string>
@@ -127,6 +129,9 @@
     <string name="phone_register_name_hint">nama Pelajar</string>
     <string name="phone_register_name_required">Nama wajib diisi.</string>
     <string name="phone_register_submit">Selesai daftar</string>
+    <!-- The same page for a new Google account (web: Auth/GoogleRegister.tsx). -->
+    <string name="google_register_subtitle">Akun Google %1$s sudah terhubung. Lengkapi data berikut untuk menyelesaikan pendaftaran.</string>
+    <string name="google_register_cancel">Batal</string>
 
     <!-- Jenjang pendidikan (web: Components/Auth/EducationLevelFields.tsx, app/Support/EducationLevel.php) -->
     <string name="education_label">Jenjang pendidikan</string>

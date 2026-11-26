@@ -44,6 +44,7 @@ import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
 import com.gotest.app.feature.auth.ui.components.EducationLevelPicker
 import com.gotest.app.feature.auth.ui.components.GuardianFields
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.rememberGoogleIdToken
 import com.gotest.app.feature.auth.ui.phone.PhoneCodeForm
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInEffect
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInUiEvent
@@ -56,6 +57,7 @@ fun RegisterRoute(
     onSignIn: () -> Unit,
     onBack: () -> Unit,
     onPhoneRegister: (phoneDisplay: String) -> Unit,
+    onGoogleRegister: (name: String, email: String) -> Unit,
     onAwaitConsent: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = hiltViewModel(),
@@ -75,11 +77,21 @@ fun RegisterRoute(
         when (effect) {
             RegisterEffect.Registered -> onRegisterSuccess()
             RegisterEffect.AwaitingConsent -> onAwaitConsent()
+            is RegisterEffect.GoogleRegister -> onGoogleRegister(effect.name, effect.email)
         }
     }
+    val pickGoogleAccount = rememberGoogleIdToken { viewModel.onEvent(RegisterUiEvent.GoogleResult(it)) }
     RegisterScreen(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = { event ->
+            if (event ==
+                RegisterUiEvent.GoogleSignUp
+            ) {
+                pickGoogleAccount()
+            } else {
+                viewModel.onEvent(event)
+            }
+        },
         onSignIn = onSignIn,
         onBack = onBack,
         modifier = modifier,

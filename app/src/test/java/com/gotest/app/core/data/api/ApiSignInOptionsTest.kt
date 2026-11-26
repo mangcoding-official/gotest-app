@@ -69,11 +69,11 @@ class ApiSignInOptionsTest {
         }
 
     @Test
-    fun googleStaysHiddenUntilTheAppHasItsGoogleClientId() =
+    fun googleShowsOnceTheServerOffersIt() =
         runTest {
             reply(200, reference(phone = false, google = true, emailCode = false))
 
-            assertEquals(SignInOptions(), repository.options())
+            assertEquals(SignInOptions(google = true), repository.options())
         }
 
     @Test

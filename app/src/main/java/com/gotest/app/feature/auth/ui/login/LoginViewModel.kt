@@ -5,8 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.gotest.app.R
 import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.network.ApiError
+import com.gotest.app.feature.auth.domain.AuthFlowError
+import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.CredentialValidator
+import com.gotest.app.feature.auth.domain.GoogleSignIn
 import com.gotest.app.feature.auth.domain.SignInOptionsRepository
+import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -27,6 +31,7 @@ class LoginViewModel
         private val authRepository: AuthRepository,
         private val validator: CredentialValidator,
         private val options: SignInOptionsRepository,
+        private val flows: AuthFlowRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(LoginUiState())
         val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -65,8 +70,11 @@ class LoginViewModel
                     submit()
                 }
 
-                LoginUiEvent.GoogleSignIn -> {
-                    signInWithGoogle()
+                // The route opens Google's picker; its answer comes back as GoogleResult.
+                LoginUiEvent.GoogleSignIn -> {}
+
+                is LoginUiEvent.GoogleResult -> {
+                    signInWithGoogle(event.result)
                 }
             }
         }
@@ -90,15 +98,57 @@ class LoginViewModel
             }
         }
 
-        private fun signInWithGoogle() {
+        private fun signInWithGoogle(picked: GoogleIdTokenResult) {
             if (_uiState.value.isSubmitting) return
-            viewModelScope.launch {
-                _uiState.update { it.copy(isSubmitting = true) }
-                authRepository.signInWithGoogle().onSuccess { _effects.send(LoginEffect.SignedIn) }
-                _uiState.update { it.copy(isSubmitting = false) }
+            _uiState.update { it.copy(emailMessage = null, formMessage = null, formError = null) }
+            when (picked) {
+                GoogleIdTokenResult.Cancelled -> {
+                    return
+                }
+
+                GoogleIdTokenResult.Failed -> {
+                    _uiState.update { it.copy(formError = R.string.auth_google_failed) }
+                }
+
+                is GoogleIdTokenResult.Token -> {
+                    viewModelScope.launch {
+                        _uiState.update { it.copy(isSubmitting = true) }
+                        flows
+                            .signInWithGoogle(picked.value)
+                            .onSuccess { result ->
+                                _effects.send(
+                                    when (result) {
+                                        GoogleSignIn.SignedIn -> {
+                                            LoginEffect.SignedIn
+                                        }
+
+                                        is GoogleSignIn.NeedsRegistration -> {
+                                            LoginEffect.GoogleRegister(
+                                                result.name,
+                                                result.email,
+                                            )
+                                        }
+                                    },
+                                )
+                            }.onFailure { error -> _uiState.update { it.withGoogleError(error) } }
+                        _uiState.update { it.copy(isSubmitting = false) }
+                    }
+                }
             }
         }
     }
+
+/** The web shows a refused Google sign-in under the email field; a blocked or team account for the whole form. */
+internal fun LoginUiState.withGoogleError(error: Throwable): LoginUiState {
+    val refusal = error as? AuthFlowError ?: return copy(formError = R.string.auth_google_failed)
+    return if (refusal.field ==
+        AuthFlowError.FORM
+    ) {
+        copy(formMessage = refusal.message)
+    } else {
+        copy(emailMessage = refusal.message)
+    }
+}
 
 /** Where a refused sign-in says why: the server's sentence on `email`, for the whole form, or the app's own. */
 internal fun LoginUiState.withSignInError(error: Throwable): LoginUiState =

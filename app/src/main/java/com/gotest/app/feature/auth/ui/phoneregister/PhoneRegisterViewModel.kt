@@ -31,6 +31,8 @@ import javax.inject.Inject
 @Immutable
 data class PhoneRegisterUiState(
     val phoneDisplay: String = "",
+    /** A new Google account: [phoneDisplay] is its email (web: Auth/GoogleRegister.tsx). */
+    val viaGoogle: Boolean = false,
     val fullName: String = "",
     val level: EducationLevel? = null,
     @param:StringRes val nameErrorRes: Int? = null,
@@ -67,7 +69,10 @@ sealed interface PhoneRegisterEffect {
     data object AwaitingConsent : PhoneRegisterEffect
 }
 
-/** "Satu langkah lagi" after a new number's WhatsApp code (web: Auth/PhoneRegister.tsx). */
+/**
+ * "Satu langkah lagi" after a new number's WhatsApp code (web: Auth/PhoneRegister.tsx), or after Google's
+ * account picker for a new Google account (web: Auth/GoogleRegister.tsx): the same name and F3 questions.
+ */
 @HiltViewModel
 class PhoneRegisterViewModel
     @Inject
@@ -76,9 +81,14 @@ class PhoneRegisterViewModel
         private val repository: AuthFlowRepository,
         private val signUps: SignUpRepository,
     ) : ViewModel() {
+        private val route = savedStateHandle.toRoute<PhoneRegisterDestination>()
         private val _uiState =
             MutableStateFlow(
-                PhoneRegisterUiState(phoneDisplay = savedStateHandle.toRoute<PhoneRegisterDestination>().phoneDisplay),
+                PhoneRegisterUiState(
+                    phoneDisplay = route.phoneDisplay,
+                    viaGoogle = route.viaGoogle,
+                    fullName = route.name,
+                ),
             )
         val uiState: StateFlow<PhoneRegisterUiState> = _uiState.asStateFlow()
         private val _effects = Channel<PhoneRegisterEffect>(Channel.BUFFERED)
@@ -134,19 +144,22 @@ class PhoneRegisterViewModel
                 else -> {
                     viewModelScope.launch {
                         _uiState.update { it.copy(isSubmitting = true) }
-                        repository
-                            .completePhoneRegistration(state.fullName.trim(), level, answer)
-                            .onSuccess { result ->
-                                _effects.send(
-                                    if (result ==
-                                        SignUpResult.AwaitingConsent
-                                    ) {
-                                        PhoneRegisterEffect.AwaitingConsent
-                                    } else {
-                                        PhoneRegisterEffect.Registered
-                                    },
-                                )
-                            }.onFailure(::showError)
+                        val name = state.fullName.trim()
+                        if (state.viaGoogle) {
+                            repository.completeGoogleRegistration(name, level, answer)
+                        } else {
+                            repository.completePhoneRegistration(name, level, answer)
+                        }.onSuccess { result ->
+                            _effects.send(
+                                if (result ==
+                                    SignUpResult.AwaitingConsent
+                                ) {
+                                    PhoneRegisterEffect.AwaitingConsent
+                                } else {
+                                    PhoneRegisterEffect.Registered
+                                },
+                            )
+                        }.onFailure(::showError)
                         _uiState.update { it.copy(isSubmitting = false) }
                     }
                 }

@@ -7,6 +7,7 @@ import com.gotest.app.core.session.SignUpDraftStore
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.FamilyChild
+import com.gotest.app.feature.auth.domain.GoogleSignIn
 import com.gotest.app.feature.auth.domain.GuardianAnswer
 import com.gotest.app.feature.auth.domain.GuardianChannel
 import com.gotest.app.feature.auth.domain.PhoneVerification
@@ -32,6 +33,7 @@ class ApiAuthFlowRepository
     ) : AuthFlowRepository {
         private val api = retrofit.create(AuthApi::class.java)
         private val flows = retrofit.create(SignInFlowApi::class.java)
+        private val google = retrofit.create(GoogleSignInApi::class.java)
 
         override suspend fun resetPassword(
             token: String,
@@ -81,28 +83,69 @@ class ApiAuthFlowRepository
             }
         }
 
+        override suspend fun signInWithGoogle(idToken: String): Result<GoogleSignIn> {
+            val result = apiCall(json) { google.signIn(GoogleSignInRequest(idToken, acceptor.deviceName)) }
+            val error = (result.exceptionOrNull() as? ApiError)?.takeIf { it.code == GOOGLE_NOT_REGISTERED }
+            val token = error?.detail(REGISTRATION_TOKEN)
+            if (error != null && token != null) {
+                drafts.saveGoogleToken(token)
+                return Result.success(
+                    GoogleSignIn.NeedsRegistration(
+                        name = error.detail("name").orEmpty(),
+                        email = error.detail("email").orEmpty(),
+                    ),
+                )
+            }
+            return result.asAuthFlow().map { reply ->
+                acceptor.accept(reply)
+                GoogleSignIn.SignedIn
+            }
+        }
+
+        override suspend fun completeGoogleRegistration(
+            fullName: String,
+            level: EducationLevel,
+            guardian: GuardianAnswer?,
+        ): Result<SignUpResult> {
+            val token = drafts.googleToken ?: return Result.failure(AuthFlowError("name", GOOGLE_EXPIRED))
+            val answers = SignUpAnswers.of(guardian)
+            val request =
+                GoogleSignUpRequest(
+                    registrationToken = token,
+                    name = fullName,
+                    educationLevel = level.code,
+                    adult = answers.adult,
+                    guardianChannel = answers.channel,
+                    guardianPhone = answers.phone,
+                    guardianEmail = answers.email,
+                    mitraLink = drafts.mitraLink,
+                    deviceName = acceptor.deviceName,
+                )
+            return apiCall(json) { google.signUp(request) }
+                .onFailure { if ((it as? ApiError)?.fieldError(REGISTRATION_TOKEN) != null) drafts.clearGoogleToken() }
+                .asAuthFlow()
+                .map { reply ->
+                    acceptor.acceptSignUp(reply)
+                    if (reply.consentLocked) SignUpResult.AwaitingConsent else SignUpResult.SignedIn
+                }
+        }
+
         override suspend fun completePhoneRegistration(
             fullName: String,
             level: EducationLevel,
             guardian: GuardianAnswer?,
         ): Result<SignUpResult> {
             val token = drafts.phoneToken ?: return Result.failure(AuthFlowError("name", PHONE_EXPIRED))
-            val underAge = guardian?.adult == false
+            val answers = SignUpAnswers.of(guardian)
             val request =
                 PhoneSignUpRequest(
                     registrationToken = token,
                     name = fullName,
                     educationLevel = level.code,
-                    adult = guardian?.adult,
-                    guardianChannel = guardian?.channel?.takeIf { underAge }?.code,
-                    guardianPhone =
-                        guardian?.contact?.takeIf {
-                            underAge && guardian.channel == GuardianChannel.WhatsApp
-                        },
-                    guardianEmail =
-                        guardian?.contact?.takeIf {
-                            underAge && guardian.channel == GuardianChannel.Email
-                        },
+                    adult = answers.adult,
+                    guardianChannel = answers.channel,
+                    guardianPhone = answers.phone,
+                    guardianEmail = answers.email,
                     mitraLink = drafts.mitraLink,
                     deviceName = acceptor.deviceName,
                 )
@@ -122,5 +165,30 @@ class ApiAuthFlowRepository
             /** The web's sentences (Masuk Anak, and the name step after 15 minutes). */
             const val PICK_NAME = "Pilih namamu."
             const val PHONE_EXPIRED = "Waktu pendaftaran habis. Minta kode baru dengan nomor HP kamu."
+            const val GOOGLE_NOT_REGISTERED = "google_not_registered"
+
+            /** The server's sentence for a Google sign-up past its 15 minutes (`GoogleSignInController::register`). */
+            const val GOOGLE_EXPIRED = "Waktu pendaftaran habis. Masuk dengan Google sekali lagi."
         }
     }
+
+/** The F3 answers as the sign-up requests carry them: the parent's contact only for an under-age answer. */
+private class SignUpAnswers(
+    val adult: Boolean?,
+    val channel: String?,
+    val phone: String?,
+    val email: String?,
+) {
+    companion object {
+        fun of(guardian: GuardianAnswer?): SignUpAnswers {
+            val underAge = guardian?.adult == false
+            val channel = guardian?.channel?.takeIf { underAge }
+            return SignUpAnswers(
+                adult = guardian?.adult,
+                channel = channel?.code,
+                phone = guardian?.contact?.takeIf { channel == GuardianChannel.WhatsApp },
+                email = guardian?.contact?.takeIf { channel == GuardianChannel.Email },
+            )
+        }
+    }
+}

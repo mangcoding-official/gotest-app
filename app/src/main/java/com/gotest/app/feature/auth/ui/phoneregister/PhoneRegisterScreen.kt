@@ -60,7 +60,11 @@ fun PhoneRegisterScreen(
 ) {
     AuthFormCard(
         title = stringResource(R.string.phone_register_title),
-        subtitle = stringResource(R.string.phone_register_subtitle, uiState.phoneDisplay),
+        subtitle =
+            stringResource(
+                if (uiState.viaGoogle) R.string.google_register_subtitle else R.string.phone_register_subtitle,
+                uiState.phoneDisplay,
+            ),
         onBack = onChangeNumber,
         modifier = modifier,
     ) {
@@ -100,7 +104,10 @@ fun PhoneRegisterScreen(
                 enabled = !uiState.isSubmitting,
             )
             GotestButton(
-                text = stringResource(R.string.phone_change),
+                text =
+                    stringResource(
+                        if (uiState.viaGoogle) R.string.google_register_cancel else R.string.phone_change,
+                    ),
                 onClick = onChangeNumber,
                 modifier = Modifier.fillMaxWidth(),
                 variant = GotestButtonVariant.Plain,

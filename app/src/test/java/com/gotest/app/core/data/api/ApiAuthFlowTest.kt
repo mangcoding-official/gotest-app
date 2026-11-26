@@ -10,6 +10,7 @@ import com.gotest.app.core.session.SignUpDraftStore
 import com.gotest.app.core.session.TokenCipher
 import com.gotest.app.feature.auth.domain.AuthFlowError
 import com.gotest.app.feature.auth.domain.FamilyChild
+import com.gotest.app.feature.auth.domain.GoogleSignIn
 import com.gotest.app.feature.auth.domain.PhoneVerification
 import com.gotest.app.feature.auth.domain.SignUpResult
 import kotlinx.coroutines.test.runTest
@@ -97,6 +98,66 @@ class ApiAuthFlowTest {
             assertEquals("5|hp", session.token)
             assertNull(drafts.phoneToken)
             assertNull(drafts.mitraLink)
+        }
+
+    @Test
+    fun aNewGoogleAccountFinishesWithItsNameAndTheMitraLink() =
+        runTest {
+            drafts.mitraLink = "/gabung/KLS123"
+            reply(
+                422,
+                """
+                {"message":"Akun Google ini belum terdaftar. Lanjutkan dengan mengisi data diri.",
+                "code":"google_not_registered","registration_token":"gt-1","name":"Gilang","email":"gilang@mail.com"}
+                """.trimIndent(),
+            )
+            reply(201, signedIn)
+
+            val picked = flows.signInWithGoogle("id-token").getOrThrow()
+            assertEquals("id-token", body().getValue("id_token").jsonPrimitive.content)
+            val result =
+                flows
+                    .completeGoogleRegistration(
+                        "Gilang P",
+                        EducationLevel.Kuliah,
+                        guardian = null,
+                    ).getOrThrow()
+
+            assertEquals(GoogleSignIn.NeedsRegistration("Gilang", "gilang@mail.com"), picked)
+            val sent = body()
+            assertEquals("gt-1", sent.getValue("registration_token").jsonPrimitive.content)
+            assertEquals("Gilang P", sent.getValue("name").jsonPrimitive.content)
+            assertEquals("/gabung/KLS123", sent.getValue("mitra_link").jsonPrimitive.content)
+            assertEquals(SignUpResult.SignedIn, result)
+            assertEquals("5|hp", session.token)
+            assertNull(drafts.googleToken)
+        }
+
+    @Test
+    fun aKnownGoogleAccountSignsIn() =
+        runTest {
+            reply(200, signedIn.replace("\"consent\"", "\"linked\":true,\"consent\""))
+
+            assertEquals(GoogleSignIn.SignedIn, flows.signInWithGoogle("id-token").getOrThrow())
+            assertEquals("/api/v1/auth/google", server.takeRequest().url.encodedPath)
+            assertEquals("5|hp", session.token)
+        }
+
+    @Test
+    fun aGoogleTokenTheServerRefusesSaysSoUnderItsField() =
+        runTest {
+            reply(
+                422,
+                """
+                {"message":"Gagal masuk dengan Google. Silakan coba lagi.","code":"validation",
+                "errors":{"id_token":["Gagal masuk dengan Google. Silakan coba lagi."]}}
+                """.trimIndent(),
+            )
+
+            val error = flows.signInWithGoogle("bad").exceptionOrNull() as AuthFlowError
+
+            assertEquals("id_token", error.field)
+            assertNull(session.token)
         }
 
     @Test

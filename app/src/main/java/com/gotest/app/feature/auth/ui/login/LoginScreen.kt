@@ -48,6 +48,7 @@ import com.gotest.app.feature.auth.ui.components.AuthHeading
 import com.gotest.app.feature.auth.ui.components.AuthLogo
 import com.gotest.app.feature.auth.ui.components.AuthMethodTabs
 import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
+import com.gotest.app.feature.auth.ui.components.rememberGoogleIdToken
 import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInEffect
 import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInForm
 import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInUiEvent
@@ -69,6 +70,7 @@ fun LoginRoute(
     onRegister: () -> Unit,
     onChildSignIn: () -> Unit,
     onPhoneRegister: (phoneDisplay: String) -> Unit,
+    onGoogleRegister: (name: String, email: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
     phoneViewModel: PhoneSignInViewModel = hiltViewModel(),
@@ -91,11 +93,21 @@ fun LoginRoute(
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             LoginEffect.SignedIn -> onSignInSuccess()
+            is LoginEffect.GoogleRegister -> onGoogleRegister(effect.name, effect.email)
         }
     }
+    val pickGoogleAccount = rememberGoogleIdToken { viewModel.onEvent(LoginUiEvent.GoogleResult(it)) }
     LoginScreen(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = { event ->
+            if (event ==
+                LoginUiEvent.GoogleSignIn
+            ) {
+                pickGoogleAccount()
+            } else {
+                viewModel.onEvent(event)
+            }
+        },
         onForgotPassword = onForgotPassword,
         onRegister = onRegister,
         modifier = modifier,

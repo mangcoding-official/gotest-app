@@ -84,3 +84,24 @@ data class ResetPasswordRequest(
     @SerialName("password") val password: String,
     @SerialName("password_confirmation") val passwordConfirmation: String,
 )
+
+/** `POST /auth/google`: the ID token from Credential Manager. */
+@Serializable
+data class GoogleSignInRequest(
+    @SerialName("id_token") val idToken: String,
+    @SerialName("device_name") val deviceName: String,
+)
+
+/** `POST /auth/google/daftar`: the name and sign-up answers of a new Google account (F3). */
+@Serializable
+data class GoogleSignUpRequest(
+    @SerialName("registration_token") val registrationToken: String,
+    @SerialName("name") val name: String,
+    @SerialName("education_level") val educationLevel: String,
+    @SerialName("adult") val adult: Boolean? = null,
+    @SerialName("guardian_channel") val guardianChannel: String? = null,
+    @SerialName("guardian_phone") val guardianPhone: String? = null,
+    @SerialName("guardian_email") val guardianEmail: String? = null,
+    @SerialName("mitra_link") val mitraLink: String? = null,
+    @SerialName("device_name") val deviceName: String,
+)

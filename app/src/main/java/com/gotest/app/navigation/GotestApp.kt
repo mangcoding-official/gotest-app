@@ -76,23 +76,7 @@ fun GotestApp(
             currentOnAppLinkConsume()
             return@LaunchedEffect
         }
-        when (link) {
-            is AppLink.ResetPassword -> {
-                navController.navigate(ResetPasswordDestination(link.token, link.email))
-            }
-
-            is AppLink.MainBarengCode -> {
-                navController.navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
-            }
-
-            is AppLink.JoinCode -> {
-                navController.navigate(JoinCodeDestination(link.code))
-            }
-
-            is AppLink.Invitation -> {
-                navController.navigate(InvitationDestination(link.token))
-            }
-        }
+        navController.openAppLink(link)
         currentOnAppLinkConsume()
     }
 
@@ -206,6 +190,16 @@ private fun SignUpJoinedRedirect(
     }
     staffJoined?.let { mitra ->
         StaffJoinedDialog(mitraName = mitraName() ?: mitra.code, onClose = { staffJoined = null })
+    }
+}
+
+/** The screen of a gotest.id link: resetting the password, a Main Bareng code, a class code, an invitation. */
+private fun NavController.openAppLink(link: AppLink) {
+    when (link) {
+        is AppLink.ResetPassword -> navigate(ResetPasswordDestination(link.token, link.email))
+        is AppLink.MainBarengCode -> navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
+        is AppLink.JoinCode -> navigate(JoinCodeDestination(link.code))
+        is AppLink.Invitation -> navigate(InvitationDestination(link.token))
     }
 }
 

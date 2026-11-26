@@ -3,8 +3,8 @@ package com.gotest.app.core.session
 /**
  * What a sign-up needs to survive Android closing the app (T-026 required 4 and 10), kept in the app's private
  * preferences: the Mitra link opened before signing in (sent as `mitra_link`, Aturan 2.18), the
- * `registration_token` of a sign-up waiting for its email code, and that of a proven new phone number waiting for
- * its name ("Satu langkah lagi"); the server keeps both for 15 minutes.
+ * `registration_token` of a sign-up waiting for its email code, and those of a proven new phone number or a new
+ * Google account waiting for its name ("Satu langkah lagi"); the server keeps each for 15 minutes.
  */
 class SignUpDraftStore(
     private val store: KeyValueStore,
@@ -34,6 +34,20 @@ class SignUpDraftStore(
     fun clearPhoneToken() {
         store.remove(KEY_PHONE_TOKEN)
         store.remove(KEY_PHONE_SAVED_AT)
+    }
+
+    /** The `registration_token` of a new Google account (422 `google_not_registered`), within 15 minutes. */
+    val googleToken: String?
+        get() = fresh(KEY_GOOGLE_TOKEN, KEY_GOOGLE_SAVED_AT) ?: null.also { clearGoogleToken() }
+
+    fun saveGoogleToken(token: String) {
+        store.putString(KEY_GOOGLE_TOKEN, token)
+        store.putString(KEY_GOOGLE_SAVED_AT, clock().toString())
+    }
+
+    fun clearGoogleToken() {
+        store.remove(KEY_GOOGLE_TOKEN)
+        store.remove(KEY_GOOGLE_SAVED_AT)
     }
 
     private fun fresh(
@@ -67,6 +81,8 @@ class SignUpDraftStore(
         const val KEY_SAVED_AT = "email_registration_saved_at"
         const val KEY_PHONE_TOKEN = "phone_registration_token"
         const val KEY_PHONE_SAVED_AT = "phone_registration_saved_at"
+        const val KEY_GOOGLE_TOKEN = "google_registration_token"
+        const val KEY_GOOGLE_SAVED_AT = "google_registration_saved_at"
         const val TOKEN_LIFE_MILLIS = 15 * 60 * 1000L
     }
 }

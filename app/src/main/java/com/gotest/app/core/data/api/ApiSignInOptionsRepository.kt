@@ -32,20 +32,13 @@ class ApiSignInOptionsRepository
                     .onSuccess { cached = it }
                     .getOrDefault(SignInOptions())
             }
-
-        companion object {
-            /**
-             * Google sign-in needs the app's Google client ID, which the app does not have yet; until then the
-             * button stays hidden even when the server offers Google, so it never shows a button that does nothing.
-             */
-            const val GOOGLE_CLIENT_READY = false
-        }
     }
 
 internal fun Reference.toOptions(): SignInOptions =
     SignInOptions(
         phone = phoneSignIn,
-        google = googleSignIn && ApiSignInOptionsRepository.GOOGLE_CLIENT_READY,
+        // True once the server has the app's Google client IDs (`GOOGLE_ANDROID_*`); the app has the server's.
+        google = googleSignIn,
         emailCode = emailCode,
         passwordResetWhatsApp = passwordResetWhatsApp,
     )

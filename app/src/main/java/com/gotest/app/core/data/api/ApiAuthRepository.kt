@@ -34,9 +34,6 @@ class ApiAuthRepository
                 .map { reply -> acceptor.accept(reply) }
                 .map { }
 
-        /** Google Sign-In needs the Google client IDs of the app; until then the button stays hidden (/referensi). */
-        override suspend fun signInWithGoogle(): Result<Unit> = Result.failure(UnsupportedOperationException("google"))
-
         /** Signing up goes through SignUpRepository (`auth/daftar`), never here. */
         override suspend fun register(
             fullName: String,

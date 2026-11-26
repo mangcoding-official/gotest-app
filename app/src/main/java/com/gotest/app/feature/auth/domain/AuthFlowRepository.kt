@@ -7,7 +7,12 @@ import kotlinx.coroutines.flow.Flow
 class AuthFlowError(
     val field: String,
     override val message: String,
-) : Exception(message)
+) : Exception(message) {
+    companion object {
+        /** The refusal names no field: it is for the whole form. */
+        const val FORM = "form"
+    }
+}
 
 /** A child of a family code, as listed on "Pilih namamu." */
 data class FamilyChild(
@@ -22,6 +27,17 @@ sealed interface PhoneVerification {
     data class NeedsRegistration(
         val phoneDisplay: String,
     ) : PhoneVerification
+}
+
+/** After Google's account picker: a known account is signed in, a new one finishes on "Satu langkah lagi". */
+sealed interface GoogleSignIn {
+    data object SignedIn : GoogleSignIn
+
+    /** [name] fills the name field; [email] is the Google account shown above the form, as on the web. */
+    data class NeedsRegistration(
+        val name: String,
+        val email: String,
+    ) : GoogleSignIn
 }
 
 /**
@@ -51,6 +67,16 @@ interface AuthFlowRepository {
         phone: String,
         code: String,
     ): Result<PhoneVerification>
+
+    /** Masuk dengan Google with the ID token Credential Manager gave (`POST /auth/google`). */
+    suspend fun signInWithGoogle(idToken: String): Result<GoogleSignIn>
+
+    /** Finishes a new Google account's sign-up within 15 minutes ("Selesai daftar"). */
+    suspend fun completeGoogleRegistration(
+        fullName: String,
+        level: EducationLevel,
+        guardian: GuardianAnswer? = null,
+    ): Result<SignUpResult>
 
     /** Finishes a new number's sign-up within 15 minutes of its code ("Selesai daftar"). */
     suspend fun completePhoneRegistration(

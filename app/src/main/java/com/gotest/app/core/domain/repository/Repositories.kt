@@ -37,8 +37,6 @@ interface AuthRepository {
         password: String,
     ): Result<Unit>
 
-    suspend fun signInWithGoogle(): Result<Unit>
-
     suspend fun register(
         fullName: String,
         email: String,

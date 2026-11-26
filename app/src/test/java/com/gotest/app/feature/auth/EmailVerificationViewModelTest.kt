@@ -64,8 +64,6 @@ class EmailVerificationViewModelTest {
                 password: String,
             ) = Result.success(Unit)
 
-            override suspend fun signInWithGoogle() = Result.success(Unit)
-
             override suspend fun register(
                 fullName: String,
                 email: String,

@@ -2,6 +2,7 @@ package com.gotest.app.feature.auth.ui.login
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
+import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
 
 @Immutable
 data class LoginUiState(
@@ -34,10 +35,21 @@ sealed interface LoginUiEvent {
 
     data object Submit : LoginUiEvent
 
+    /** "Masuk dengan Google": the route opens Google's account picker and sends [GoogleResult]. */
     data object GoogleSignIn : LoginUiEvent
+
+    data class GoogleResult(
+        val result: GoogleIdTokenResult,
+    ) : LoginUiEvent
 }
 
 /** One-off results the route turns into navigation. */
 sealed interface LoginEffect {
     data object SignedIn : LoginEffect
+
+    /** A Google account without a Gotest account finishes on "Satu langkah lagi" (as the web's GoogleRegister). */
+    data class GoogleRegister(
+        val name: String,
+        val email: String,
+    ) : LoginEffect
 }

@@ -134,13 +134,6 @@ class FakeAuthRepository
             return Result.success(Unit)
         }
 
-        override suspend fun signInWithGoogle(): Result<Unit> {
-            simulateLatency()
-            store.useDefault()
-            session.save(FAKE_TOKEN)
-            return Result.success(Unit)
-        }
-
         override suspend fun register(
             fullName: String,
             email: String,
