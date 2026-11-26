@@ -12,7 +12,7 @@ import com.gotest.app.feature.home.ui.home.HomeRoute
 import com.gotest.app.feature.home.ui.notification.NotificationRoute
 import com.gotest.app.feature.home.ui.search.SearchActions
 import com.gotest.app.feature.home.ui.search.SearchRoute
-import com.gotest.app.navigation.CreateGameDestination
+import com.gotest.app.feature.multiplayer.ui.MainBarengViewModel
 import com.gotest.app.navigation.HelpTopicDestination
 import com.gotest.app.navigation.HistoryDetailDestination
 import com.gotest.app.navigation.HomeDestination
@@ -50,8 +50,8 @@ fun NavGraphBuilder.homeScreens(navController: NavController) {
                     // The portal is on gotest.id only (A2b-2).
                     onOpenPortal = { code -> uriHandler.openUri(webAddress("/mitra/$code")) },
                     onOpenLink = { href -> uriHandler.openUri(webAddress(href)) },
-                    onJoinGame = { navController.navigate(MultiplayerDestination(action = MainBarengViewModel.ACTION_JOIN)) },
-                    onCreateGame = { navController.navigate(MultiplayerDestination(action = MainBarengViewModel.ACTION_CREATE)) },
+                    onJoinGame = { navController.openMainBareng(MainBarengViewModel.ACTION_JOIN) },
+                    onCreateGame = { navController.openMainBareng(MainBarengViewModel.ACTION_CREATE) },
                     onOpenPromo =
                         { promoId: String -> navController.navigate(PromoDestination(promoId)) }
                             .takeIf { AppFeatures.PAYMENTS },
@@ -91,3 +91,6 @@ internal fun webAddress(href: String): String =
     if (href.startsWith("/")) BuildConfig.API_BASE_URL.trimEnd('/') + href else href
 
 private fun NavController.openTab(tab: TopLevelDestination) = navigateToTab(tab)
+
+/** Main Bareng of Gotest.id with its join or create dialog open, as the web's `?aksi=gabung|buat`. */
+private fun NavController.openMainBareng(action: String) = navigate(MultiplayerDestination(action = action))
