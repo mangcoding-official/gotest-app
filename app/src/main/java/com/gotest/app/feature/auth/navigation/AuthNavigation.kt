@@ -23,7 +23,6 @@ import com.gotest.app.navigation.OnboardingDestination
 import com.gotest.app.navigation.PhoneRegisterDestination
 import com.gotest.app.navigation.RegisterDestination
 import com.gotest.app.navigation.ResetPasswordDestination
-import com.gotest.app.navigation.RuangDestination
 
 /** Onboarding, Masuk, Daftar and Lupa Password. */
 fun NavGraphBuilder.authScreens(navController: NavController) {
@@ -87,11 +86,8 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
     }
     composable<EmailVerificationDestination> {
         EmailVerificationRoute(
-            onAccountOpen = { joined ->
-                navController.navigateToHomeClearingAuth()
-                // The Mitra the sign-up link joined opens next, as the web goes to it (DEC-154).
-                joined?.let { navController.navigate(RuangDestination(it)) }
-            },
+            // The Mitra the sign-up link joined opens from Beranda, as the web goes to it (DEC-154, A2a-1).
+            onAccountOpen = navController::navigateToHomeClearingAuth,
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
             onDeleteAccount = { navController.navigate(DeleteAccountDestination(awaitingConsent = true)) },
         )

@@ -28,6 +28,15 @@ sealed interface AppLink {
     ) : AppLink
 }
 
+/** A Mitra link as Daftar sends it in `mitra_link`; null for the links that are not one. */
+val AppLink.mitraLink: String?
+    get() =
+        when (this) {
+            is AppLink.JoinCode -> "/gabung/$code"
+            is AppLink.Invitation -> "/undangan/$token"
+            else -> null
+        }
+
 object AppLinks {
     private const val HOST = "gotest.id"
     private val gameCode = Regex("^[A-Z0-9]{6}$")

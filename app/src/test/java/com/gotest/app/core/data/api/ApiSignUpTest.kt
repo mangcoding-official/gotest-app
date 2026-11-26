@@ -8,6 +8,7 @@ import com.gotest.app.core.session.AccountChanges
 import com.gotest.app.core.session.KeyValueStore
 import com.gotest.app.core.session.SessionStore
 import com.gotest.app.core.session.SignUpDraftStore
+import com.gotest.app.core.session.SignUpJoin
 import com.gotest.app.core.session.TokenCipher
 import com.gotest.app.feature.auth.domain.GuardianAnswer
 import com.gotest.app.feature.auth.domain.GuardianChannel
@@ -15,6 +16,7 @@ import com.gotest.app.feature.auth.domain.SignInOptions
 import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import com.gotest.app.feature.auth.domain.SignUpForm
 import com.gotest.app.feature.auth.domain.SignUpResult
+import com.gotest.app.feature.ruang.domain.JoinedMitra
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -41,6 +43,7 @@ class ApiSignUpTest {
     private val draftValues = MemoryStore()
     private var now = 1_000_000L
     private val drafts = SignUpDraftStore(draftValues) { now }
+    private val join = SignUpJoin()
     private lateinit var repository: ApiSignUpRepository
 
     @Before
@@ -52,12 +55,12 @@ class ApiSignUpTest {
                 .newBuilder()
                 .baseUrl(server.url("/"))
                 .build()
-        val acceptor = SignInAcceptor(session, signals, AccountChanges(), drafts)
+        val acceptor = SignInAcceptor(session, signals, AccountChanges(), drafts, join)
         val options =
             object : SignInOptionsRepository {
                 override suspend fun options() = SignInOptions(emailCode = true)
             }
-        repository = ApiSignUpRepository(retrofit, json, acceptor, drafts, options, signals)
+        repository = ApiSignUpRepository(retrofit, json, acceptor, drafts, options, signals, join)
     }
 
     @After
@@ -85,10 +88,12 @@ class ApiSignUpTest {
             guardian = GuardianAnswer(adult = false, channel = GuardianChannel.WhatsApp, contact = "081234567890"),
         )
 
-    private fun signedIn(consent: String) =
-        """
+    private fun signedIn(
+        consent: String,
+        joined: String = "null",
+    ) = """
         {"token":"9|baru","token_type":"Bearer","expires_at":null,"user":{"id":3,"name":"Raka"},
-        "is_child":false,"consent":"$consent","joined":null}
+        "is_child":false,"consent":"$consent","joined":$joined}
         """.trimIndent()
 
     @Test
@@ -102,7 +107,7 @@ class ApiSignUpTest {
                 "join_notice":{"kind":"class","organization":"SMP Harapan","label":"8A"}}
                 """.trimIndent(),
             )
-            reply(201, signedIn(consent = "not_needed"))
+            reply(201, signedIn(consent = "not_needed", joined = """{"code":"SMPH","role":"siswa","class":"8A"}"""))
 
             val info = repository.registrationInfo()
             val sent = body()
@@ -118,6 +123,22 @@ class ApiSignUpTest {
             assertEquals(SignUpResult.SignedIn, result)
             assertEquals("9|baru", session.token)
             assertNull(drafts.mitraLink)
+            // A2a-1: the joined Mitra opens next, and the held link is not opened again (once).
+            assertEquals(JoinedMitra("SMPH", "siswa", "8A"), join.joined.value)
+            assertEquals("SMP Harapan", join.mitraName)
+            assertTrue(join.takeUsedLink("/gabung/KLS123"))
+            assertFalse(join.takeUsedLink("/gabung/KLS123"))
+        }
+
+    @Test
+    fun aSignUpWithoutALinkLeavesTheNextLinkToOpen() =
+        runTest {
+            reply(201, signedIn(consent = "not_needed"))
+
+            repository.register(form.copy(guardian = null)).getOrThrow()
+
+            assertNull(join.joined.value)
+            assertFalse(join.takeUsedLink("/gabung/KLS123"))
         }
 
     @Test

@@ -7,6 +7,7 @@ import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.network.SessionSignals
 import com.gotest.app.core.session.SessionNotices
+import com.gotest.app.core.session.SignUpJoin
 import com.gotest.app.feature.auth.domain.EmailVerificationRepository
 import com.gotest.app.feature.auth.domain.EmailVerificationState
 import com.gotest.app.feature.auth.domain.EmailVerified
@@ -52,10 +53,8 @@ data class EmailVerificationUiState(
 }
 
 sealed interface EmailVerificationEffect {
-    /** The email is proven; [joined] is the Mitra the sign-up link joined (its Ruang opens), if any. */
-    data class Verified(
-        val joined: String?,
-    ) : EmailVerificationEffect
+    /** The email is proven: Beranda opens, then the Mitra the sign-up link joined (A2a-1), if any. */
+    data object Verified : EmailVerificationEffect
 
     data object SignedOut : EmailVerificationEffect
 }
@@ -73,6 +72,7 @@ class EmailVerificationViewModel
         private val authRepository: AuthRepository,
         private val signals: SessionSignals,
         private val notices: SessionNotices,
+        private val join: SignUpJoin,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(EmailVerificationUiState())
         val uiState: StateFlow<EmailVerificationUiState> = _uiState.asStateFlow()
@@ -158,12 +158,14 @@ class EmailVerificationViewModel
         private fun opened(verified: EmailVerified) {
             // Why the sign-up's Mitra link was dropped: Beranda (or the parent's approval page) says it once.
             verified.message?.takeIf { it.isNotBlank() }?.let(notices::postEmailVerified)
+            // The Mitra the sign-up link joined opens once Beranda shows, as after any other sign-up (A2a-1).
+            join.signedUp(verified.joined, link = null)
             signals.clearAwaitingEmailVerification()
             if (verified.consent == EmailVerified.CONSENT_PENDING) {
                 // The app shell opens "Menunggu persetujuan orang tua" for it.
                 signals.markAwaitingConsent()
             } else {
-                _effects.trySend(EmailVerificationEffect.Verified(verified.joined?.code))
+                _effects.trySend(EmailVerificationEffect.Verified)
             }
         }
 

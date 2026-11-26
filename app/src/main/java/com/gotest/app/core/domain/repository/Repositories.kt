@@ -45,7 +45,8 @@ interface AuthRepository {
         password: String,
     ): Result<Unit>
 
-    suspend fun requestPasswordReset(email: String): Result<Unit>
+    /** Sends the link to reset the password; the result is the server's sentence about it. */
+    suspend fun requestPasswordReset(email: String): Result<String>
 
     suspend fun signOut()
 }

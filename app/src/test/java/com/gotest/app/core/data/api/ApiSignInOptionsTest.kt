@@ -47,9 +47,11 @@ class ApiSignInOptionsTest {
         phone: Boolean,
         google: Boolean,
         emailCode: Boolean,
+        resetWhatsApp: Boolean = false,
     ) = """
         {"education_levels":[{"value":"sma","label":"SMA"}],"trial_period":null,
-        "phone_sign_in":$phone,"google_sign_in":$google,"email_code":$emailCode,"min_app_version":null}
+        "phone_sign_in":$phone,"google_sign_in":$google,"email_code":$emailCode,
+        "password_reset_whatsapp":$resetWhatsApp,"min_app_version":null}
         """.trimIndent()
 
     @Test
@@ -72,6 +74,14 @@ class ApiSignInOptionsTest {
             reply(200, reference(phone = false, google = true, emailCode = false))
 
             assertEquals(SignInOptions(), repository.options())
+        }
+
+    @Test
+    fun lupaSandiByWhatsAppFollowsTheServer() =
+        runTest {
+            reply(200, reference(phone = false, google = false, emailCode = false, resetWhatsApp = true))
+
+            assertEquals(SignInOptions(passwordResetWhatsApp = true), repository.options())
         }
 
     @Test

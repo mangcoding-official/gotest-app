@@ -41,7 +41,7 @@ data class EmailVerificationActions(
 
 @Composable
 fun EmailVerificationRoute(
-    onAccountOpen: (joinedMitra: String?) -> Unit,
+    onAccountOpen: () -> Unit,
     onSignOutSuccess: () -> Unit,
     onDeleteAccount: () -> Unit,
     modifier: Modifier = Modifier,
@@ -50,7 +50,7 @@ fun EmailVerificationRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
-            is EmailVerificationEffect.Verified -> onAccountOpen(effect.joined)
+            EmailVerificationEffect.Verified -> onAccountOpen()
             EmailVerificationEffect.SignedOut -> onSignOutSuccess()
         }
     }

@@ -152,9 +152,9 @@ class FakeAuthRepository
             return Result.success(Unit)
         }
 
-        override suspend fun requestPasswordReset(email: String): Result<Unit> {
+        override suspend fun requestPasswordReset(email: String): Result<String> {
             simulateLatency()
-            return Result.success(Unit)
+            return Result.success("")
         }
 
         override suspend fun signOut() {

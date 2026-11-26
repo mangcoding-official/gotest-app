@@ -44,8 +44,9 @@ class ApiAuthRepository
             password: String,
         ): Result<Unit> = Result.failure(UnsupportedOperationException("register"))
 
-        override suspend fun requestPasswordReset(email: String): Result<Unit> =
-            apiCall(json) { api.forgotPassword(EmailRequest(email)) }.map { }
+        /** The server's sentence, the same whether the account exists or not. */
+        override suspend fun requestPasswordReset(email: String): Result<String> =
+            apiCall(json) { api.forgotPassword(EmailRequest(email)) }.map { it.message.orEmpty() }
 
         /** Keluar removes this phone's token on the server; the app forgets it even when the server is out of reach. */
         override suspend fun signOut() {

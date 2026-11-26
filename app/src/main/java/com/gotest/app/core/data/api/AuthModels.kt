@@ -121,5 +121,7 @@ data class Reference(
     @SerialName("phone_sign_in") val phoneSignIn: Boolean = false,
     @SerialName("google_sign_in") val googleSignIn: Boolean = false,
     @SerialName("email_code") val emailCode: Boolean = false,
+    /** Lupa Sandi sends the link on WhatsApp, as the web's `whatsappAvailable` (DEC-125). */
+    @SerialName("password_reset_whatsapp") val passwordResetWhatsApp: Boolean = false,
     @SerialName("min_app_version") val minAppVersion: Int? = null,
 )

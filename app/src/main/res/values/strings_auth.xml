@@ -16,7 +16,7 @@
     <string name="login_email_label">Email</string>
     <string name="login_email_hint">nama@email.com</string>
     <string name="login_password_label">Password</string>
-    <string name="login_password_hint">Masukkan password</string>
+    <string name="login_password_hint">* * * * * * *</string>
     <string name="login_forgot_password">Lupa Password ?</string>
     <string name="login_submit">Masuk</string>
     <string name="login_google">Masuk dengan Google</string>
@@ -49,6 +49,11 @@
     <string name="forgot_email_label">Alamat Email</string>
     <string name="forgot_email_hint">nama@email.com</string>
     <string name="forgot_submit">Kirim Email</string>
+    <!-- Lupa Sandi while the link goes to WhatsApp (password_reset_whatsapp), as the web's ForgotPassword page. -->
+    <string name="forgot_subtitle_whatsapp">Masukkan email atau nomor WhatsApp akunmu. Tautan untuk membuat password baru dikirim ke WhatsApp yang tersimpan di akun.</string>
+    <string name="forgot_whatsapp_label">Email atau nomor WhatsApp</string>
+    <string name="forgot_whatsapp_hint">nama@email.com atau 0812 3456 7890</string>
+    <string name="forgot_submit_whatsapp">Kirim ke WhatsApp</string>
     <string name="forgot_back_to_login">Kembali ke halaman login</string>
 
     <!-- Validation and results (not in the design; see README.md, TODO) -->

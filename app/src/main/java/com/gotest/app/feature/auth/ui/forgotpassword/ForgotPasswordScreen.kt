@@ -49,31 +49,45 @@ fun ForgotPasswordScreen(
 ) {
     AuthFormCard(
         title = stringResource(R.string.forgot_title),
-        subtitle = stringResource(R.string.forgot_subtitle),
+        subtitle =
+            stringResource(if (uiState.byWhatsApp) R.string.forgot_subtitle_whatsapp else R.string.forgot_subtitle),
         onBack = onBackToLogin,
         modifier = modifier,
     ) {
         GotestTextField(
             value = uiState.email,
             onValueChange = { onEvent(ForgotPasswordUiEvent.EmailChanged(it)) },
-            label = stringResource(R.string.forgot_email_label),
-            placeholder = stringResource(R.string.forgot_email_hint),
+            label =
+                stringResource(
+                    if (uiState.byWhatsApp) R.string.forgot_whatsapp_label else R.string.forgot_email_label,
+                ),
+            placeholder =
+                stringResource(
+                    if (uiState.byWhatsApp) R.string.forgot_whatsapp_hint else R.string.forgot_email_hint,
+                ),
             leadingIcon = GotestIcons.Linear.DirectNotification,
             supportingText = uiState.emailMessage ?: uiState.emailError?.let { stringResource(it) },
             isError = uiState.emailMessage != null || uiState.emailError != null,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Send),
+            keyboardOptions =
+                KeyboardOptions(
+                    keyboardType = if (uiState.byWhatsApp) KeyboardType.Text else KeyboardType.Email,
+                    imeAction = ImeAction.Send,
+                ),
             keyboardActions = KeyboardActions(onSend = { onEvent(ForgotPasswordUiEvent.Submit) }),
         )
         uiState.sentTo?.let { email ->
             Text(
-                text = stringResource(R.string.forgot_sent, email),
+                text = uiState.sentMessage ?: stringResource(R.string.forgot_sent, email),
                 style = MaterialTheme.typography.bodySmall,
                 color = GotestTheme.colors.statusSuccess,
             )
         }
         Column(verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
             GotestButton(
-                text = stringResource(R.string.forgot_submit),
+                text =
+                    stringResource(
+                        if (uiState.byWhatsApp) R.string.forgot_submit_whatsapp else R.string.forgot_submit,
+                    ),
                 onClick = { onEvent(ForgotPasswordUiEvent.Submit) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isSubmitting,

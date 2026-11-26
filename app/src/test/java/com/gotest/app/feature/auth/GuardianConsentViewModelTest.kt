@@ -81,7 +81,7 @@ class GuardianConsentViewModelTest {
                 password: String,
             ) = Result.success(Unit)
 
-            override suspend fun requestPasswordReset(email: String) = Result.success(Unit)
+            override suspend fun requestPasswordReset(email: String) = Result.success("")
 
             override suspend fun signOut() = Unit
         }

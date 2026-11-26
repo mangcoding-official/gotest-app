@@ -110,7 +110,7 @@ class ApiAuthFlowRepository
                 .onFailure { if ((it as? ApiError)?.fieldError(REGISTRATION_TOKEN) != null) drafts.clearPhoneToken() }
                 .asAuthFlow()
                 .map { reply ->
-                    acceptor.accept(reply)
+                    acceptor.acceptSignUp(reply)
                     if (reply.consentLocked) SignUpResult.AwaitingConsent else SignUpResult.SignedIn
                 }
         }

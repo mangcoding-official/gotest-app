@@ -47,4 +47,5 @@ internal fun Reference.toOptions(): SignInOptions =
         phone = phoneSignIn,
         google = googleSignIn && ApiSignInOptionsRepository.GOOGLE_CLIENT_READY,
         emailCode = emailCode,
+        passwordResetWhatsApp = passwordResetWhatsApp,
     )

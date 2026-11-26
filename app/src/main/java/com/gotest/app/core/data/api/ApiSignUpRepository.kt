@@ -5,6 +5,7 @@ import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.network.SessionSignals
 import com.gotest.app.core.network.apiCall
 import com.gotest.app.core.session.SignUpDraftStore
+import com.gotest.app.core.session.SignUpJoin
 import com.gotest.app.feature.auth.domain.ConsentDelivery
 import com.gotest.app.feature.auth.domain.ConsentState
 import com.gotest.app.feature.auth.domain.ConsentStatus
@@ -41,6 +42,7 @@ class ApiSignUpRepository
         private val drafts: SignUpDraftStore,
         private val options: SignInOptionsRepository,
         private val signals: SessionSignals,
+        private val join: SignUpJoin = SignUpJoin(),
     ) : SignUpRepository {
         private val api = retrofit.create(SignUpApi::class.java)
         private val consent = MutableStateFlow<ConsentState?>(null)
@@ -48,6 +50,8 @@ class ApiSignUpRepository
         override suspend fun registrationInfo(): RegistrationInfo {
             val emailCode = options.options().emailCode
             val info = apiCall(json) { api.signUpInfo(MitraLinkRequest(drafts.mitraLink)) }.getOrNull()
+            // The staff dialog after joining names the Mitra (A2a-1); the sign-up reply only has its code.
+            info?.joinNotice?.organization?.let { join.mitraName = it }
             return RegistrationInfo(
                 guardianQuestion = info?.guardianQuestion?.toQuestion(),
                 emailCode = emailCode,
@@ -156,7 +160,7 @@ class ApiSignUpRepository
 
         private fun finish(reply: SignInReply): SignUpResult {
             consent.value = null
-            acceptor.accept(reply)
+            acceptor.acceptSignUp(reply)
             return if (reply.consentLocked) SignUpResult.AwaitingConsent else SignUpResult.SignedIn
         }
 

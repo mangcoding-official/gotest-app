@@ -12,6 +12,10 @@ data class ForgotPasswordUiState(
     val isSubmitting: Boolean = false,
     /** Email the reset link went to; non-null once sent. */
     val sentTo: String? = null,
+    /** The server's sentence once the link was sent, shown in place of the app's own. */
+    val sentMessage: String? = null,
+    /** The link goes to WhatsApp: the field takes an email or a WhatsApp number (`password_reset_whatsapp`). */
+    val byWhatsApp: Boolean = false,
 )
 
 sealed interface ForgotPasswordUiEvent {

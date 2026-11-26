@@ -4,6 +4,7 @@ import com.gotest.app.core.domain.repository.AuthRepository
 import com.gotest.app.core.network.ApiError
 import com.gotest.app.core.network.SessionSignals
 import com.gotest.app.core.session.SessionNotices
+import com.gotest.app.core.session.SignUpJoin
 import com.gotest.app.feature.auth.domain.EmailVerificationRepository
 import com.gotest.app.feature.auth.domain.EmailVerificationState
 import com.gotest.app.feature.auth.domain.EmailVerified
@@ -35,6 +36,7 @@ import java.io.IOException
 class EmailVerificationViewModelTest {
     private val signals = SessionSignals().apply { markAwaitingEmailVerification() }
     private val notices = SessionNotices()
+    private val join = SignUpJoin()
     private var stateReply: Result<EmailVerificationState> = Result.success(WAITING)
     private var resendReply: Result<EmailVerificationState> = Result.success(WAITING.copy(resendIn = 60))
     private var verifyReply: Result<EmailVerified> = Result.success(EmailVerified())
@@ -70,7 +72,7 @@ class EmailVerificationViewModelTest {
                 password: String,
             ) = Result.success(Unit)
 
-            override suspend fun requestPasswordReset(email: String) = Result.success(Unit)
+            override suspend fun requestPasswordReset(email: String) = Result.success("")
 
             override suspend fun signOut() {
                 signedOut = true
@@ -79,7 +81,7 @@ class EmailVerificationViewModelTest {
 
     private fun TestScope.viewModel(): EmailVerificationViewModel {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        return EmailVerificationViewModel(repository, auth, signals, notices).also { runCurrent() }
+        return EmailVerificationViewModel(repository, auth, signals, notices, join).also { runCurrent() }
     }
 
     @After
@@ -98,7 +100,8 @@ class EmailVerificationViewModelTest {
             runCurrent()
 
             assertEquals(listOf("123456"), verified)
-            assertEquals(EmailVerificationEffect.Verified("SMP1BTG"), vm.effects.first())
+            assertEquals(EmailVerificationEffect.Verified, vm.effects.first())
+            assertEquals(JoinedMitra("SMP1BTG", "siswa"), join.joined.value)
             assertFalse(signals.awaitingEmailVerification.value)
         }
 
@@ -176,7 +179,8 @@ class EmailVerificationViewModelTest {
             stateReply = Result.success(WAITING.copy(waiting = false))
             val vm = viewModel()
 
-            assertEquals(EmailVerificationEffect.Verified(null), vm.effects.first())
+            assertEquals(EmailVerificationEffect.Verified, vm.effects.first())
+            assertEquals(null, join.joined.value)
             assertFalse(signals.awaitingEmailVerification.value)
         }
 
