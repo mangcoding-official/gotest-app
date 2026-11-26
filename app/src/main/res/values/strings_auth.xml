@@ -16,6 +16,7 @@
     <string name="login_email_label">Email</string>
     <string name="login_email_hint">nama@email.com</string>
     <string name="login_password_label">Password</string>
+    <string name="login_password_hint">* * * * * * *</string>
     <string name="login_forgot_password">Lupa Password ?</string>
     <string name="login_submit">Masuk</string>
     <string name="login_google">Masuk dengan Google</string>
@@ -30,7 +31,7 @@
     <string name="register_email_label">Alamat Email</string>
     <string name="register_email_hint">nama@email.com</string>
     <string name="register_password_label">Kata Sandi</string>
-    <string name="register_password_hint">Minimal 8 karakter</string>
+    <string name="register_password_hint">* * * * * * *</string>
     <string name="register_confirm_label">Konfirmasi Kata Sandi</string>
     <string name="register_confirm_hint">Ulangi kata sandi</string>
     <string name="register_submit">Daftar</string>
@@ -48,6 +49,11 @@
     <string name="forgot_email_label">Alamat Email</string>
     <string name="forgot_email_hint">nama@email.com</string>
     <string name="forgot_submit">Kirim Email</string>
+    <!-- Lupa Sandi while the link goes to WhatsApp (password_reset_whatsapp), as the web's ForgotPassword page. -->
+    <string name="forgot_subtitle_whatsapp">Masukkan email atau nomor WhatsApp akunmu. Tautan untuk membuat password baru dikirim ke WhatsApp yang tersimpan di akun.</string>
+    <string name="forgot_whatsapp_label">Email atau nomor WhatsApp</string>
+    <string name="forgot_whatsapp_hint">nama@email.com atau 0812 3456 7890</string>
+    <string name="forgot_submit_whatsapp">Kirim ke WhatsApp</string>
     <string name="forgot_back_to_login">Kembali ke halaman login</string>
 
     <!-- Validation and results (not in the design; see README.md, TODO) -->
@@ -56,6 +62,12 @@
     <string name="auth_error_password_length">Minimal 8 karakter</string>
     <string name="auth_error_password_mismatch">Kata sandi belum sama</string>
     <string name="auth_error_sign_in">Email atau password salah</string>
+    <string name="auth_error_offline">Koneksi terputus. Periksa internetmu lalu coba lagi.</string>
+    <!-- Google's account picker failed on the phone; the server's own sentence for a token it refuses. -->
+    <string name="auth_google_failed">Gagal masuk dengan Google. Silakan coba lagi.</string>
+    <string name="auth_error_server">Terjadi kesalahan di server. Coba lagi sebentar lagi.</string>
+    <!-- Laravel max:72 on kata sandi (Password::defaults, T-026 required 8). -->
+    <string name="auth_error_password_max">Kata sandi tidak boleh lebih dari 72 karakter.</string>
     <string name="forgot_sent">Link reset password sudah dikirim ke %1$s</string>
 
     <!-- New password rule, as on the web (T-018) -->
@@ -117,6 +129,9 @@
     <string name="phone_register_name_hint">nama Pelajar</string>
     <string name="phone_register_name_required">Nama wajib diisi.</string>
     <string name="phone_register_submit">Selesai daftar</string>
+    <!-- The same page for a new Google account (web: Auth/GoogleRegister.tsx). -->
+    <string name="google_register_subtitle">Akun Google %1$s sudah terhubung. Lengkapi data berikut untuk menyelesaikan pendaftaran.</string>
+    <string name="google_register_cancel">Batal</string>
 
     <!-- Jenjang pendidikan (web: Components/Auth/EducationLevelFields.tsx, app/Support/EducationLevel.php) -->
     <string name="education_label">Jenjang pendidikan</string>
@@ -192,4 +207,15 @@
     <string name="login_code_note">Kami kirim kode 6 angka ke email ini, jadi kamu bisa masuk tanpa kata sandi.</string>
     <string name="login_code_send">Kirim kode ke email</string>
     <string name="login_code_sent">Bila %1$s terdaftar di Gotest, kode 6 angka dikirim ke sana. Kode berlaku 10 menit. Belum masuk? Cek juga folder spam.</string>
+    <!-- Menunggu verifikasi email (DEC-154, T-042; web Auth/EmailVerificationWaiting and EmailCodeForm) -->
+    <string name="email_verify_heading">Satu langkah lagi untuk akunmu.</string>
+    <string name="email_verify_lede">Akunmu sudah dibuat. Setelah emailmu terverifikasi, kamu bisa langsung mulai belajar di Gotest.</string>
+    <string name="email_verify_title">Menunggu verifikasi email</string>
+    <string name="email_verify_body">Masukkan kode dari email untuk membuka akunmu.</string>
+    <string name="email_verify_body_failed">Kode belum bisa dikirim ke emailmu. Tekan Kirim ulang kode beberapa saat lagi, atau tunggu tim Gotest memverifikasi emailmu.</string>
+    <string name="email_verify_notice_failed">Email akunmu: %1$s. Salah tulis email? Hapus akun ini, lalu daftar lagi dengan email yang benar.</string>
+    <string name="email_verify_submit">Verifikasi email</string>
+    <string name="email_verify_offline">Koneksi terputus. Periksa internetmu lalu coba lagi.</string>
+    <!-- Web flash after the code, when the Mitra link of the sign-up could not be used (DEC-154). -->
+    <string name="email_verified_notice">Emailmu sudah terverifikasi. %1$s</string>
 </resources>

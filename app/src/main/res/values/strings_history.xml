@@ -26,6 +26,9 @@
     <string name="history_loading">Memuat...</string>
     <string name="history_empty_title">Belum ada riwayat</string>
     <string name="history_empty_message">Kerjakan latihan atau Try Out untuk melihat hasil di sini.</string>
+    <string name="history_empty_filtered_title">Hasil tidak ditemukan</string>
+    <string name="history_empty_filtered_message">Tidak ada riwayat pengerjaan yang cocok dengan kata kunci atau filter yang dipilih.</string>
+    <string name="history_reset_filter">Reset Filter</string>
     <string name="history_no_date">Tanpa tanggal</string>
     <string name="history_date_missing">Belum tersedia</string>
     <string name="history_session">Sesi: %1$s</string>

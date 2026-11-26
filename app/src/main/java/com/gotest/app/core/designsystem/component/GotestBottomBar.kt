@@ -74,7 +74,12 @@ fun GotestBottomBar(
                 Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = spacing.screenHorizontal, vertical = spacing.sm),
+                    .padding(
+                        start = spacing.screenHorizontal,
+                        end = spacing.screenHorizontal,
+                        top = spacing.xs,
+                        bottom = spacing.md,
+                    ),
             horizontalArrangement = Arrangement.spacedBy(spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {

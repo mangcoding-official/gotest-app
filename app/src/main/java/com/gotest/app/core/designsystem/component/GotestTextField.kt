@@ -61,6 +61,8 @@ fun GotestTextField(
     placeholder: String? = null,
     @DrawableRes leadingIcon: Int? = null,
     trailingContent: (@Composable () -> Unit)? = null,
+    showClearButton: Boolean = (leadingIcon == GotestIcons.Linear.SearchNormal),
+    onClear: (() -> Unit)? = null,
     supportingText: String? = null,
     isError: Boolean = false,
     enabled: Boolean = true,
@@ -73,6 +75,37 @@ fun GotestTextField(
     val colors = GotestTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
+
+    val resolvedTrailingContent: (@Composable () -> Unit)? =
+        when {
+            trailingContent != null -> {
+                trailingContent
+            }
+
+            showClearButton && value.isNotEmpty() -> {
+                {
+                    Icon(
+                        painter = painterResource(GotestIcons.Linear.CloseCircle),
+                        contentDescription = stringResource(R.string.cd_clear_search),
+                        modifier =
+                            Modifier
+                                .size(GotestTheme.sizes.iconMd)
+                                .clickable(
+                                    role = Role.Button,
+                                    onClick = {
+                                        onValueChange("")
+                                        onClear?.invoke()
+                                    },
+                                ),
+                        tint = colors.iconMuted,
+                    )
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
 
     Column(
         modifier = modifier.alpha(if (enabled) 1f else DISABLED_ALPHA),
@@ -102,7 +135,7 @@ fun GotestTextField(
                     showPlaceholder = value.isEmpty(),
                     placeholder = placeholder,
                     leadingIcon = leadingIcon,
-                    trailingContent = trailingContent,
+                    trailingContent = resolvedTrailingContent,
                     innerTextField = innerTextField,
                 )
             },

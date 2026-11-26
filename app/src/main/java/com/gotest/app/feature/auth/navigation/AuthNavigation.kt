@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.gotest.app.feature.auth.ui.childlogin.ChildLoginRoute
 import com.gotest.app.feature.auth.ui.consent.GuardianConsentRoute
+import com.gotest.app.feature.auth.ui.emailverification.EmailVerificationRoute
 import com.gotest.app.feature.auth.ui.forgotpassword.ForgotPasswordRoute
 import com.gotest.app.feature.auth.ui.login.LoginRoute
 import com.gotest.app.feature.auth.ui.onboarding.OnboardingRoute
@@ -13,6 +14,7 @@ import com.gotest.app.feature.auth.ui.register.RegisterRoute
 import com.gotest.app.feature.auth.ui.resetpassword.ResetPasswordRoute
 import com.gotest.app.navigation.ChildLoginDestination
 import com.gotest.app.navigation.DeleteAccountDestination
+import com.gotest.app.navigation.EmailVerificationDestination
 import com.gotest.app.navigation.ForgotPasswordDestination
 import com.gotest.app.navigation.GuardianConsentDestination
 import com.gotest.app.navigation.HomeDestination
@@ -39,6 +41,9 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
             },
             onChildSignIn = { navController.navigate(ChildLoginDestination) },
             onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
+            onGoogleRegister = { name, email ->
+                navController.navigate(PhoneRegisterDestination(email, viaGoogle = true, name = name))
+            },
         )
     }
     composable<ChildLoginDestination> {
@@ -65,6 +70,9 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
             },
             onBack = navController::navigateUp,
             onPhoneRegister = { phone -> navController.navigate(PhoneRegisterDestination(phone)) },
+            onGoogleRegister = { name, email ->
+                navController.navigate(PhoneRegisterDestination(email, viaGoogle = true, name = name))
+            },
             onAwaitConsent = navController::navigateToConsentClearingAuth,
         )
     }
@@ -77,6 +85,15 @@ fun NavGraphBuilder.authScreens(navController: NavController) {
     }
     composable<GuardianConsentDestination> {
         GuardianConsentRoute(
+            onSignOutSuccess = navController::navigateToOnboardingClearingAll,
+            onApprove = navController::navigateToHomeClearingAuth,
+            onDeleteAccount = { navController.navigate(DeleteAccountDestination(awaitingConsent = true)) },
+        )
+    }
+    composable<EmailVerificationDestination> {
+        EmailVerificationRoute(
+            // The Mitra the sign-up link joined opens from Beranda, as the web goes to it (DEC-154, A2a-1).
+            onAccountOpen = navController::navigateToHomeClearingAuth,
             onSignOutSuccess = navController::navigateToOnboardingClearingAll,
             onDeleteAccount = { navController.navigate(DeleteAccountDestination(awaitingConsent = true)) },
         )

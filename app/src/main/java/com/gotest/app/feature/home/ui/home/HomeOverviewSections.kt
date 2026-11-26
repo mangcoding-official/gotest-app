@@ -48,13 +48,13 @@ import com.gotest.app.core.designsystem.component.GotestProgressBar
 import com.gotest.app.core.designsystem.component.singleLineAutoSize
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.core.model.StudyPackage
-import com.gotest.app.core.model.UserStats
 import com.gotest.app.core.ui.GotestFormat
+import com.gotest.app.feature.home.domain.ContinueAttempt
+import com.gotest.app.feature.home.domain.DashboardStats
 import com.gotest.app.feature.home.ui.components.HomeDimens
 import com.gotest.app.feature.home.ui.components.HomeIconTile
 import com.gotest.app.feature.home.ui.components.HomeMetaDot
-import kotlin.math.abs
+import kotlin.math.roundToInt
 
 private const val PERCENT = 100
 
@@ -139,7 +139,7 @@ internal fun HomePromoBanner(
 /** Three stat cards; [stats] null shows "-" (new student). */
 @Composable
 internal fun HomeStatsRow(
-    stats: UserStats?,
+    stats: DashboardStats?,
     modifier: Modifier = Modifier,
 ) {
     val colors = GotestTheme.colors
@@ -152,8 +152,7 @@ internal fun HomeStatsRow(
             icon = GotestIcons.Linear.TaskSquare,
             containerColor = colors.statusSuccessSoft,
             iconColor = colors.illustrationGreenDark,
-            value = stats?.let { GotestFormat.number(it.questionsAnswered) },
-            trendPercent = stats?.questionsTrendPercent,
+            value = stats?.let { GotestFormat.number(it.questionsDone) },
             label = R.string.home_stat_questions,
             modifier = cardModifier,
         )
@@ -162,8 +161,7 @@ internal fun HomeStatsRow(
             icon = GotestIcons.Linear.Award,
             containerColor = colors.bgBlueSoft,
             iconColor = colors.bgBlueDark,
-            value = stats?.let { stringResource(R.string.percent_value, it.accuracyPercent) },
-            trendPercent = stats?.accuracyTrendPercent,
+            value = stats?.let { stringResource(R.string.percent_value, it.accuracy) },
             label = R.string.home_stat_accuracy,
             modifier = cardModifier,
         )
@@ -171,8 +169,7 @@ internal fun HomeStatsRow(
             icon = GotestIcons.Linear.TickCircle,
             containerColor = colors.bgBrandSoft,
             iconColor = colors.iconBrandDark,
-            value = stats?.let { GotestFormat.number(it.packagesCompleted) },
-            trendPercent = stats?.packagesTrendPercent,
+            value = stats?.let { GotestFormat.number(it.packagesDone) },
             label = R.string.home_stat_packages,
             modifier = cardModifier,
         )
@@ -185,7 +182,6 @@ private fun HomeStatCard(
     containerColor: Color,
     iconColor: Color,
     value: String?,
-    trendPercent: Int?,
     @StringRes label: Int,
     modifier: Modifier = Modifier,
 ) {
@@ -202,20 +198,11 @@ private fun HomeStatCard(
             shape = MaterialTheme.shapes.extraSmall,
         )
         Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(spacing.xxs),
-                itemVerticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = value ?: stringResource(R.string.home_stat_empty),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = GotestTheme.colors.textPrimary,
-                )
-                if (trendPercent != null) {
-                    HomeTrendBadge(percent = trendPercent)
-                }
-            }
+            Text(
+                text = value ?: stringResource(R.string.home_stat_empty),
+                style = MaterialTheme.typography.titleMedium,
+                color = GotestTheme.colors.textPrimary,
+            )
             Text(
                 text = stringResource(label),
                 style = MaterialTheme.typography.bodySmall,
@@ -224,39 +211,6 @@ private fun HomeStatCard(
                 autoSize = singleLineAutoSize(MaterialTheme.typography.bodySmall),
             )
         }
-    }
-}
-
-/** Week-over-week change: red and down when negative, green and up otherwise. */
-@Composable
-private fun HomeTrendBadge(
-    percent: Int,
-    modifier: Modifier = Modifier,
-) {
-    val rising = percent >= 0
-    val color = if (rising) GotestTheme.colors.statusSuccess else GotestTheme.colors.statusDanger
-    val description =
-        stringResource(if (rising) R.string.home_cd_trend_up else R.string.home_cd_trend_down, abs(percent))
-    Row(
-        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = description },
-        horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = stringResource(R.string.percent_value, abs(percent)),
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-        )
-        // The design's boxed trend-line icon is not exported; arrows are the closest match.
-        Icon(
-            painter = painterResource(if (rising) GotestIcons.Linear.ArrowUp else GotestIcons.Linear.ArrowDown),
-            contentDescription = null,
-            modifier =
-                Modifier
-                    .size(GotestTheme.sizes.iconSm)
-                    .border(GotestTheme.sizes.strokeThin, color, MaterialTheme.shapes.extraSmall),
-            tint = color,
-        )
     }
 }
 
@@ -323,85 +277,82 @@ internal fun HomeMultiplayerCard(
     }
 }
 
-/** "Lanjutkan" card for the package the student left unfinished. */
+/** Web ContinueCard: the attempt left unfinished, its progress, and "Lanjutkan Latihan" or "Lanjutkan Try Out". */
 @Composable
 internal fun HomeContinueCard(
-    studyPackage: StudyPackage,
+    attempt: ContinueAttempt,
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
     val colors = GotestTheme.colors
-    val progress = studyPackage.progress
+    val label = stringResource(if (attempt.isTryout) R.string.home_continue_tryout else R.string.home_continue_practice)
+    val total = attempt.questionCount
+    val fraction = if (total > 0) attempt.answeredCount.toFloat() / total else 0f
     GotestCard(modifier = modifier.fillMaxWidth(), verticalSpacing = spacing.lg) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                Text(
-                    text = studyPackage.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.textPrimary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                HomePackageMeta(studyPackage = studyPackage)
-            }
-            GotestButton(
-                text = stringResource(R.string.home_continue_action),
-                onClick = onContinue,
-                size = GotestButtonSize.Medium,
-                trailingIcon = GotestIcons.Linear.ArrowRight,
+        GotestChip(text = label, tone = GotestChipTone.Violet)
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Text(
+                text = attempt.packageName,
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.textPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            HomeMeta(
+                parts =
+                    listOfNotNull(
+                        attempt.categoryName ?: stringResource(R.string.home_category_general),
+                        stringResource(R.string.home_package_question_count, attempt.questionCount),
+                        attempt.durationMinutes?.let { stringResource(R.string.home_package_duration, it) },
+                    ),
             )
         }
-        if (progress != null) {
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(colors.bgSubtle, GotestTheme.shapes.full)
-                            .border(GotestTheme.sizes.strokeThin, colors.borderSubtle, GotestTheme.shapes.full)
-                            .padding(spacing.xxs),
-                ) {
-                    GotestProgressBar(
-                        progress = progress.fraction,
-                        color = colors.bgBlue,
-                        trackColor = Color.Transparent,
-                        height = HomeDimens.continueProgressHeight,
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(R.string.home_continue_progress, progress.correct, progress.total),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
-                    )
-                    Text(
-                        text = stringResource(R.string.percent_value, (progress.fraction * PERCENT).toInt()),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colors.textPrimary,
-                    )
-                }
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.home_continue_progress, attempt.answeredCount, total),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.textSecondary,
+                )
+                Text(
+                    text = stringResource(R.string.percent_value, (fraction * PERCENT).roundToInt()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.textPrimary,
+                )
+            }
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(colors.bgSubtle, GotestTheme.shapes.full)
+                        .border(GotestTheme.sizes.strokeThin, colors.borderSubtle, GotestTheme.shapes.full)
+                        .padding(spacing.xxs),
+            ) {
+                GotestProgressBar(
+                    progress = fraction,
+                    color = colors.bgBlue,
+                    trackColor = Color.Transparent,
+                    height = HomeDimens.continueProgressHeight,
+                )
             }
         }
+        GotestButton(
+            text = label,
+            onClick = onContinue,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = GotestIcons.Linear.ArrowRight,
+        )
     }
 }
 
 /** "UTBK-SNBT • 20 Soal • 45 Menit". */
 @Composable
-private fun HomePackageMeta(
-    studyPackage: StudyPackage,
+internal fun HomeMeta(
+    parts: List<String>,
     modifier: Modifier = Modifier,
 ) {
-    val parts =
-        listOfNotNull(
-            studyPackage.examLabel,
-            stringResource(R.string.home_package_question_count, studyPackage.questionCount),
-            studyPackage.durationMinutes?.let { stringResource(R.string.home_package_duration, it) },
-        )
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
@@ -418,37 +369,49 @@ private fun HomePackageMeta(
     }
 }
 
-/** Empty-state replacement for "Lanjutkan": points a new student at the catalogue. */
+/**
+ * Web ContinueCard without an attempt in progress: a new student starts their first Latihan; one who finished
+ * packages is told everything is done (review R-01).
+ */
 @Composable
 internal fun HomeFirstPracticeCard(
+    hasHistory: Boolean,
     onBrowsePackages: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
-    GotestCard(modifier = modifier.fillMaxWidth()) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                Text(
-                    text = stringResource(R.string.home_first_practice_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = GotestTheme.colors.textPrimary,
-                )
-                Text(
-                    text = stringResource(R.string.home_first_practice_body),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = GotestTheme.colors.textSecondary,
-                )
-            }
-            GotestButton(
-                text = stringResource(R.string.home_first_practice_action),
-                onClick = onBrowsePackages,
-                size = GotestButtonSize.Medium,
-                trailingIcon = GotestIcons.Linear.ArrowRight,
+    GotestCard(modifier = modifier.fillMaxWidth(), verticalSpacing = spacing.md) {
+        GotestChip(
+            text =
+                stringResource(
+                    if (hasHistory) R.string.home_no_attempt_badge else R.string.home_first_practice_badge,
+                ),
+            tone = GotestChipTone.Violet,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Text(
+                text =
+                    stringResource(
+                        if (hasHistory) R.string.home_no_attempt_title else R.string.home_first_practice_title,
+                    ),
+                style = MaterialTheme.typography.titleMedium,
+                color = GotestTheme.colors.textPrimary,
+            )
+            Text(
+                text =
+                    stringResource(
+                        if (hasHistory) R.string.home_no_attempt_body else R.string.home_first_practice_body,
+                    ),
+                style = MaterialTheme.typography.bodySmall,
+                color = GotestTheme.colors.textSecondary,
             )
         }
+        GotestButton(
+            text = stringResource(R.string.home_first_practice_action),
+            onClick = onBrowsePackages,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = GotestIcons.Linear.ArrowRight,
+        )
     }
 }
 
@@ -473,7 +436,7 @@ private fun HomeStatsRowPreview() {
             modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
             verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
         ) {
-            HomeStatsRow(stats = HomePreviewData.stats)
+            HomeStatsRow(stats = HomePreviewData.page.stats)
             HomeStatsRow(stats = null)
         }
     }
@@ -489,8 +452,8 @@ private fun HomeCardsPreview() {
         ) {
             HomePromoBanner(onClick = {})
             HomeMultiplayerCard(onJoinGame = {}, onCreateGame = {})
-            HomeContinueCard(studyPackage = HomePreviewData.inProgress, onContinue = {})
-            HomeFirstPracticeCard(onBrowsePackages = {})
+            HomePreviewData.page.continueAttempt?.let { HomeContinueCard(attempt = it, onContinue = {}) }
+            HomeFirstPracticeCard(hasHistory = false, onBrowsePackages = {})
         }
     }
 }

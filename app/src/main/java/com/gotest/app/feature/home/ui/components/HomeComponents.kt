@@ -35,6 +35,11 @@ import com.gotest.app.core.designsystem.theme.GotestTheme
 
 /** Sizes the home designs use that have no token. */
 internal object HomeDimens {
+    /** The "#" and "Poin" columns of Beranda's Leaderboard, and its initials circle (web MiniLeaderboard). */
+    val leaderboardRankWidth = 40.dp
+    val leaderboardPointsWidth = 64.dp
+    val leaderboardInitials = 24.dp
+
     /** "Paket Untukmu" card; the next card peeks in from the edge. */
     val packageCardWidth = 268.dp
 

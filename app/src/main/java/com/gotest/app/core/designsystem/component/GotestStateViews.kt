@@ -1,12 +1,19 @@
 package com.gotest.app.core.designsystem.component
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -14,8 +21,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -38,6 +47,67 @@ fun GotestLoadingView(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(color = GotestTheme.colors.bgBrandDark)
+    }
+}
+
+@Composable
+fun Modifier.shimmer(): Modifier {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val alpha by transition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.7f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 750, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "shimmerAlpha",
+    )
+    return this.alpha(alpha)
+}
+
+/** Shimmering skeleton cards displayed while content is loading. */
+private const val SKELETON_TITLE_WIDTH = 0.6f
+private const val SKELETON_LINE_WIDTH = 0.9f
+private const val SKELETON_SHORT_LINE_WIDTH = 0.4f
+private const val SKELETON_TITLE_DIVISOR = 2
+private const val SKELETON_LINE_DIVISOR = 3
+
+@Composable
+fun GotestSkeletonCardList(
+    modifier: Modifier = Modifier,
+    cardCount: Int = 3,
+) {
+    val colors = GotestTheme.colors
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.md),
+    ) {
+        repeat(cardCount) {
+            GotestCard(modifier = Modifier.fillMaxWidth().shimmer()) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(SKELETON_TITLE_WIDTH)
+                            .height(GotestTheme.sizes.inputHeight / SKELETON_TITLE_DIVISOR)
+                            .background(colors.bgSubtle, MaterialTheme.shapes.small),
+                )
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(SKELETON_LINE_WIDTH)
+                            .height(GotestTheme.sizes.inputHeight / SKELETON_LINE_DIVISOR)
+                            .background(colors.bgSubtle, MaterialTheme.shapes.small),
+                )
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(SKELETON_SHORT_LINE_WIDTH)
+                            .height(GotestTheme.sizes.inputHeight / SKELETON_LINE_DIVISOR)
+                            .background(colors.bgSubtle, MaterialTheme.shapes.small),
+                )
+            }
+        }
     }
 }
 

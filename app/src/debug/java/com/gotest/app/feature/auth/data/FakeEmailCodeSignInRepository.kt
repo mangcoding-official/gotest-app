@@ -23,8 +23,6 @@ class FakeEmailCodeSignInRepository
         private var pendingEmail: String? = null
         private var wrong = 0
 
-        override suspend fun isAvailable(): Boolean = true
-
         override suspend fun sendCode(email: String): Result<String> {
             simulateLatency()
             val normalized = email.trim().lowercase()

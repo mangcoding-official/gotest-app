@@ -44,6 +44,8 @@ import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
 import com.gotest.app.feature.auth.ui.components.EducationLevelPicker
 import com.gotest.app.feature.auth.ui.components.GuardianFields
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblemView
+import com.gotest.app.feature.auth.ui.components.rememberGoogleIdToken
 import com.gotest.app.feature.auth.ui.phone.PhoneCodeForm
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInEffect
 import com.gotest.app.feature.auth.ui.phone.PhoneSignInUiEvent
@@ -56,6 +58,7 @@ fun RegisterRoute(
     onSignIn: () -> Unit,
     onBack: () -> Unit,
     onPhoneRegister: (phoneDisplay: String) -> Unit,
+    onGoogleRegister: (name: String, email: String) -> Unit,
     onAwaitConsent: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = hiltViewModel(),
@@ -75,11 +78,21 @@ fun RegisterRoute(
         when (effect) {
             RegisterEffect.Registered -> onRegisterSuccess()
             RegisterEffect.AwaitingConsent -> onAwaitConsent()
+            is RegisterEffect.GoogleRegister -> onGoogleRegister(effect.name, effect.email)
         }
     }
+    val pickGoogleAccount = rememberGoogleIdToken { viewModel.onEvent(RegisterUiEvent.GoogleResult(it)) }
     RegisterScreen(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = { event ->
+            if (event ==
+                RegisterUiEvent.GoogleSignUp
+            ) {
+                pickGoogleAccount()
+            } else {
+                viewModel.onEvent(event)
+            }
+        },
         onSignIn = onSignIn,
         onBack = onBack,
         modifier = modifier,
@@ -98,7 +111,6 @@ fun RegisterScreen(
     phoneState: PhoneSignInUiState = PhoneSignInUiState(),
     onPhoneEvent: (PhoneSignInUiEvent) -> Unit = {},
 ) {
-    val spacing = GotestTheme.spacing
     val codeStep = uiState.codeStep
     AuthFormCard(
         title = stringResource(if (codeStep != null) R.string.register_code_title else R.string.register_title),
@@ -124,26 +136,17 @@ fun RegisterScreen(
         ) {
             AuthMethodTabs(phoneSelected = phoneTab, onSelectPhone = { phoneTab = it })
         }
-        when {
-            codeStep != null -> {
-                RegisterCodeForm(step = codeStep, isSubmitting = uiState.isSubmitting, onEvent = onEvent)
-            }
-
-            showPhone -> {
-                PhoneCodeForm(
-                    uiState = phoneState,
-                    onEvent = onPhoneEvent,
-                    submitText = stringResource(R.string.phone_submit_register),
-                )
-            }
-
-            else -> {
-                RegisterFields(uiState = uiState, onEvent = onEvent)
-            }
-        }
+        RegisterBody(
+            uiState = uiState,
+            showPhone = showPhone,
+            phoneState = phoneState,
+            onEvent = onEvent,
+            onPhoneEvent = onPhoneEvent,
+        )
         if (codeStep == null) {
             RegisterActions(
-                showSubmit = !showPhone,
+                showSubmit = !showPhone && uiState.infoProblem == null,
+                showGoogle = uiState.showGoogle,
                 isSubmitting = uiState.isSubmitting,
                 onEvent = onEvent,
                 onSignIn = onSignIn,
@@ -154,9 +157,44 @@ fun RegisterScreen(
     }
 }
 
+/** The email code step, the Nomor HP form, why the page could not load, or the email form. */
+@Composable
+private fun RegisterBody(
+    uiState: RegisterUiState,
+    showPhone: Boolean,
+    phoneState: PhoneSignInUiState,
+    onEvent: (RegisterUiEvent) -> Unit,
+    onPhoneEvent: (PhoneSignInUiEvent) -> Unit,
+) {
+    val codeStep = uiState.codeStep
+    val problem = uiState.infoProblem
+    when {
+        codeStep != null -> {
+            RegisterCodeForm(step = codeStep, isSubmitting = uiState.isSubmitting, onEvent = onEvent)
+        }
+
+        showPhone -> {
+            PhoneCodeForm(
+                uiState = phoneState,
+                onEvent = onPhoneEvent,
+                submitText = stringResource(R.string.phone_submit_register),
+            )
+        }
+
+        problem != null -> {
+            InfoProblemView(problem = problem, onRetry = { onEvent(RegisterUiEvent.RetryInfo) })
+        }
+
+        else -> {
+            RegisterFields(uiState = uiState, onEvent = onEvent)
+        }
+    }
+}
+
 @Composable
 private fun RegisterActions(
     showSubmit: Boolean,
+    showGoogle: Boolean,
     isSubmitting: Boolean,
     onEvent: (RegisterUiEvent) -> Unit,
     onSignIn: () -> Unit,
@@ -171,13 +209,15 @@ private fun RegisterActions(
                 enabled = !isSubmitting,
             )
         }
-        GotestButton(
-            text = stringResource(R.string.register_google),
-            onClick = { onEvent(RegisterUiEvent.GoogleSignUp) },
-            modifier = Modifier.fillMaxWidth(),
-            variant = GotestButtonVariant.Plain,
-            enabled = !isSubmitting,
-        )
+        if (showGoogle) {
+            GotestButton(
+                text = stringResource(R.string.register_google),
+                onClick = { onEvent(RegisterUiEvent.GoogleSignUp) },
+                modifier = Modifier.fillMaxWidth(),
+                variant = GotestButtonVariant.Plain,
+                enabled = !isSubmitting,
+            )
+        }
         AuthSwitchPrompt(
             prompt = stringResource(R.string.register_has_account),
             linkText = stringResource(R.string.register_login_link),
@@ -245,8 +285,15 @@ private fun RegisterFields(
             })
         }
         if (uiState.emailCode) NoteText(stringResource(R.string.register_email_code_note))
-        messages["form"]?.let { ErrorNote(it) }
+        FormNote(uiState)
     }
+}
+
+/** The server's text for the whole form, or the app's own when the server could not be reached. */
+@Composable
+private fun FormNote(uiState: RegisterUiState) {
+    val text = uiState.messages["form"] ?: uiState.formError?.let { stringResource(it) }
+    if (text != null) ErrorNote(text)
 }
 
 /** "Cek email kamu": the code from the email makes the account (web: Components/Auth/EmailCodeForm.tsx). */
@@ -265,8 +312,8 @@ private fun RegisterCodeForm(
             onValueChange = { onEvent(RegisterUiEvent.CodeChanged(it)) },
             label = stringResource(R.string.register_code_label),
             placeholder = stringResource(R.string.code_hint),
-            supportingText = step.codeMessage,
-            isError = step.codeMessage != null,
+            supportingText = step.codeMessage ?: step.codeErrorRes?.let { stringResource(it) },
+            isError = step.codeMessage != null || step.codeErrorRes != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onEvent(RegisterUiEvent.ConfirmCode) }),
         )
@@ -310,7 +357,7 @@ private fun JoinNoticeBox(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         containerColor = GotestTheme.colors.bgSubtle,
-        contentPadding = PaddingValues(horizontal = GotestTheme.spacing.md, vertical = GotestTheme.spacing.sm),
+        contentPadding = PaddingValues(horizontal = GotestTheme.spacing.sm, vertical = GotestTheme.spacing.sm),
         verticalSpacing = GotestTheme.spacing.xs,
     ) {
         NoteText(
@@ -389,7 +436,12 @@ private val PreviewQuestion =
 @Composable
 private fun RegisterScreenPreview() {
     GotestTheme {
-        RegisterScreen(uiState = RegisterUiState(emailCode = true), onEvent = {}, onSignIn = {}, onBack = {})
+        RegisterScreen(
+            uiState = RegisterUiState(emailCode = true, showGoogle = true),
+            onEvent = {},
+            onSignIn = {},
+            onBack = {},
+        )
     }
 }
 

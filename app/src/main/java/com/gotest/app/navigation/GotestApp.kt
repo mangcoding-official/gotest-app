@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -23,6 +26,10 @@ import com.gotest.app.R
 import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestBottomBar
 import com.gotest.app.core.designsystem.component.GotestBottomBarItem
+import com.gotest.app.feature.ruang.domain.JoinedMitra
+import com.gotest.app.feature.ruang.ui.join.JoinedMitraSaver
+import com.gotest.app.feature.ruang.ui.join.STUDENT
+import com.gotest.app.feature.ruang.ui.join.StaffJoinedDialog
 
 /**
  * App shell. The bottom bar floats over the content (as in the design) and only shows on
@@ -47,10 +54,12 @@ fun GotestApp(
     val startDestination: Any = remember { if (viewModel.startSignedIn) HomeDestination else OnboardingDestination }
     val expired by viewModel.expired.collectAsStateWithLifecycle()
     val awaitingConsent by viewModel.awaitingConsent.collectAsStateWithLifecycle()
+    val awaitingEmailVerification by viewModel.awaitingEmailVerification.collectAsStateWithLifecycle()
     SessionRedirects(
         navController = navController,
         expired = expired,
         awaitingConsent = awaitingConsent,
+        awaitingEmailVerification = awaitingEmailVerification,
         onExpiredHandle = viewModel::consumeExpired,
     )
 
@@ -58,30 +67,30 @@ fun GotestApp(
     val currentOnAppLinkConsume by rememberUpdatedState(onAppLinkConsume)
     LaunchedEffect(appLink, isSignedIn) {
         val link = appLink ?: return@LaunchedEffect
-        if (link !is AppLink.ResetPassword && !isSignedIn) return@LaunchedEffect
-        when (link) {
-            is AppLink.ResetPassword -> {
-                navController.navigate(ResetPasswordDestination(link.token, link.email))
-            }
-
-            is AppLink.MainBarengCode -> {
-                navController.navigate(MultiplayerDestination(joinCode = link.code))
-            }
-
-            is AppLink.JoinCode -> {
-                navController.navigate(JoinCodeDestination(link.code))
-            }
-
-            is AppLink.Invitation -> {
-                navController.navigate(InvitationDestination(link.token))
-            }
+        if (link !is AppLink.ResetPassword && !isSignedIn) {
+            viewModel.keepMitraLink(link)
+            return@LaunchedEffect
         }
+        if (viewModel.usedBySignUp(link)) {
+            // Daftar already joined its Mitra, as the web does not open the link again (A2a-1).
+            currentOnAppLinkConsume()
+            return@LaunchedEffect
+        }
+        navController.openAppLink(link)
         currentOnAppLinkConsume()
     }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val currentTab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
+    val joined by viewModel.joined.collectAsStateWithLifecycle()
+    SignUpJoinedRedirect(
+        navController = navController,
+        joined = joined,
+        onHome = currentDestination?.hasRoute<HomeDestination>() == true,
+        mitraName = { viewModel.joinedMitraName },
+        onJoinedConsume = viewModel::consumeJoined,
+    )
 
     Box(modifier = modifier.fillMaxSize()) {
         // Edge to edge: each screen paints its own background behind the status bar (as in the
@@ -113,14 +122,15 @@ fun GotestApp(
 
 /**
  * The server's session answers, read as state when the app is in the front (T-018 review 4): an expired
- * session opens Masuk, and an account waiting for its parent sees only the waiting page (and Hapus Akun,
- * which the waiting page opens).
+ * session opens Masuk, and an account waiting for its parent, or for its email to be proven, sees only that
+ * waiting page (and Hapus Akun, which the waiting page opens).
  */
 @Composable
 private fun SessionRedirects(
     navController: NavHostController,
     expired: Boolean,
     awaitingConsent: Boolean,
+    awaitingEmailVerification: Boolean,
     onExpiredHandle: () -> Unit,
 ) {
     val currentOnExpiredHandle by rememberUpdatedState(onExpiredHandle)
@@ -138,6 +148,58 @@ private fun SessionRedirects(
         if (awaitingConsent && !onConsentPages) {
             navController.navigate(GuardianConsentDestination) { popUpTo(navController.graph.id) { inclusive = true } }
         }
+    }
+    // The email comes first: the server checks it before the parent's approval (DEC-154).
+    LaunchedEffect(awaitingEmailVerification) {
+        val destination = navController.currentDestination
+        val onWaitingPages =
+            destination?.hasRoute<EmailVerificationDestination>() == true ||
+                destination?.hasRoute<DeleteAccountDestination>() == true
+        if (awaitingEmailVerification && !onWaitingPages) {
+            navController.navigate(EmailVerificationDestination) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
+}
+
+/**
+ * After Daftar from a Mitra link, as the web's `completeMitraJoin` (A2a-1 = a): once Beranda shows (after the
+ * email and the parent's approval when those were awaited), a student opens the Ruang of `joined.code`, and
+ * staff, whose portal the app does not have, get the A2b-2 dialog.
+ */
+@Composable
+private fun SignUpJoinedRedirect(
+    navController: NavHostController,
+    joined: JoinedMitra?,
+    onHome: Boolean,
+    mitraName: () -> String?,
+    onJoinedConsume: () -> Unit,
+) {
+    var staffJoined by rememberSaveable(stateSaver = JoinedMitraSaver) { mutableStateOf<JoinedMitra?>(null) }
+    val currentOnJoinedConsume by rememberUpdatedState(onJoinedConsume)
+    LaunchedEffect(joined, onHome) {
+        val mitra = joined ?: return@LaunchedEffect
+        if (!onHome) return@LaunchedEffect
+        currentOnJoinedConsume()
+        if (mitra.role == STUDENT) {
+            navController.navigate(RuangDestination(mitra.code)) { launchSingleTop = true }
+        } else {
+            staffJoined = mitra
+        }
+    }
+    staffJoined?.let { mitra ->
+        StaffJoinedDialog(mitraName = mitraName() ?: mitra.code, onClose = { staffJoined = null })
+    }
+}
+
+/** The screen of a gotest.id link: resetting the password, a Main Bareng code, a class code, an invitation. */
+private fun NavController.openAppLink(link: AppLink) {
+    when (link) {
+        is AppLink.ResetPassword -> navigate(ResetPasswordDestination(link.token, link.email))
+        is AppLink.MainBarengCode -> navigate(MultiplayerDestination(joinCode = link.code))
+        is AppLink.JoinCode -> navigate(JoinCodeDestination(link.code))
+        is AppLink.Invitation -> navigate(InvitationDestination(link.token))
     }
 }
 

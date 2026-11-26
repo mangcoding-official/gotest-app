@@ -1,36 +1,47 @@
 package com.gotest.app.feature.home.domain
 
-import com.gotest.app.core.model.PackageType
-import com.gotest.app.core.model.StudyPackage
-import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-/** A finished attempt that matches the query ("Hasil Kamu"). */
-data class SearchAttempt(
-    val attemptId: String,
-    val title: String,
-    val type: PackageType,
-    val completedOn: LocalDate,
-    val score: Int,
-    /** Leaderboard position, only known for tryouts. */
-    val rank: Int?,
+/**
+ * Cari (T-026 A2c-1 = a): `GET /search?q=`, the same groups as the web's search panel: Paket Latihan, Paket
+ * tryout, Hasil, and Artikel & Bantuan, at most three each.
+ */
+@Serializable
+data class SearchPage(
+    @SerialName("query") val query: String = "",
+    @SerialName("groups") val groups: List<SearchGroup> = emptyList(),
 )
 
-/** A Pusat Bantuan article ("Artikel & Bantuan"). */
-data class HelpArticle(
-    val id: String,
-    val title: String,
-    val readMinutes: Int,
+@Serializable
+data class SearchGroup(
+    /** `practice`, `tryout`, `results`, or `help`. */
+    @SerialName("key") val key: String,
+    @SerialName("title") val title: String,
+    @SerialName("items") val items: List<SearchItem> = emptyList(),
 )
 
-data class SearchResults(
-    val packages: List<StudyPackage>,
-    val topics: List<String>,
-    val attempts: List<SearchAttempt>,
-    val articles: List<HelpArticle>,
+@Serializable
+data class SearchItem(
+    @SerialName("id") val id: String,
+    @SerialName("title") val title: String,
+    /** What a tap opens; the `href` beside it is a web address the app does not follow. */
+    @SerialName("target") val target: SearchTarget? = null,
+    @SerialName("actionLabel") val actionLabel: String = "",
+    @SerialName("meta") val meta: List<String> = emptyList(),
 )
 
-/** Global search on Pencarian: packages, topics, the student's results and help articles. */
+@Serializable
+data class SearchTarget(
+    /**
+     * `practice_package`, `tryout_package` (a package's start sheet), `practice_attempt`, `tryout_attempt` (the
+     * attempt in progress), `practice_result`, `tryout_result` (a result), or `help_topic` ([slug]).
+     */
+    @SerialName("type") val type: String,
+    @SerialName("id") val id: Long? = null,
+    @SerialName("slug") val slug: String? = null,
+)
+
 interface SearchRepository {
-    fun search(query: String): Flow<SearchResults>
+    suspend fun search(query: String): Result<SearchPage>
 }

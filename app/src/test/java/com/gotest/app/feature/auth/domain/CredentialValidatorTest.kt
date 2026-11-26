@@ -18,7 +18,8 @@ class CredentialValidatorTest {
     @Test
     fun `password needs eight characters`() {
         assertEquals(CredentialError.Required, validator.validatePassword(""))
-        assertEquals(CredentialError.PasswordTooShort, validator.validatePassword("1234567"))
+        // Signing in only needs a password, as on the web (T-026 required 8).
+        assertNull(validator.validatePassword("1234567"))
         assertNull(validator.validatePassword("12345678"))
     }
 
@@ -26,6 +27,8 @@ class CredentialValidatorTest {
     fun `a new password needs eight characters with a letter and a number`() {
         assertEquals(CredentialError.Required, validator.validateNewPassword(""))
         assertEquals(CredentialError.NewPasswordTooShort, validator.validateNewPassword("abc123"))
+        assertEquals(CredentialError.PasswordTooLong, validator.validateNewPassword("a1".repeat(36) + "x"))
+        assertNull(validator.validateNewPassword("a1".repeat(36)))
         assertEquals(CredentialError.PasswordNeedsLetter, validator.validateNewPassword("12345678"))
         assertEquals(CredentialError.PasswordNeedsNumber, validator.validateNewPassword("abcdefgh"))
         assertNull(validator.validateNewPassword("rahasia123"))

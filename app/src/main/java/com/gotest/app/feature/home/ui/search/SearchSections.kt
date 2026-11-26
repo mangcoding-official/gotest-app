@@ -4,272 +4,166 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.gotest.app.R
+import com.gotest.app.core.designsystem.component.GotestButton
+import com.gotest.app.core.designsystem.component.GotestButtonSize
+import com.gotest.app.core.designsystem.component.GotestButtonVariant
 import com.gotest.app.core.designsystem.component.GotestCard
-import com.gotest.app.core.designsystem.component.GotestChip
-import com.gotest.app.core.designsystem.component.GotestChipTone
+import com.gotest.app.core.designsystem.component.GotestDivider
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.core.model.PackageType
-import com.gotest.app.core.model.StudyPackage
-import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.feature.home.domain.HelpArticle
-import com.gotest.app.feature.home.domain.SearchAttempt
+import com.gotest.app.feature.home.domain.SearchGroup
+import com.gotest.app.feature.home.domain.SearchItem
 import com.gotest.app.feature.home.ui.components.HomeIconTile
 
-/** "Paket Tryout" / "Paket Latihan" with a package count and tappable rows. */
+/** One group of the web's search panel: its icon and title, then its rows (at most three). */
 @Composable
-internal fun SearchPackageSection(
-    title: String,
-    packages: List<StudyPackage>,
-    onOpenPackage: (packageId: String, type: PackageType) -> Unit,
+internal fun SearchGroupCard(
+    group: SearchGroup,
+    onOpen: (SearchItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = GotestTheme.colors
-    SearchSection(
-        title = title,
-        count = stringResource(R.string.home_search_package_count, packages.size),
-        modifier = modifier,
-    ) {
-        SearchListCard {
-            packages.forEach { studyPackage ->
-                val tryout = studyPackage.type == PackageType.Tryout
-                SearchRow(
-                    icon = GotestIcons.Bold.Note2,
-                    containerColor = if (tryout) colors.bgBlueSoft else colors.bgBrandSoft,
-                    iconColor = if (tryout) colors.bgBlue else colors.iconBrand,
-                    title = studyPackage.title,
-                    subtitle =
-                        studyPackage.durationMinutes?.let {
-                            stringResource(R.string.home_search_package_meta, studyPackage.questionCount, it)
-                        } ?: stringResource(R.string.home_package_question_count, studyPackage.questionCount),
-                    onClick = { onOpenPackage(studyPackage.id, studyPackage.type) },
-                ) {
-                    Icon(
-                        painter = painterResource(GotestIcons.Linear.ArrowRight),
-                        contentDescription = null,
-                        modifier = Modifier.size(GotestTheme.sizes.iconMd),
-                        tint = colors.iconMuted,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** "Topik": grey chips. */
-@Composable
-internal fun SearchTopicSection(
-    topics: List<String>,
-    modifier: Modifier = Modifier,
-) {
-    SearchSection(
-        title = stringResource(R.string.home_search_section_topics),
-        count = stringResource(R.string.home_search_topic_count, topics.size),
-        modifier = modifier,
-    ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
-        ) {
-            topics.forEach { topic -> GotestChip(text = topic, tone = GotestChipTone.Grey) }
-        }
-    }
-}
-
-/** "Hasil Kamu": the student's own attempts with score and rank. */
-@Composable
-internal fun SearchAttemptSection(
-    attempts: List<SearchAttempt>,
-    onOpenResult: (attemptId: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = GotestTheme.colors
-    SearchSection(title = stringResource(R.string.home_search_section_results), count = null, modifier = modifier) {
-        SearchListCard {
-            attempts.forEach { attempt ->
-                SearchRow(
-                    icon = GotestIcons.Bold.Award,
-                    containerColor = colors.bgGreenSoft,
-                    iconColor = colors.bgGreen,
-                    title = attempt.title,
-                    subtitle =
-                        stringResource(R.string.home_search_result_date, GotestFormat.mediumDate(attempt.completedOn)),
-                    onClick = { onOpenResult(attempt.attemptId) },
-                ) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = GotestFormat.number(attempt.score),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.textPrimary,
-                        )
-                        attempt.rank?.let { rank ->
-                            Text(
-                                text = stringResource(R.string.home_search_result_rank, rank),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.textSecondary,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** "Artikel & Bantuan": Pusat Bantuan articles. */
-@Composable
-internal fun SearchArticleSection(
-    articles: List<HelpArticle>,
-    onOpenArticle: (articleId: String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = GotestTheme.colors
-    SearchSection(title = stringResource(R.string.home_search_section_articles), count = null, modifier = modifier) {
-        SearchListCard {
-            articles.forEach { article ->
-                SearchRow(
-                    icon = GotestIcons.Bold.BookOpened,
-                    containerColor = colors.bgYellowSoft,
-                    iconColor = colors.bgYellow,
-                    title = article.title,
-                    subtitle = stringResource(R.string.home_search_article_meta, article.readMinutes),
-                    onClick = { onOpenArticle(article.id) },
-                    titleMaxLines = 2,
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_search_article_action),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colors.textBrandDark,
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** Section title with an optional brand-coloured count ("2 paket"). */
-@Composable
-private fun SearchSection(
-    title: String,
-    count: String?,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+    val tone = groupTone(group.key)
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HomeIconTile(icon = tone.icon, containerColor = tone.container, iconColor = tone.content)
             Text(
-                text = title,
-                modifier = Modifier.weight(1f).semantics { heading() },
+                text = group.title,
+                modifier = Modifier.semantics { heading() },
                 style = MaterialTheme.typography.titleMedium,
                 color = GotestTheme.colors.textPrimary,
             )
-            if (count != null) {
-                Text(
-                    text = count,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = GotestTheme.colors.textBrandDark,
-                )
+        }
+        GotestCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(),
+            verticalSpacing = GotestTheme.spacing.none,
+        ) {
+            group.items.forEachIndexed { index, item ->
+                if (index > 0) GotestDivider()
+                SearchRow(item = item, onOpen = { onOpen(item) })
             }
         }
-        content()
     }
 }
 
-@Composable
-private fun SearchListCard(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    GotestCard(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(),
-        verticalSpacing = GotestTheme.spacing.none,
-    ) {
-        content()
-    }
-}
-
-/** One result row: tinted icon, title and caption, and a trailing slot. */
+/** Web SearchRow: the title, its details with dots between them, and the action. */
 @Composable
 private fun SearchRow(
-    @DrawableRes icon: Int,
-    containerColor: Color,
-    iconColor: Color,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
+    item: SearchItem,
+    onOpen: () -> Unit,
     modifier: Modifier = Modifier,
-    titleMaxLines: Int = 1,
-    trailing: @Composable RowScope.() -> Unit,
 ) {
     val spacing = GotestTheme.spacing
     Row(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .clickable(onClick = onOpen)
                 .padding(horizontal = spacing.lg, vertical = spacing.md),
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HomeIconTile(icon = icon, containerColor = containerColor, iconColor = iconColor)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
             Text(
-                text = title,
+                text = item.title,
                 style = MaterialTheme.typography.labelLarge,
                 color = GotestTheme.colors.textPrimary,
-                maxLines = titleMaxLines,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.labelSmall,
-                color = GotestTheme.colors.textSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (item.meta.isNotEmpty()) {
+                Text(
+                    text = item.meta.joinToString(" • "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = GotestTheme.colors.textSecondary,
+                )
+            }
         }
-        trailing()
+        GotestButton(
+            text = item.actionLabel,
+            onClick = onOpen,
+            variant = GotestButtonVariant.Plain,
+            size = GotestButtonSize.Small,
+        )
     }
 }
 
+private data class GroupTone(
+    @param:DrawableRes val icon: Int,
+    val container: Color,
+    val content: Color,
+)
+
+/** Web `groupTone`: Latihan green, Try Out blue, Hasil violet, Bantuan yellow. */
+@Composable
+private fun groupTone(key: String): GroupTone {
+    val colors = GotestTheme.colors
+    return when (key) {
+        "tryout" -> GroupTone(GotestIcons.Bold.Note2, colors.bgBlueSoft, colors.bgBlue)
+        "results" -> GroupTone(GotestIcons.Bold.Award, colors.bgBrandSoft, colors.iconBrand)
+        "help" -> GroupTone(GotestIcons.Bold.BookOpened, colors.bgYellowSoft, colors.bgYellow)
+        else -> GroupTone(GotestIcons.Bold.Note2, colors.bgGreenSoft, colors.bgGreen)
+    }
+}
+
+internal val previewGroups =
+    listOf(
+        SearchGroup(
+            key = "practice",
+            title = "Paket Latihan",
+            items =
+                listOf(
+                    SearchItem(
+                        "practice-11",
+                        "Latihan Penalaran Umum 1",
+                        null,
+                        "Mulai Latihan",
+                        listOf("UTBK-SNBT", "20 Soal", "3 Topik"),
+                    ),
+                ),
+        ),
+        SearchGroup(
+            key = "results",
+            title = "Hasil",
+            items =
+                listOf(
+                    SearchItem(
+                        "result-2",
+                        "Try Out UTBK-SNBT 1",
+                        null,
+                        "Lihat Hasil",
+                        listOf("UTBK-SNBT", "160 Soal", "195 Menit"),
+                    ),
+                ),
+        ),
+    )
+
 @Preview(showBackground = true, widthDp = 440)
 @Composable
-private fun SearchSectionsPreview() {
+private fun SearchGroupCardPreview() {
     GotestTheme {
         Column(
             modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
             verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.lg),
         ) {
-            SearchPackageSection(
-                title = "Paket Tryout",
-                packages = SearchPreviewData.success.tryouts,
-                onOpenPackage = { _, _ -> },
-            )
-            SearchTopicSection(topics = SearchPreviewData.success.topics)
-            SearchAttemptSection(attempts = SearchPreviewData.success.attempts, onOpenResult = {})
-            SearchArticleSection(articles = SearchPreviewData.success.articles, onOpenArticle = {})
+            previewGroups.forEach { SearchGroupCard(group = it, onOpen = {}) }
         }
     }
 }

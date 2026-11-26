@@ -52,11 +52,14 @@ class FakeSignUpRepository
                 joinNotice = null,
             )
 
-        override suspend fun registrationInfo(): RegistrationInfo = info
+        override suspend fun registrationInfo(): Result<RegistrationInfo> = Result.success(info)
 
         override suspend fun dropJoinCode() {
             info = info.copy(joinNotice = null)
         }
+
+        override suspend fun pendingEmailCode(): SignUpResult.EmailCodeSent? =
+            pendingSignUp?.let { SignUpResult.EmailCodeSent(sentTo = maskEmail(it.email.trim()), resendInSeconds = 0) }
 
         override suspend fun register(form: SignUpForm): Result<SignUpResult> {
             simulateLatency()
@@ -109,6 +112,8 @@ class FakeSignUpRepository
         }
 
         override fun observeConsent(): Flow<ConsentState?> = consent.asStateFlow()
+
+        override suspend fun refreshConsent(): Result<Boolean> = Result.success(true)
 
         override suspend fun resendConsent(): Result<String> {
             simulateLatency()

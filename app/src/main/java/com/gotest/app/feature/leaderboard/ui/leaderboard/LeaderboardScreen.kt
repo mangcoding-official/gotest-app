@@ -60,6 +60,7 @@ import com.gotest.app.feature.leaderboard.ui.components.BoardPackageCard
 import com.gotest.app.feature.leaderboard.ui.components.BoardPodium
 import com.gotest.app.feature.leaderboard.ui.components.BoardTable
 import com.gotest.app.feature.leaderboard.ui.components.LeaderboardHero
+import com.gotest.app.feature.studypackage.ui.components.JenjangDropdown
 import kotlinx.coroutines.launch
 
 /** [onOpenPackage] gets the package id and whether it is a Latihan package. */
@@ -136,7 +137,7 @@ private fun LeaderboardList(
             PaddingValues(
                 start = spacing.screenHorizontal,
                 end = spacing.screenHorizontal,
-                top = spacing.sm,
+                top = spacing.lg,
                 bottom = bottomPadding + spacing.xl,
             ),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
@@ -273,26 +274,39 @@ private fun GlobalFilters(
     modifier: Modifier = Modifier,
 ) {
     GotestCard(modifier = modifier.fillMaxWidth(), verticalSpacing = GotestTheme.spacing.sm) {
-        OptionPills(
-            allLabel = stringResource(R.string.leaderboard_category_all),
-            options = categories,
-            selected = draft.category,
-            onSelect = { onDraftChange(draft.copy(category = it)) },
-        )
-        OptionPills(
-            allLabel = stringResource(R.string.leaderboard_subject_all),
-            options = subjects,
-            selected = draft.subject,
-            onSelect = { onDraftChange(draft.copy(subject = it)) },
-        )
-        PillRow {
-            LeaderboardPeriod.entries.forEach { period ->
-                GotestFilterPill(
-                    text = stringResource(period.label()),
-                    selected = draft.period == period,
-                    onClick = { onDraftChange(draft.copy(period = period)) },
-                )
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
+        ) {
+            JenjangDropdown(
+                options = categories.map { it.name },
+                selectedIndex = categories.indexOfFirst { it.id == draft.category }.takeIf { it >= 0 },
+                onSelect = { index -> onDraftChange(draft.copy(category = index?.let { categories[it].id })) },
+                allOptionLabel = stringResource(R.string.leaderboard_category_all),
+                modifier = Modifier.weight(1f),
+            )
+            JenjangDropdown(
+                options = subjects.map { it.name },
+                selectedIndex = subjects.indexOfFirst { it.id == draft.subject }.takeIf { it >= 0 },
+                onSelect = { index -> onDraftChange(draft.copy(subject = index?.let { subjects[it].id })) },
+                allOptionLabel = stringResource(R.string.leaderboard_subject_all),
+                modifier = Modifier.weight(1f),
+            )
+            val periods = LeaderboardPeriod.entries
+            JenjangDropdown(
+                options = periods.map { stringResource(it.label()) },
+                selectedIndex = periods.indexOf(draft.period).takeIf { it >= 0 },
+                onSelect = { index ->
+                    onDraftChange(
+                        draft.copy(
+                            period =
+                                index?.let { periods[it] } ?: LeaderboardPeriod.All,
+                        ),
+                    )
+                },
+                allOptionLabel = null,
+                modifier = Modifier.weight(1f),
+            )
         }
         GotestButton(
             text = stringResource(R.string.leaderboard_filter),
@@ -301,22 +315,6 @@ private fun GlobalFilters(
             size = GotestButtonSize.Medium,
             enabled = !busy,
         )
-    }
-}
-
-@Composable
-private fun OptionPills(
-    allLabel: String,
-    options: List<NamedOption>,
-    selected: Long?,
-    onSelect: (Long?) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    PillRow(modifier = modifier) {
-        GotestFilterPill(text = allLabel, selected = selected == null, onClick = { onSelect(null) })
-        options.forEach { option ->
-            GotestFilterPill(text = option.name, selected = selected == option.id, onClick = { onSelect(option.id) })
-        }
     }
 }
 

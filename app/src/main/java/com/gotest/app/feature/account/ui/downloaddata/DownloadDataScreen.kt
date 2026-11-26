@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
+import com.gotest.app.core.config.AppFeatures
 import com.gotest.app.core.designsystem.component.GotestButton
 import com.gotest.app.core.designsystem.component.GotestErrorView
 import com.gotest.app.core.designsystem.component.GotestLoadingView
@@ -146,15 +147,18 @@ private fun DownloadDataContent(
         IntroCard()
         AccountSectionTitle(title = stringResource(R.string.account_download_select))
         AccountListCard {
-            AccountDataCategory.entries.forEach { category ->
-                CategoryRow(
-                    title = stringResource(category.titleRes()),
-                    subtitle = category.subtitle(attemptCount = state.attemptCount),
-                    checked = category in state.selected,
-                    onCheckedChange = { onToggle(category) },
-                    enabled = !state.isSending,
-                )
-            }
+            // Transaksi & langganan only once paying in the app exists (T-026 required 7).
+            AccountDataCategory.entries
+                .filter { AppFeatures.PAYMENTS || it != AccountDataCategory.Transactions }
+                .forEach { category ->
+                    CategoryRow(
+                        title = stringResource(category.titleRes()),
+                        subtitle = category.subtitle(attemptCount = state.attemptCount),
+                        checked = category in state.selected,
+                        onCheckedChange = { onToggle(category) },
+                        enabled = !state.isSending,
+                    )
+                }
         }
         AccountHint(
             text = stringResource(R.string.account_download_note, state.email),

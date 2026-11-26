@@ -1,14 +1,21 @@
 package com.gotest.app.feature.auth.ui.register
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotest.app.R
-import com.gotest.app.core.domain.repository.AuthRepository
+import com.gotest.app.core.model.EducationLevel
+import com.gotest.app.core.network.ApiError
 import com.gotest.app.feature.auth.domain.AuthFlowError
+import com.gotest.app.feature.auth.domain.AuthFlowRepository
 import com.gotest.app.feature.auth.domain.CredentialValidator
+import com.gotest.app.feature.auth.domain.GoogleSignIn
+import com.gotest.app.feature.auth.domain.SignInOptionsRepository
 import com.gotest.app.feature.auth.domain.SignUpForm
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import com.gotest.app.feature.auth.domain.SignUpResult
+import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
+import com.gotest.app.feature.auth.ui.components.InfoProblem
 import com.gotest.app.feature.auth.ui.components.check
 import com.gotest.app.feature.auth.ui.components.messageRes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 /** Daftar with email (web: Auth/Register.tsx): the form, then "Cek email kamu" while email codes are on. */
@@ -29,11 +37,21 @@ import javax.inject.Inject
 class RegisterViewModel
     @Inject
     constructor(
-        private val authRepository: AuthRepository,
+        private val flows: AuthFlowRepository,
         private val signUps: SignUpRepository,
         private val validator: CredentialValidator,
+        private val options: SignInOptionsRepository,
+        private val savedState: SavedStateHandle,
     ) : ViewModel() {
-        private val _uiState = MutableStateFlow(RegisterUiState())
+        // The form comes back after Android closed the app (T-026 required 10); the password never is kept.
+        private val _uiState =
+            MutableStateFlow(
+                RegisterUiState(
+                    fullName = savedState[KEY_NAME] ?: "",
+                    email = savedState[KEY_EMAIL] ?: "",
+                    level = savedState.get<String>(KEY_LEVEL)?.let(::levelNamed),
+                ),
+            )
         val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
         private val _effects = Channel<RegisterEffect>(Channel.BUFFERED)
@@ -42,27 +60,68 @@ class RegisterViewModel
         private var countdown: Job? = null
 
         init {
+            loadInfo()
+        }
+
+        /** The page's questions; a failure says why with "Coba Lagi" instead of a form without them. */
+        private fun loadInfo() {
+            _uiState.update { it.copy(infoProblem = null) }
             viewModelScope.launch {
-                val info = signUps.registrationInfo()
-                _uiState.update {
-                    it.copy(
-                        guardianQuestion = info.guardianQuestion,
-                        emailCode = info.emailCode,
-                        joinNotice = info.joinNotice,
-                    )
-                }
+                val google = options.options().google
+                signUps
+                    .registrationInfo()
+                    .onSuccess { info ->
+                        _uiState.update {
+                            it.copy(
+                                guardianQuestion = info.guardianQuestion,
+                                emailCode = info.emailCode,
+                                joinNotice = info.joinNotice,
+                                showGoogle = google,
+                            )
+                        }
+                        // A sign-up still waiting for its email code opens on "Cek email kamu" again.
+                        if (_uiState.value.codeStep == null) signUps.pendingEmailCode()?.let { handle(it) }
+                    }.onFailure { error -> _uiState.update { it.copy(infoProblem = InfoProblem.of(error)) } }
             }
         }
 
         fun onEvent(event: RegisterUiEvent) {
             when (event) {
-                RegisterUiEvent.Submit -> submit()
-                RegisterUiEvent.ConfirmCode -> confirmCode()
-                RegisterUiEvent.ResendCode -> resendCode()
-                RegisterUiEvent.ChangeEmail -> leaveCodeStep()
-                RegisterUiEvent.DropJoinCode -> dropJoinCode()
-                RegisterUiEvent.GoogleSignUp -> signUpWithGoogle()
-                else -> _uiState.update { it.edit(event) }
+                RegisterUiEvent.Submit -> {
+                    submit()
+                }
+
+                RegisterUiEvent.ConfirmCode -> {
+                    confirmCode()
+                }
+
+                RegisterUiEvent.ResendCode -> {
+                    resendCode()
+                }
+
+                RegisterUiEvent.ChangeEmail -> {
+                    leaveCodeStep()
+                }
+
+                RegisterUiEvent.DropJoinCode -> {
+                    dropJoinCode()
+                }
+
+                // The route opens Google's picker; its answer comes back as GoogleResult.
+                RegisterUiEvent.GoogleSignUp -> {}
+
+                RegisterUiEvent.RetryInfo -> {
+                    loadInfo()
+                }
+
+                is RegisterUiEvent.GoogleResult -> {
+                    signUpWithGoogle(event.result)
+                }
+
+                else -> {
+                    _uiState.update { it.edit(event) }
+                    keepForm()
+                }
             }
         }
 
@@ -118,6 +177,7 @@ class RegisterViewModel
                             codeStep?.copy(
                                 code = event.value.filter(Char::isDigit).take(CODE_LENGTH),
                                 codeMessage = null,
+                                codeErrorRes = null,
                             ),
                     )
                 }
@@ -146,6 +206,7 @@ class RegisterViewModel
                     levelError = if (state.level == null) R.string.education_required else null,
                     guardian = guardian,
                     messages = emptyMap(),
+                    formError = null,
                 )
             val level = state.level
             val hasError =
@@ -221,22 +282,44 @@ class RegisterViewModel
             }
         }
 
-        /** A wrong code stays on "Cek email kamu"; anything about the form goes back to it, as on the web. */
+        /**
+         * A wrong code stays on "Cek email kamu"; anything about the form goes back to it with every field's text,
+         * as on the web. No connection keeps the step where it is.
+         */
         private fun showError(error: Throwable) {
-            val field = (error as? AuthFlowError)?.field ?: FORM
-            val message = error.message.orEmpty()
-            if (field == "code" && _uiState.value.codeStep != null) {
-                _uiState.update { it.copy(codeStep = it.codeStep?.copy(codeMessage = message)) }
+            val messages = error.fieldMessages()
+            val code = messages["code"]
+            val aboutTheCode = error is IOException || (code != null && messages.size == 1)
+            if (_uiState.value.codeStep != null && aboutTheCode) {
+                val offline = R.string.auth_error_offline.takeIf { error is IOException }
+                _uiState.update { it.copy(codeStep = it.codeStep?.copy(codeMessage = code, codeErrorRes = offline)) }
                 return
             }
             leaveCodeStep()
-            _uiState.update {
-                when (field) {
-                    "guardian_phone", "guardian_email" -> it.copy(guardian = it.guardian.copy(contactMessage = message))
-                    in FIELDS -> it.copy(messages = it.messages + (field to message))
-                    else -> it.copy(messages = it.messages + (FORM to message))
+            _uiState.update { state ->
+                messages.entries.fold(state.copy(formError = error.formErrorRes(messages))) { next, (field, text) ->
+                    when (field) {
+                        "guardian_phone", "guardian_email" -> {
+                            next.copy(guardian = next.guardian.copy(contactMessage = text))
+                        }
+
+                        in FIELDS -> {
+                            next.copy(messages = next.messages + (field to text))
+                        }
+
+                        else -> {
+                            next.copy(messages = next.messages + (FORM to text))
+                        }
+                    }
                 }
             }
+        }
+
+        private fun keepForm() {
+            val state = _uiState.value
+            savedState[KEY_NAME] = state.fullName
+            savedState[KEY_EMAIL] = state.email
+            savedState[KEY_LEVEL] = state.level?.name
         }
 
         private fun leaveCodeStep() {
@@ -262,12 +345,64 @@ class RegisterViewModel
                 }
         }
 
-        private fun signUpWithGoogle() {
+        /** An existing Google account signs in, as on the web; a new one finishes on "Satu langkah lagi". */
+        private fun signUpWithGoogle(picked: GoogleIdTokenResult) {
             if (_uiState.value.isSubmitting) return
-            viewModelScope.launch {
-                _uiState.update { it.copy(isSubmitting = true) }
-                authRepository.signInWithGoogle().onSuccess { _effects.send(RegisterEffect.Registered) }
-                _uiState.update { it.copy(isSubmitting = false) }
+            _uiState.update { it.copy(messages = emptyMap(), formError = null) }
+            when (picked) {
+                GoogleIdTokenResult.Cancelled -> {
+                    return
+                }
+
+                GoogleIdTokenResult.Failed -> {
+                    _uiState.update { it.copy(formError = R.string.auth_google_failed) }
+                }
+
+                is GoogleIdTokenResult.Token -> {
+                    viewModelScope.launch {
+                        _uiState.update { it.copy(isSubmitting = true) }
+                        flows
+                            .signInWithGoogle(picked.value)
+                            .onSuccess { result ->
+                                _effects.send(
+                                    when (result) {
+                                        GoogleSignIn.SignedIn -> {
+                                            RegisterEffect.Registered
+                                        }
+
+                                        is GoogleSignIn.NeedsRegistration -> {
+                                            RegisterEffect.GoogleRegister(
+                                                result.name,
+                                                result.email,
+                                            )
+                                        }
+                                    },
+                                )
+                            }.onFailure { error ->
+                                // The web shows a refused Google sign-in under the email field.
+                                val refusal = error as? AuthFlowError
+                                _uiState.update {
+                                    when {
+                                        refusal == null -> {
+                                            it.copy(formError = R.string.auth_google_failed)
+                                        }
+
+                                        refusal.field == AuthFlowError.FORM -> {
+                                            it.copy(
+                                                messages =
+                                                    mapOf(FORM to refusal.message),
+                                            )
+                                        }
+
+                                        else -> {
+                                            it.copy(messages = mapOf(EMAIL to refusal.message))
+                                        }
+                                    }
+                                }
+                            }
+                        _uiState.update { it.copy(isSubmitting = false) }
+                    }
+                }
             }
         }
 
@@ -275,6 +410,39 @@ class RegisterViewModel
             const val CODE_LENGTH = 6
             const val SECOND_MILLIS = 1_000L
             const val FORM = "form"
+            const val EMAIL = "email"
+            const val KEY_NAME = "register_name"
+            const val KEY_EMAIL = "register_email"
+            const val KEY_LEVEL = "register_level"
             val FIELDS = setOf("name", "email", "password", "education_level")
         }
+    }
+
+private fun levelNamed(name: String): EducationLevel? = EducationLevel.entries.find { it.name == name }
+
+/** The server's texts by field: an AuthFlowError's one field, or every field of a refused ApiError. */
+private fun Throwable.fieldMessages(): Map<String, String> =
+    when (this) {
+        is AuthFlowError -> {
+            mapOf(field to message)
+        }
+
+        is ApiError -> {
+            fieldErrors
+                .mapNotNull { (field, texts) -> texts.firstOrNull()?.let { field to it } }
+                .toMap()
+                .ifEmpty { mapOf("form" to message) }
+        }
+
+        else -> {
+            emptyMap()
+        }
+    }
+
+/** The app's own text when the server said nothing readable. */
+private fun Throwable.formErrorRes(messages: Map<String, String>): Int? =
+    when {
+        messages.isNotEmpty() -> null
+        this is IOException -> R.string.auth_error_offline
+        else -> R.string.auth_error_server
     }

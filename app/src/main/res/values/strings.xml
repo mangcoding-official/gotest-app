@@ -13,6 +13,7 @@
     <string name="cd_back">Kembali</string>
     <string name="cd_show_password">Tampilkan password</string>
     <string name="cd_hide_password">Sembunyikan password</string>
+    <string name="cd_clear_search">Hapus pencarian</string>
 
     <!-- Shared UI states (not in the design; see README.md, TODO) -->
     <string name="state_loading">Memuat…</string>

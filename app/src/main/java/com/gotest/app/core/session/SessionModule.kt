@@ -20,4 +20,11 @@ object SessionModule {
             store = SharedPreferencesStore(context.getSharedPreferences("gotest_session", Context.MODE_PRIVATE)),
             cipher = KeystoreTokenCipher(),
         )
+
+    @Provides
+    @Singleton
+    fun provideSignUpDraftStore(
+        @ApplicationContext context: Context,
+    ): SignUpDraftStore =
+        SignUpDraftStore(SharedPreferencesStore(context.getSharedPreferences("gotest_signup", Context.MODE_PRIVATE)))
 }

@@ -5,7 +5,9 @@ import androidx.compose.runtime.Immutable
 import com.gotest.app.core.model.EducationLevel
 import com.gotest.app.feature.auth.domain.GuardianQuestion
 import com.gotest.app.feature.auth.domain.JoinNotice
+import com.gotest.app.feature.auth.ui.components.GoogleIdTokenResult
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblem
 import com.gotest.app.feature.auth.ui.components.asksFor
 
 /** "Cek email kamu": the account is made after the code sent to the email (web: EmailCodeForm). */
@@ -14,6 +16,8 @@ data class RegisterCodeStep(
     val sentTo: String,
     val code: String = "",
     val codeMessage: String? = null,
+    /** The app's own text when the code could not reach the server. */
+    @param:StringRes val codeErrorRes: Int? = null,
     val resendInSeconds: Int = 0,
 )
 
@@ -35,8 +39,14 @@ data class RegisterUiState(
     @param:StringRes val levelError: Int? = null,
     /** The server's own texts by the web's field names: name, email, password, education_level, form. */
     val messages: Map<String, String> = emptyMap(),
+    /** The app's own text for the whole form: no connection, or a reply it could not read. */
+    @param:StringRes val formError: Int? = null,
     val codeStep: RegisterCodeStep? = null,
     val isSubmitting: Boolean = false,
+    /** "Daftar dengan Google" only while the server offers it (`/referensi`). */
+    val showGoogle: Boolean = false,
+    /** The page's questions could not be read (`auth/daftar/info`): why, with "Coba Lagi". */
+    val infoProblem: InfoProblem? = null,
 ) {
     val asksGuardian: Boolean get() = guardianQuestion.asksFor(level)
 }
@@ -82,7 +92,15 @@ sealed interface RegisterUiEvent {
     /** "Bukan, daftar biasa": sign up without the Mitra code. */
     data object DropJoinCode : RegisterUiEvent
 
+    /** "Daftar dengan Google": the route opens Google's account picker and sends [GoogleResult]. */
     data object GoogleSignUp : RegisterUiEvent
+
+    /** "Coba Lagi" after the page's questions failed to load. */
+    data object RetryInfo : RegisterUiEvent
+
+    data class GoogleResult(
+        val result: GoogleIdTokenResult,
+    ) : RegisterUiEvent
 }
 
 sealed interface RegisterEffect {
@@ -90,4 +108,10 @@ sealed interface RegisterEffect {
 
     /** An under-age account waits for the parent's approval (Aturan 2.15). */
     data object AwaitingConsent : RegisterEffect
+
+    /** A new Google account finishes on "Satu langkah lagi" (as the web's GoogleRegister). */
+    data class GoogleRegister(
+        val name: String,
+        val email: String,
+    ) : RegisterEffect
 }

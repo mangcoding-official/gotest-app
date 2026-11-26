@@ -14,6 +14,7 @@ import com.gotest.app.feature.auth.domain.GuardianQuestion
 import com.gotest.app.feature.auth.domain.SignUpRepository
 import com.gotest.app.feature.auth.domain.SignUpResult
 import com.gotest.app.feature.auth.ui.components.GuardianFormState
+import com.gotest.app.feature.auth.ui.components.InfoProblem
 import com.gotest.app.feature.auth.ui.components.asksFor
 import com.gotest.app.feature.auth.ui.components.check
 import com.gotest.app.navigation.PhoneRegisterDestination
@@ -31,6 +32,8 @@ import javax.inject.Inject
 @Immutable
 data class PhoneRegisterUiState(
     val phoneDisplay: String = "",
+    /** A new Google account: [phoneDisplay] is its email (web: Auth/GoogleRegister.tsx). */
+    val viaGoogle: Boolean = false,
     val fullName: String = "",
     val level: EducationLevel? = null,
     @param:StringRes val nameErrorRes: Int? = null,
@@ -40,6 +43,8 @@ data class PhoneRegisterUiState(
     val guardianQuestion: GuardianQuestion? = null,
     val guardian: GuardianFormState = GuardianFormState(),
     val isSubmitting: Boolean = false,
+    /** The sign-up questions could not be read (`auth/daftar/info`): why, with "Coba Lagi". */
+    val infoProblem: InfoProblem? = null,
 ) {
     val asksGuardian: Boolean get() = guardianQuestion.asksFor(level)
 }
@@ -58,6 +63,8 @@ sealed interface PhoneRegisterUiEvent {
     ) : PhoneRegisterUiEvent
 
     data object Submit : PhoneRegisterUiEvent
+
+    data object RetryInfo : PhoneRegisterUiEvent
 }
 
 sealed interface PhoneRegisterEffect {
@@ -67,7 +74,10 @@ sealed interface PhoneRegisterEffect {
     data object AwaitingConsent : PhoneRegisterEffect
 }
 
-/** "Satu langkah lagi" after a new number's WhatsApp code (web: Auth/PhoneRegister.tsx). */
+/**
+ * "Satu langkah lagi" after a new number's WhatsApp code (web: Auth/PhoneRegister.tsx), or after Google's
+ * account picker for a new Google account (web: Auth/GoogleRegister.tsx): the same name and F3 questions.
+ */
 @HiltViewModel
 class PhoneRegisterViewModel
     @Inject
@@ -76,18 +86,31 @@ class PhoneRegisterViewModel
         private val repository: AuthFlowRepository,
         private val signUps: SignUpRepository,
     ) : ViewModel() {
+        private val route = savedStateHandle.toRoute<PhoneRegisterDestination>()
         private val _uiState =
             MutableStateFlow(
-                PhoneRegisterUiState(phoneDisplay = savedStateHandle.toRoute<PhoneRegisterDestination>().phoneDisplay),
+                PhoneRegisterUiState(
+                    phoneDisplay = route.phoneDisplay,
+                    viaGoogle = route.viaGoogle,
+                    fullName = route.name,
+                ),
             )
         val uiState: StateFlow<PhoneRegisterUiState> = _uiState.asStateFlow()
         private val _effects = Channel<PhoneRegisterEffect>(Channel.BUFFERED)
         val effects: Flow<PhoneRegisterEffect> = _effects.receiveAsFlow()
 
         init {
+            loadInfo()
+        }
+
+        /** The sign-up questions; a failure says why with "Coba Lagi" instead of a form without them. */
+        private fun loadInfo() {
+            _uiState.update { it.copy(infoProblem = null) }
             viewModelScope.launch {
-                val question = signUps.registrationInfo().guardianQuestion
-                _uiState.update { it.copy(guardianQuestion = question) }
+                signUps
+                    .registrationInfo()
+                    .onSuccess { info -> _uiState.update { it.copy(guardianQuestion = info.guardianQuestion) } }
+                    .onFailure { error -> _uiState.update { it.copy(infoProblem = InfoProblem.of(error)) } }
             }
         }
 
@@ -107,6 +130,10 @@ class PhoneRegisterViewModel
 
                 PhoneRegisterUiEvent.Submit -> {
                     submit()
+                }
+
+                PhoneRegisterUiEvent.RetryInfo -> {
+                    loadInfo()
                 }
             }
         }
@@ -134,19 +161,22 @@ class PhoneRegisterViewModel
                 else -> {
                     viewModelScope.launch {
                         _uiState.update { it.copy(isSubmitting = true) }
-                        repository
-                            .completePhoneRegistration(state.fullName.trim(), level, answer)
-                            .onSuccess { result ->
-                                _effects.send(
-                                    if (result ==
-                                        SignUpResult.AwaitingConsent
-                                    ) {
-                                        PhoneRegisterEffect.AwaitingConsent
-                                    } else {
-                                        PhoneRegisterEffect.Registered
-                                    },
-                                )
-                            }.onFailure(::showError)
+                        val name = state.fullName.trim()
+                        if (state.viaGoogle) {
+                            repository.completeGoogleRegistration(name, level, answer)
+                        } else {
+                            repository.completePhoneRegistration(name, level, answer)
+                        }.onSuccess { result ->
+                            _effects.send(
+                                if (result ==
+                                    SignUpResult.AwaitingConsent
+                                ) {
+                                    PhoneRegisterEffect.AwaitingConsent
+                                } else {
+                                    PhoneRegisterEffect.Registered
+                                },
+                            )
+                        }.onFailure(::showError)
                         _uiState.update { it.copy(isSubmitting = false) }
                     }
                 }

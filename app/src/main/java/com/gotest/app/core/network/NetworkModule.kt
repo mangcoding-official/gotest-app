@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -41,8 +42,9 @@ object NetworkModule {
             .Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .addInterceptor(ApiHeadersInterceptor(session, BuildConfig.VERSION_CODE))
-            .addInterceptor(SessionGuardInterceptor(session, signals))
+            .addInterceptor(
+                ApiHeadersInterceptor(session, BuildConfig.VERSION_CODE, BuildConfig.API_BASE_URL.toHttpUrl()),
+            ).addInterceptor(SessionGuardInterceptor(session, signals))
             .build()
 
     @Provides

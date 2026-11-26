@@ -26,6 +26,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Server address per build type (T-018): release talks to gotest.id.
         buildConfigField("String", "API_BASE_URL", "\"https://gotest.id/\"")
+        // Release always talks to the API; debug uses the fakes unless `gotest.useApi=true` (T-026 required).
+        buildConfigField("boolean", "USE_API", "true")
+        // Masuk dengan Google (T-026 A2a): the server's Web client ID, sent to Google as `setServerClientId` so
+        // the ID token is meant for the server (`GOOGLE_ANDROID_CLIENT_ID`). Public, as on gotest.id itself.
+        buildConfigField(
+            "String",
+            "GOOGLE_SERVER_CLIENT_ID",
+            "\"333368632911-nc07kak9sf3q4q9h0nfhrhtvjfk7s2ko.apps.googleusercontent.com\"",
+        )
     }
 
     buildTypes {
@@ -34,6 +43,10 @@ android {
             // `gotest.apiBaseUrl=https://…/` in ~/.gradle/gradle.properties or with -Pgotest.apiBaseUrl=….
             val apiBaseUrl = providers.gradleProperty("gotest.apiBaseUrl").getOrElse("http://10.0.2.2:8000/")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            // `gotest.useApi=true` (or -Pgotest.useApi=true) puts the API repositories in place of the fakes in
+            // src/debug, so a debug build can be tried against staging (T-026 required, A2e review).
+            val useApi = providers.gradleProperty("gotest.useApi").getOrElse("false").toBoolean()
+            buildConfigField("boolean", "USE_API", useApi.toString())
         }
         release {
             isMinifyEnabled = false
@@ -128,6 +141,10 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)
     // Question HTML and KaTeX math in a WebView served from app assets (T-026 criterion 6).
     implementation(libs.androidx.webkit)
+    // Masuk dengan Google through Credential Manager (T-026 A2a, `POST /auth/google`).
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     ksp(libs.hilt.compiler)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

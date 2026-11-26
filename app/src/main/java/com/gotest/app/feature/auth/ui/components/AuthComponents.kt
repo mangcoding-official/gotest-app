@@ -101,6 +101,7 @@ fun CredentialError.messageRes(): Int =
         CredentialError.NewPasswordTooShort -> R.string.auth_error_new_password_length
         CredentialError.PasswordNeedsLetter -> R.string.auth_error_password_letter
         CredentialError.PasswordNeedsNumber -> R.string.auth_error_password_number
+        CredentialError.PasswordTooLong -> R.string.auth_error_password_max
     }
 
 @Preview(showBackground = true)

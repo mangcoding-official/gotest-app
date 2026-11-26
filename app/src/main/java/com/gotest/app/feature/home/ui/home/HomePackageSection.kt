@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -33,20 +34,22 @@ import com.gotest.app.core.designsystem.component.GotestChip
 import com.gotest.app.core.designsystem.component.GotestChipTone
 import com.gotest.app.core.designsystem.theme.GotestTheme
 import com.gotest.app.core.model.PackageType
-import com.gotest.app.core.model.StudyPackage
 import com.gotest.app.core.ui.GotestFormat
-import com.gotest.app.core.ui.examChipTone
+import com.gotest.app.core.ui.categoryTone
 import com.gotest.app.feature.home.ui.components.HomeDimens
 import com.gotest.app.feature.home.ui.components.HomeSectionHeader
 import com.gotest.app.feature.home.ui.components.HomeTabSwitcher
+import com.gotest.app.feature.practice.ui.catalog.shortDate
+import kotlin.math.roundToInt
 
 /** "Paket Untukmu": Latihan/Tryout tabs over a horizontal row of package cards. */
 @Composable
 internal fun HomeRecommendedSection(
-    recommendations: HomeRecommendations,
+    selectedType: PackageType,
+    packages: List<HomePackage>,
     onSelectType: (PackageType) -> Unit,
     onSeeAll: () -> Unit,
-    onOpenPackage: (packageId: String, type: PackageType) -> Unit,
+    onOpenPackage: (HomePackage) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -66,13 +69,20 @@ internal fun HomeRecommendedSection(
         Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
             HomeTabSwitcher(
                 options = listOf(stringResource(R.string.home_tab_practice), stringResource(R.string.home_tab_tryout)),
-                selectedIndex = recommendations.selectedType.ordinal,
+                selectedIndex = selectedType.ordinal,
                 onSelect = { onSelectType(PackageType.entries[it]) },
                 modifier = Modifier.padding(horizontal = spacing.lg),
             )
-            if (recommendations.visible.isEmpty()) {
+            if (packages.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.home_recommended_empty),
+                    text =
+                        stringResource(
+                            if (selectedType == PackageType.Tryout) {
+                                R.string.home_recommended_empty_tryout
+                            } else {
+                                R.string.home_recommended_empty
+                            },
+                        ),
                     modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.xl),
                     style = MaterialTheme.typography.bodyMedium,
                     color = GotestTheme.colors.textSecondary,
@@ -82,11 +92,8 @@ internal fun HomeRecommendedSection(
                     contentPadding = PaddingValues(horizontal = spacing.lg),
                     horizontalArrangement = Arrangement.spacedBy(spacing.sm),
                 ) {
-                    items(recommendations.visible, key = { it.id }) { studyPackage ->
-                        HomePackageCard(
-                            studyPackage = studyPackage,
-                            onOpen = { onOpenPackage(studyPackage.id, studyPackage.type) },
-                        )
+                    items(packages, key = { it.id }) { item ->
+                        HomePackageCard(item = item, onOpen = { onOpenPackage(item) })
                     }
                 }
             }
@@ -97,7 +104,7 @@ internal fun HomeRecommendedSection(
 /** One "Paket Untukmu" card: chip, title, description, action and the attempts footer. */
 @Composable
 internal fun HomePackageCard(
-    studyPackage: StudyPackage,
+    item: HomePackage,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -116,17 +123,26 @@ internal fun HomePackageCard(
                     modifier = Modifier.padding(spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(spacing.md),
                 ) {
-                    GotestChip(text = studyPackage.examLabel, tone = examChipTone(studyPackage.examLabel))
+                    val category = item.categoryName ?: stringResource(R.string.home_category_general)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                    ) {
+                        GotestChip(text = category, tone = categoryTone(category))
+                        if (item.premium) {
+                            GotestChip(text = stringResource(R.string.practice_premium), tone = GotestChipTone.Yellow)
+                        }
+                    }
                     Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
                         Text(
-                            text = studyPackage.title,
+                            text = item.name,
                             style = MaterialTheme.typography.labelLarge,
                             color = colors.textPrimary,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = studyPackage.description,
+                            text = item.description ?: stringResource(R.string.home_package_description_fallback),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textSecondary,
                             minLines = 2,
@@ -134,40 +150,36 @@ internal fun HomePackageCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    HomePackageAction(studyPackage = studyPackage, onOpen = onOpen)
+                    HomePackageAction(item = item, onOpen = onOpen)
                 }
             }
-            HomePackageFooter(studyPackage = studyPackage)
+            HomePackageFooter(item = item)
         }
     }
 }
 
 @Composable
 private fun HomePackageAction(
-    studyPackage: StudyPackage,
+    item: HomePackage,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val actionText =
-        when {
-            studyPackage.type == PackageType.Tryout -> R.string.home_package_start_tryout
-            studyPackage.attempts > 0 -> R.string.home_package_retry_practice
-            else -> R.string.home_package_start_practice
-        }
+    // The last score only after a finished attempt, as the web shows it.
+    val score = item.lastScore?.takeIf { item.finishedCount > 0 }?.roundToInt()
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         GotestButton(
-            text = stringResource(actionText),
+            text = stringResource(item.actionLabel),
             onClick = onOpen,
             variant = GotestButtonVariant.Plain,
             size = GotestButtonSize.Small,
         )
-        studyPackage.bestScore?.let { score ->
+        score?.let {
             GotestChip(
-                text = stringResource(R.string.home_package_score, GotestFormat.number(score)),
+                text = stringResource(R.string.home_package_score, GotestFormat.number(it)),
                 tone = GotestChipTone.Green,
             )
         }
@@ -177,7 +189,7 @@ private fun HomePackageAction(
 /** "Dikerjakan" and "Dikerjakan Pada" under the white card. */
 @Composable
 private fun HomePackageFooter(
-    studyPackage: StudyPackage,
+    item: HomePackage,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GotestTheme.spacing
@@ -193,11 +205,7 @@ private fun HomePackageFooter(
         HomePackageFooterValue(
             label = stringResource(R.string.home_package_attempts_label),
             value =
-                if (studyPackage.attempts > 0) {
-                    stringResource(R.string.home_package_attempts_value, studyPackage.attempts)
-                } else {
-                    empty
-                },
+                if (item.finishedCount > 0) GotestFormat.number(item.finishedCount) else empty,
             modifier = Modifier.weight(1f),
         )
         Box(
@@ -209,7 +217,7 @@ private fun HomePackageFooter(
         )
         HomePackageFooterValue(
             label = stringResource(R.string.home_package_last_attempt_label),
-            value = studyPackage.lastAttemptOn?.let(GotestFormat::mediumDate) ?: empty,
+            value = shortDate(item.lastFinishedAt) ?: empty,
             modifier = Modifier.weight(1f),
         )
     }
@@ -243,10 +251,11 @@ private fun HomePackageFooterValue(
 private fun HomeRecommendedSectionPreview() {
     GotestTheme {
         HomeRecommendedSection(
-            recommendations = HomePreviewData.recommendations(),
+            selectedType = PackageType.Practice,
+            packages = HomePreviewData.page.practicePackages.map(HomePackage::Practice),
             onSelectType = {},
             onSeeAll = {},
-            onOpenPackage = { _, _ -> },
+            onOpenPackage = {},
             modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
         )
     }
@@ -254,26 +263,15 @@ private fun HomeRecommendedSectionPreview() {
 
 @Preview(showBackground = true, widthDp = 440)
 @Composable
-private fun HomeRecommendedSectionTryoutPreview() {
+private fun HomeRecommendedSectionEmptyPreview() {
     GotestTheme {
         HomeRecommendedSection(
-            recommendations = HomePreviewData.recommendations(PackageType.Tryout),
+            selectedType = PackageType.Tryout,
+            packages = emptyList(),
             onSelectType = {},
             onSeeAll = {},
-            onOpenPackage = { _, _ -> },
+            onOpenPackage = {},
             modifier = Modifier.padding(GotestTheme.spacing.screenHorizontal),
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HomePackageCardPreview() {
-    GotestTheme {
-        HomePackageCard(
-            studyPackage = HomePreviewData.practicePackages.last(),
-            onOpen = {},
-            modifier = Modifier.padding(GotestTheme.spacing.lg),
         )
     }
 }

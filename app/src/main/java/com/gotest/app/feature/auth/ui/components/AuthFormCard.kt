@@ -36,6 +36,7 @@ fun AuthFormCard(
     /** Null on a page with nowhere to go back to, such as "Menunggu persetujuan orang tua". */
     onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(GotestTheme.spacing.lg),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spacing = GotestTheme.spacing
@@ -51,7 +52,7 @@ fun AuthFormCard(
         GotestCard(
             modifier = Modifier.fillMaxSize(),
             shape = MaterialTheme.shapes.extraLarge,
-            contentPadding = PaddingValues(spacing.xl),
+            contentPadding = contentPadding,
             verticalSpacing = spacing.xl,
         ) {
             Row(

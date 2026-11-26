@@ -48,6 +48,7 @@ import com.gotest.app.feature.auth.ui.components.AuthHeading
 import com.gotest.app.feature.auth.ui.components.AuthLogo
 import com.gotest.app.feature.auth.ui.components.AuthMethodTabs
 import com.gotest.app.feature.auth.ui.components.AuthSwitchPrompt
+import com.gotest.app.feature.auth.ui.components.rememberGoogleIdToken
 import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInEffect
 import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInForm
 import com.gotest.app.feature.auth.ui.emailcode.EmailCodeSignInUiEvent
@@ -69,6 +70,7 @@ fun LoginRoute(
     onRegister: () -> Unit,
     onChildSignIn: () -> Unit,
     onPhoneRegister: (phoneDisplay: String) -> Unit,
+    onGoogleRegister: (name: String, email: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
     phoneViewModel: PhoneSignInViewModel = hiltViewModel(),
@@ -91,11 +93,21 @@ fun LoginRoute(
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             LoginEffect.SignedIn -> onSignInSuccess()
+            is LoginEffect.GoogleRegister -> onGoogleRegister(effect.name, effect.email)
         }
     }
+    val pickGoogleAccount = rememberGoogleIdToken { viewModel.onEvent(LoginUiEvent.GoogleResult(it)) }
     LoginScreen(
         uiState = uiState,
-        onEvent = viewModel::onEvent,
+        onEvent = { event ->
+            if (event ==
+                LoginUiEvent.GoogleSignIn
+            ) {
+                pickGoogleAccount()
+            } else {
+                viewModel.onEvent(event)
+            }
+        },
         onForgotPassword = onForgotPassword,
         onRegister = onRegister,
         modifier = modifier,
@@ -171,6 +183,7 @@ fun LoginScreen(
                 passwordForm = !showPhone && !codeMode,
                 codeAvailable = emailCodeState.isAvailable,
                 codeMode = codeMode,
+                showGoogle = uiState.showGoogle,
                 isSubmitting = uiState.isSubmitting,
                 onEvent = onEvent,
                 onUseCode = { onEmailCodeEvent(EmailCodeSignInUiEvent.UseCode(true)) },
@@ -191,6 +204,7 @@ private fun LoginActions(
     passwordForm: Boolean,
     codeAvailable: Boolean,
     codeMode: Boolean,
+    showGoogle: Boolean,
     isSubmitting: Boolean,
     onEvent: (LoginUiEvent) -> Unit,
     onUseCode: () -> Unit,
@@ -216,13 +230,15 @@ private fun LoginActions(
             }
         }
         if (!codeMode) {
-            GotestButton(
-                text = stringResource(R.string.login_google),
-                onClick = { onEvent(LoginUiEvent.GoogleSignIn) },
-                modifier = Modifier.fillMaxWidth(),
-                variant = GotestButtonVariant.Plain,
-                enabled = !isSubmitting,
-            )
+            if (showGoogle) {
+                GotestButton(
+                    text = stringResource(R.string.login_google),
+                    onClick = { onEvent(LoginUiEvent.GoogleSignIn) },
+                    modifier = Modifier.fillMaxWidth(),
+                    variant = GotestButtonVariant.Plain,
+                    enabled = !isSubmitting,
+                )
+            }
             AuthSwitchPrompt(
                 prompt = stringResource(R.string.login_no_account),
                 linkText = stringResource(R.string.login_register_link),
@@ -252,16 +268,18 @@ private fun LoginForm(
             label = stringResource(R.string.login_email_label),
             placeholder = stringResource(R.string.login_email_hint),
             leadingIcon = GotestIcons.Linear.User,
-            supportingText = uiState.emailError?.let { stringResource(it) },
-            isError = uiState.emailError != null,
+            supportingText = uiState.emailError?.let { stringResource(it) } ?: uiState.emailMessage,
+            isError = uiState.emailError != null || uiState.emailMessage != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
         )
-        val passwordError = uiState.passwordError ?: uiState.formError
+        val passwordError =
+            (uiState.passwordError ?: uiState.formError)?.let { stringResource(it) } ?: uiState.formMessage
         GotestPasswordField(
             value = uiState.password,
             onValueChange = { onEvent(LoginUiEvent.PasswordChanged(it)) },
             label = stringResource(R.string.login_password_label),
-            supportingText = passwordError?.let { stringResource(it) },
+            placeholder = stringResource(R.string.login_password_hint),
+            supportingText = passwordError,
             isError = passwordError != null,
             keyboardActions = KeyboardActions(onDone = { onEvent(LoginUiEvent.Submit) }),
         )
@@ -282,7 +300,7 @@ private fun LoginForm(
 private fun LoginScreenPreview() {
     GotestTheme {
         LoginScreen(
-            uiState = LoginUiState(email = "gilangpermana@mail.com"),
+            uiState = LoginUiState(email = "gilangpermana@mail.com", showGoogle = true),
             onEvent = {},
             onForgotPassword = {},
             onRegister = {},
@@ -315,7 +333,7 @@ private fun LoginScreenEmailCodePreview() {
 private fun LoginScreenErrorPreview() {
     GotestTheme {
         LoginScreen(
-            uiState = LoginUiState(email = "gilang", emailError = R.string.auth_error_email),
+            uiState = LoginUiState(email = "gilang", emailError = R.string.auth_error_email, showGoogle = true),
             onEvent = {},
             onForgotPassword = {},
             onRegister = {},

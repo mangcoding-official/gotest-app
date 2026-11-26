@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gotest.app.R
 import com.gotest.app.core.designsystem.component.GotestButton
@@ -38,22 +40,34 @@ import java.time.Instant
 @Composable
 fun GuardianConsentRoute(
     onSignOutSuccess: () -> Unit,
+    onApprove: () -> Unit,
     onDeleteAccount: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GuardianConsentViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // As the web reads the page again when it loads: also when the app comes back from the background.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.onEvent(GuardianConsentUiEvent.Refresh)
+        onPauseOrDispose { }
+    }
     ObserveAsEvents(viewModel.effects) { effect ->
         when (effect) {
             GuardianConsentEffect.SignedOut -> onSignOutSuccess()
+            GuardianConsentEffect.Approved -> onApprove()
         }
     }
-    GuardianConsentScreen(
-        uiState = uiState,
-        onEvent = viewModel::onEvent,
-        onDeleteAccount = onDeleteAccount,
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.onEvent(GuardianConsentUiEvent.Refresh) },
         modifier = modifier,
-    )
+    ) {
+        GuardianConsentScreen(
+            uiState = uiState,
+            onEvent = viewModel::onEvent,
+            onDeleteAccount = onDeleteAccount,
+        )
+    }
 }
 
 @Composable
@@ -82,6 +96,7 @@ fun GuardianConsentScreen(
             GotestLoadingView(modifier = Modifier.fillMaxWidth())
             return@AuthFormCard
         }
+        uiState.emailVerifiedReason?.let { NoticeBox(stringResource(R.string.email_verified_notice, it)) }
         uiState.notice?.let { NoticeBox(it) }
         if (consent.canResend) {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {

@@ -19,9 +19,14 @@ import kotlinx.serialization.Serializable
     val email: String? = null,
 )
 
-/** "Satu langkah lagi" for a new number after its WhatsApp code (T-018). */
+/**
+ * "Satu langkah lagi" for a new number after its WhatsApp code (T-018), or for a new Google account
+ * ([viaGoogle], T-026 A2a): [phoneDisplay] is then the Google email and [name] the name Google gave.
+ */
 @Serializable data class PhoneRegisterDestination(
     val phoneDisplay: String,
+    val viaGoogle: Boolean = false,
+    val name: String = "",
 )
 
 /** Masuk Anak: family code, name, PIN (T-018). */
@@ -29,6 +34,9 @@ import kotlinx.serialization.Serializable
 
 /** "Menunggu persetujuan orang tua" for an under-age account (Aturan 2.15). */
 @Serializable data object GuardianConsentDestination
+
+/** "Menunggu verifikasi email" for an account made while its sign-up code could not be sent (DEC-154). */
+@Serializable data object EmailVerificationDestination
 
 // Top-level tabs
 
@@ -111,8 +119,9 @@ import kotlinx.serialization.Serializable
 @Serializable data object ChangePasswordDestination
 
 /**
- * Hapus Akun. [awaitingConsent]: opened from the parental-approval page, where the server refuses /akun
- * with 403 guardian_consent but still allows DELETE /profil (API-K6 = B), so the child-account check is skipped.
+ * Hapus Akun. [awaitingConsent]: opened from a waiting page (parental approval, or email verification), where the
+ * server refuses /akun with 403 but still allows DELETE /profil (API-K6 = B, DEC-154), so the child-account check
+ * is skipped.
  */
 @Serializable data class DeleteAccountDestination(
     val awaitingConsent: Boolean = false,
