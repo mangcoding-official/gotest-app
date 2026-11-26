@@ -27,9 +27,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gotest.app.R
-import com.gotest.app.core.designsystem.component.GotestAvatar
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestTheme
+import com.gotest.app.feature.leaderboard.ui.components.InitialsAvatar
 
 /** "Kind" of the design's "MB/Rank Row". */
 enum class RankRowKind { Champion, Default, You }
@@ -37,8 +37,10 @@ enum class RankRowKind { Champion, Default, You }
 /** Fixed columns so the ranking header and rows line up. */
 private object RankColumns {
     val position = 32.dp
-    val correct = 72.dp
-    val time = 48.dp
+    val correct = 64.dp
+
+    /** Wide enough for the web's "Waktu total". */
+    val time = 80.dp
 }
 
 /** One line of the final ranking ("MB/Rank Row"). */
@@ -46,7 +48,6 @@ private object RankColumns {
 fun MbRankRow(
     position: Int,
     name: String,
-    avatarUrl: Any?,
     correctLabel: String,
     timeLabel: String,
     kind: RankRowKind,
@@ -78,7 +79,7 @@ fun MbRankRow(
                 Text(text = position.toString(), style = MaterialTheme.typography.labelLarge, color = content)
             }
         },
-        avatar = { GotestAvatar(model = avatarUrl, contentDescription = null, size = GotestTheme.sizes.avatarSm) },
+        avatar = { InitialsAvatar(name = name, size = GotestTheme.sizes.avatarSm) },
         name = { RankText(name, MaterialTheme.typography.labelLarge, content, Modifier.fillMaxWidth()) },
         correct = { RankText(correctLabel, MaterialTheme.typography.labelLarge, content) },
         time = { RankText(timeLabel, MaterialTheme.typography.bodyMedium, timeColor, align = TextAlign.End) },
@@ -155,9 +156,9 @@ private fun MbRankRowPreview() {
             verticalArrangement = Arrangement.spacedBy(GotestTheme.spacing.xs),
         ) {
             MbRankHeader()
-            MbRankRow(1, "Ardy P.", null, "18 benar", "12:41", RankRowKind.Champion)
-            MbRankRow(2, "Nadia P.", null, "16 benar", "13:20", RankRowKind.Default)
-            MbRankRow(3, "Gilang P. (Kamu)", null, "14 benar", "14:05", RankRowKind.You)
+            MbRankRow(1, "Ardy P.", "18 benar", "12:41", RankRowKind.Champion)
+            MbRankRow(2, "Nadia P.", "16 benar", "13:20", RankRowKind.Default)
+            MbRankRow(3, "Gilang P. (Kamu)", "14 benar", "14:05", RankRowKind.You)
         }
     }
 }

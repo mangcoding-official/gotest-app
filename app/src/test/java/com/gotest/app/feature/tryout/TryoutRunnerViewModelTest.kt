@@ -410,6 +410,20 @@ class TryoutRunnerViewModelTest {
             vm.viewModelScope.cancel()
         }
 
+    @Test
+    fun anotherForbiddenRefusalIsLeftToItsOwnWaitingScreen() =
+        runTest {
+            val vm = viewModel(inSection(1))
+            repository.answerReply =
+                Result.failure(ApiError(403, "Verifikasi email dulu.", "email_verification_pending"))
+
+            vm.onEvent(TryoutRunnerEvent.SelectOption(1))
+            runCurrent()
+
+            assertEquals(null, vm.uiState.value.stopped)
+            vm.viewModelScope.cancel()
+        }
+
     private companion object {
         const val ATTEMPT = 1401L
         const val CANCELLED = "Pengerjaan ini dibatalkan oleh tim Gotest. Kamu bisa memulai paket ini lagi."

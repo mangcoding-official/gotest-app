@@ -59,6 +59,8 @@ data class RuangLinks(
     val onOpenPracticeResult: (attemptId: Long, packageName: String) -> Unit,
     val onOpenSession: (sessionId: Long) -> Unit,
     val onOpenTryoutResult: (attemptId: Long) -> Unit,
+    /** Main Bareng of this Mitra's space (A2d). */
+    val onOpenMainBareng: (code: String) -> Unit,
 )
 
 @Composable
@@ -92,6 +94,7 @@ fun RuangRoute(
                 onBack = onBack,
                 onOpenExams = { links.onOpenExams(viewModel.code) },
                 onOpenPlan = { links.onOpenPlan(viewModel.code) },
+                onOpenMainBareng = { links.onOpenMainBareng(viewModel.code) },
                 onTaskEvent = viewModel.tasks::onEvent,
                 onPractice = viewModel::onPractice,
                 // A finished session opens its result, the others the session page (web SessionGroup).
@@ -113,6 +116,7 @@ data class RuangActions(
     val onBack: () -> Unit,
     val onOpenExams: () -> Unit,
     val onOpenPlan: () -> Unit = {},
+    val onOpenMainBareng: () -> Unit = {},
     val onTaskEvent: (TaskEvent) -> Unit = {},
     val onPractice: (RuangPractice, PracticeAction) -> Unit = { _, _ -> },
     val onOpenSession: (TryoutSession) -> Unit = {},
@@ -192,6 +196,8 @@ private fun RuangContent(
                 actions = actions,
             )
         }
+        // Web Ruang/Show: Main Bareng after Tugas hari ini, only while still a member.
+        if (!page.former) MainBarengCard(name = name, onOpen = actions.onOpenMainBareng)
         if (uiState.hasExams) ExamsCard(name = name, former = page.former, onOpenExams = actions.onOpenExams)
         val (finished, upcoming) = page.sessions.partition { it.state == TryoutSession.CLOSED }
         if (!page.former) {
@@ -274,6 +280,30 @@ private fun CardHeader(
             onClick = onOpenPlan,
             variant = GotestButtonVariant.Plain,
             size = GotestButtonSize.Small,
+        )
+    }
+}
+
+@Composable
+private fun MainBarengCard(
+    name: String,
+    onOpen: () -> Unit,
+) {
+    GotestCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.ruang_main_bareng_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = GotestTheme.colors.textPrimary,
+        )
+        Text(
+            text = stringResource(R.string.ruang_main_bareng_text, name),
+            style = MaterialTheme.typography.bodySmall,
+            color = GotestTheme.colors.textSecondary,
+        )
+        GotestButton(
+            text = stringResource(R.string.ruang_main_bareng_open),
+            onClick = onOpen,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

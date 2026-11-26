@@ -24,6 +24,9 @@ internal class ScriptedPracticeRepository : PracticeRepository {
     val answers = mutableListOf<Pair<Long, AnswerData>>()
     val activated = mutableListOf<Long>()
     var submitCalls = 0
+
+    /** When set, a submit waits for it, so a test can let a read land first. */
+    var submitGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
     var attemptCalls = 0
 
     override suspend fun catalog(): Result<PracticeCatalogPage> = catalogReply
@@ -70,6 +73,7 @@ internal class ScriptedPracticeRepository : PracticeRepository {
 
     override suspend fun submit(attemptId: Long): Result<PracticeAttempt> {
         submitCalls++
+        submitGate?.await()
         return submitReply
     }
 

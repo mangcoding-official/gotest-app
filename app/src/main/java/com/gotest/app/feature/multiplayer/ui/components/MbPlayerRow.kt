@@ -29,13 +29,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gotest.app.R
-import com.gotest.app.core.designsystem.component.GotestAvatar
 import com.gotest.app.core.designsystem.component.GotestDivider
 import com.gotest.app.core.designsystem.icon.GotestIcons
 import com.gotest.app.core.designsystem.theme.GotestColors
 import com.gotest.app.core.designsystem.theme.GotestTheme
-import com.gotest.app.feature.multiplayer.domain.GamePlayer
-import com.gotest.app.feature.multiplayer.domain.PlayerState
+import com.gotest.app.feature.leaderboard.ui.components.InitialsAvatar
 
 /** "State" of the design's "MB/Player Row". */
 enum class PlayerRowState { Host, Joined, Playing, Finished, Empty }
@@ -96,7 +94,6 @@ private fun GotestColors.seatBadge(state: PlayerRowState): SeatBadge? =
 fun MbPlayerRow(
     name: String,
     subtitle: String,
-    avatarUrl: Any?,
     state: PlayerRowState,
     modifier: Modifier = Modifier,
 ) {
@@ -115,7 +112,7 @@ fun MbPlayerRow(
         if (state == PlayerRowState.Empty) {
             EmptySeatAvatar()
         } else {
-            GotestAvatar(model = avatarUrl, contentDescription = null, size = GotestTheme.sizes.avatarSm)
+            InitialsAvatar(name = name, size = GotestTheme.sizes.avatarSm)
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -189,15 +186,6 @@ private fun EmptySeatAvatar(modifier: Modifier = Modifier) {
     )
 }
 
-/** Seat badge for a player in the lobby or in "Status pemain". */
-fun GamePlayer.rowState(): PlayerRowState =
-    when (state) {
-        PlayerState.Host -> PlayerRowState.Host
-        PlayerState.Joined -> PlayerRowState.Joined
-        PlayerState.Playing -> PlayerRowState.Playing
-        PlayerState.Finished -> PlayerRowState.Finished
-    }
-
 /** Bordered list that separates seats with hairlines, as in the lobby and "Status pemain". */
 @Composable
 fun MbSeatList(
@@ -221,15 +209,15 @@ fun MbSeatList(
 private fun MbPlayerRowPreview() {
     GotestTheme {
         MbSeatList(modifier = Modifier.padding(GotestTheme.spacing.lg)) {
-            MbPlayerRow("Gilang Permana (Kamu)", "Pembuat permainan", null, PlayerRowState.Host)
+            MbPlayerRow("Gilang Permana (Kamu)", "Pembuat permainan", PlayerRowState.Host)
             GotestDivider()
-            MbPlayerRow("Ardy Pratama", "Bergabung 2 menit lalu", null, PlayerRowState.Joined)
+            MbPlayerRow("Ardy Pratama", "Bergabung 2 menit lalu", PlayerRowState.Joined)
             GotestDivider()
-            MbPlayerRow("Nadia Putri", "Masih di dalam permainan", null, PlayerRowState.Playing)
+            MbPlayerRow("Nadia Putri", "Masih di dalam permainan", PlayerRowState.Playing)
             GotestDivider()
-            MbPlayerRow("Rizky Ramadhan", "Selesai 1 menit lalu", null, PlayerRowState.Finished)
+            MbPlayerRow("Rizky Ramadhan", "Selesai 1 menit lalu", PlayerRowState.Finished)
             GotestDivider()
-            MbPlayerRow("Menunggu pemain...", "7 kursi tersisa", null, PlayerRowState.Empty)
+            MbPlayerRow("Menunggu pemain...", "7 kursi tersisa", PlayerRowState.Empty)
         }
     }
 }

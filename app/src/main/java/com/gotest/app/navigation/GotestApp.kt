@@ -65,7 +65,7 @@ fun GotestApp(
             }
 
             is AppLink.MainBarengCode -> {
-                navController.navigate(MultiplayerDestination(openJoinSheet = true, joinCode = link.code))
+                navController.navigate(MultiplayerDestination(joinCode = link.code))
             }
 
             is AppLink.JoinCode -> {

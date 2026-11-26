@@ -33,6 +33,8 @@ private data class BannerStyle(
     @param:DrawableRes val icon: Int,
     @param:StringRes val title: Int,
     @param:StringRes val message: Int,
+    /** The sentence when both got as many right and time decided (web `duelBanner`). */
+    @param:StringRes val sameCorrectMessage: Int,
 )
 
 private fun GotestColors.bannerStyle(outcome: DuelOutcome): BannerStyle =
@@ -44,6 +46,7 @@ private fun GotestColors.bannerStyle(outcome: DuelOutcome): BannerStyle =
                 GotestIcons.Bold.Award,
                 R.string.multiplayer_duel_win_title,
                 R.string.multiplayer_duel_win_message,
+                R.string.multiplayer_duel_win_faster,
             )
         }
 
@@ -54,6 +57,7 @@ private fun GotestColors.bannerStyle(outcome: DuelOutcome): BannerStyle =
                 GotestIcons.Bold.CloseCircle,
                 R.string.multiplayer_duel_lose_title,
                 R.string.multiplayer_duel_lose_message,
+                R.string.multiplayer_duel_lose_slower,
             )
         }
 
@@ -64,6 +68,7 @@ private fun GotestColors.bannerStyle(outcome: DuelOutcome): BannerStyle =
                 GotestIcons.Bold.MinusCircle,
                 R.string.multiplayer_duel_draw_title,
                 R.string.multiplayer_duel_draw_message,
+                R.string.multiplayer_duel_draw_message,
             )
         }
     }
@@ -73,6 +78,7 @@ private fun GotestColors.bannerStyle(outcome: DuelOutcome): BannerStyle =
 fun MbDuelResultBanner(
     outcome: DuelOutcome,
     modifier: Modifier = Modifier,
+    sameCorrect: Boolean = false,
 ) {
     val style = GotestTheme.colors.bannerStyle(outcome)
     val spacing = GotestTheme.spacing
@@ -110,7 +116,7 @@ fun MbDuelResultBanner(
                 color = style.accent,
             )
             Text(
-                text = stringResource(style.message),
+                text = stringResource(if (sameCorrect) style.sameCorrectMessage else style.message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = GotestTheme.colors.textPlaceholder,
             )

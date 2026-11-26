@@ -537,8 +537,11 @@ class PracticeRunnerViewModel
                 repository
                     .submit(attemptId)
                     .onSuccess {
-                        end()
-                        _effects.send(PracticeRunnerEffect.OpenResult)
+                        // The reader may have seen the end first and opened the result already (A2c re-review, 2).
+                        if (!ended) {
+                            end()
+                            _effects.send(PracticeRunnerEffect.OpenResult)
+                        }
                     }.onFailure { error ->
                         submitting = false
                         if (stopBy(error)) return@onFailure
@@ -562,7 +565,7 @@ class PracticeRunnerViewModel
          * server's sentence; the student can only leave (Ardy's review of A2c, items 1 and 2).
          */
         private fun stopBy(error: Throwable?): Boolean {
-            if (error !is ApiError || error.status !in GONE) return false
+            if (error !is ApiError || !stops(error)) return false
             end()
             drafts.clear()
             _uiState.update {
@@ -595,7 +598,17 @@ class PracticeRunnerViewModel
             private val PERMANENT = setOf(404, 409, 422)
 
             /** Refusals that end the attempt for this student: cancelled (410) or no longer a member (403). */
-            private val GONE = setOf(ApiError.FORBIDDEN, 410)
+            private val GONE = setOf(ApiError.FORBIDDEN, GONE_STATUS)
+            private const val GONE_STATUS = 410
+            private const val NOT_MEMBER = "not_member"
+
+            /**
+             * Only 410 `cancelled` and 403 `not_member` stop the attempt; another 403 (`guardian_consent`,
+             * `email_verification_pending`) belongs to its own waiting screen (A2c re-review, note 1).
+             */
+            fun stops(error: ApiError): Boolean =
+                error.status == GONE_STATUS || (error.status == ApiError.FORBIDDEN && error.code == NOT_MEMBER)
+
             private const val UNPROCESSABLE = 422
 
             /**

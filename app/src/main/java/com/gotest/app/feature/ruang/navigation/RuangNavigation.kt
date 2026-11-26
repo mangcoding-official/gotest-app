@@ -23,6 +23,7 @@ import com.gotest.app.navigation.InvitationDestination
 import com.gotest.app.navigation.JoinCodeDestination
 import com.gotest.app.navigation.JoinWithCodeDestination
 import com.gotest.app.navigation.LoginDestination
+import com.gotest.app.navigation.MultiplayerDestination
 import com.gotest.app.navigation.PracticeResultDestination
 import com.gotest.app.navigation.PracticeRunnerDestination
 import com.gotest.app.navigation.RegisterDestination
@@ -169,6 +170,7 @@ private fun NavController.ruangLinks() =
         onOpenPracticeResult = { id, name -> navigate(PracticeResultDestination(id, name)) },
         onOpenSession = { id -> navigate(TryoutSessionDestination(id)) },
         onOpenTryoutResult = { id -> navigate(TryoutResultDestination(id)) },
+        onOpenMainBareng = { code -> navigate(MultiplayerDestination(space = code)) },
     )
 
 /** Where a Rencana Belajar task leads (T-031 "`target` di aksi tugas"). */
