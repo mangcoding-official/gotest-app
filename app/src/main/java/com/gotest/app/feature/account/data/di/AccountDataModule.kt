@@ -1,23 +1,15 @@
 package com.gotest.app.feature.account.data.di
 
 import com.gotest.app.feature.account.data.BitmapProfilePhotoProcessor
-import com.gotest.app.feature.account.data.FakeAccountDataRepository
-import com.gotest.app.feature.account.data.FakeSettingsRepository
-import com.gotest.app.feature.account.domain.AccountDataRepository
 import com.gotest.app.feature.account.domain.ProfilePhotoProcessor
-import com.gotest.app.feature.account.domain.SettingsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
-/** Account-only repositories. Point these at remote implementations once the API exists. */
+/** The photo of Edit Profil. Pengaturan and Data Pribadi: AccountSettingsModule (src/debug, src/release). */
 @Module
 @InstallIn(SingletonComponent::class)
 interface AccountDataModule {
-    @Binds fun bindSettingsRepository(impl: FakeSettingsRepository): SettingsRepository
-
-    @Binds fun bindAccountDataRepository(impl: FakeAccountDataRepository): AccountDataRepository
-
     @Binds fun bindProfilePhotoProcessor(impl: BitmapProfilePhotoProcessor): ProfilePhotoProcessor
 }

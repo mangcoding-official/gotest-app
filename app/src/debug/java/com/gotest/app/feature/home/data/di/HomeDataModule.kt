@@ -8,8 +8,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
 /**
- * The Notifikasi inbox, hidden until the web has it (AppFeatures.NOTIFICATION_INBOX). Beranda and Cari are bound
- * in HomePagesModule (src/debug, src/release).
+ * Debug builds: the Notifikasi inbox on sample data, hidden until the web has it (AppFeatures.NOTIFICATION_INBOX).
+ * Release builds bind an empty inbox. Beranda and Cari are bound in HomePagesModule.
  */
 @Module
 @InstallIn(SingletonComponent::class)

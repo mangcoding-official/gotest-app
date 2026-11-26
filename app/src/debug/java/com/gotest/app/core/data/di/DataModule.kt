@@ -14,8 +14,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
 /**
- * Shared repositories still on fakes. The account and sign-in moved to SessionDataModule (debug and release,
- * T-026 A2a); Beranda's data waits for A2c-1.
+ * Debug builds: the T-018 catalog, runner, and Leaderboard (out of the graph, A2c-2) and Langganan on sample
+ * data. Release builds bind empty replacements in src/release (no sample data ships, guard `checkNoFakeData`).
  */
 @Module
 @InstallIn(SingletonComponent::class)

@@ -7,7 +7,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
-/** Paket-only repositories. Point these at remote implementations once the API exists. */
+/** Debug builds: Paket Tersimpan on sample data (hidden, AppFeatures.SAVED_PACKAGES); release binds an empty one. */
 @Module
 @InstallIn(SingletonComponent::class)
 interface StudyPackageDataModule {
