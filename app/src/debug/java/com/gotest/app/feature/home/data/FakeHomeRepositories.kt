@@ -44,9 +44,9 @@ class FakeSearchRepository
                         "Paket Latihan",
                         listOf(
                             SearchItem(
-                                "practice-11",
+                                "practice-101",
                                 "Latihan Penalaran Umum 1",
-                                SearchTarget("practice_package", id = 11),
+                                SearchTarget("practice_package", id = 101),
                                 "Mulai Latihan",
                                 listOf("UTBK-SNBT", "20 Soal", "3 Topik"),
                             ),
@@ -57,9 +57,9 @@ class FakeSearchRepository
                         "Paket tryout",
                         listOf(
                             SearchItem(
-                                "tryout-21",
+                                "tryout-301",
                                 "Try Out UTBK-SNBT 1",
-                                SearchTarget("tryout_package", id = 21),
+                                SearchTarget("tryout_package", id = 301),
                                 "Mulai Try Out",
                                 listOf("UTBK-SNBT", "160 Soal", "195 Menit"),
                             ),
